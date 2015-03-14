@@ -1,0 +1,16 @@
+C:\Documents\sources\HerpaDerp\obj\Release\ResolveAssemblyReference.cache
+C:\Documents\sources\HerpaDerp\bin\Release\HerpaDerp.dll
+C:\Documents\sources\HerpaDerp\bin\Release\HerpaDerp.pdb
+C:\Documents\sources\HerpaDerp\bin\Release\OpenTK.dll
+C:\Documents\sources\HerpaDerp\bin\Release\OpenTK.GLControl.dll
+C:\Documents\sources\HerpaDerp\bin\Release\OpenTK.GLControl.xml
+C:\Documents\sources\HerpaDerp\bin\Release\OpenTK.xml
+C:\Documents\sources\HerpaDerp\obj\Release\HerpaDerp.dll
+C:\Documents\sources\HerpaDerp\obj\Release\HerpaDerp.pdb
+C:\Documents\sources\SM64DSe\HerpaDerp\bin\Release\HerpaDerp.dll
+C:\Documents\sources\SM64DSe\HerpaDerp\bin\Release\HerpaDerp.pdb
+C:\Documents\sources\SM64DSe\HerpaDerp\bin\Release\OpenTK.GLControl.xml
+C:\Documents\sources\SM64DSe\HerpaDerp\bin\Release\OpenTK.xml
+C:\Documents\sources\SM64DSe\HerpaDerp\obj\Release\ResolveAssemblyReference.cache
+C:\Documents\sources\SM64DSe\HerpaDerp\obj\Release\HerpaDerp.dll
+C:\Documents\sources\SM64DSe\HerpaDerp\obj\Release\HerpaDerp.pdb

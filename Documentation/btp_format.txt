@@ -1,0 +1,64 @@
+SM64DS BTP (Binary Texture Pattern) format
+
+Fiachra
+2014/03/17
+
+Starts with 36 byte header
+
+0x00	2	Number of frames
+0x02	2	Number of textures
+0x04	4	Address of Texture Headers start
+0x08	2	Number of palettes
+0x0A	2	Zero-padding
+0x0C	4	Address of Palette Headers start
+0x10	4	Address of "Frames Changes" section
+0x14	4	Address of Texture ID's used in 'Start Frames', series of ushorts
+0x18	4	Address of Palette ID's used in 'Start Frames', series of ushorts
+0x1C	2	Number of materials
+0x1E	2	Zero-padding
+0x20	4	Address of Material Headers start
+
+Data
+
+8 byte Texture headers
+	0x00	2	FFFF
+	0x02	2	zero
+	0x04	4	address of null-terminated texture name
+
+8 byte Palette headers
+	0x00	2	FFFF
+	0x02	2	zero
+	0x04	4	Address of null-terminated palette name
+	
+Frame Changes
+	List of frame numbers at which the next texture is to be shown, 
+	frame numbers start at zero, 
+	list contains frame changes for all materials, number of frame changes 
+	for a particular material given in (Material header + 0x08)
+	series of ushorts
+	
+	For eg. 00 00 02 00 03 00 would be 4 frames, with the first frame lasting two frames in duration
+
+Texture ID's
+	List of the texture ID's to be used in each 'texture change', 
+	ID's are the (zero-based) index of the textures referenced by name in this BTP file - 
+	not the texture ID's from the BMD model, 
+	list contains frame changes for all materials, number of frame changes 
+	for a particular material given in (Material header + 0x08)
+	series of ushorts
+
+Palette ID's
+	List of the palette ID's to be used in each 'texture change', 
+	ID's are the (zero-based) index of the palettes referenced by name in this BTP file - 
+	not the palette ID's from the BMD model, 
+	list contains frame changes for all materials, number of frame changes 
+	for a particular material given in (Material header + 0x08)
+	series of ushorts
+
+12 byte Material headers
+	0x00	2	FFFF
+	0x02	2	zero
+	0x04	4	Address of the null-terminated material name
+	0x08	2	Number of frame changes for this material
+	0x0A	2	Frame changes start offset
+

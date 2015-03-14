@@ -1,0 +1,50 @@
+SM64DS BCA (Binary Character Animation) format documentation -- by Mega-Mario
+
+Updated 2014/04/18 with new information from Gericom's MKDS Course Modifier
+Updated 2014/04/21 by Fiachra
+
+0. File header
+
+It is 24 bytes long and laid out as such:
+Offset	Size	Desc.
+0x00	2	Number of bones to be handled (should match the number of bones in the BMD)
+0x02	2	Number of animation frames(1)
+0x04	4	Whether the animation loops, 0 - false, 1 - true
+0x08	4	Offset to scale values section
+0x0C	4	Offset to rotation values section
+0x10	4	Offset to translation values section
+0x14	4	Offset to animation section
+
+(1): animation frames may not last one rendering frame. Their duration depends on how fast the game is playing the animation.
+The number of animation frames is just the number of scale/rotation/translation values that will be read each time the animation is played.
+
+
+1. Scale/Rotation/Translation values sections
+
+Those sections are just series of numbers (fixed-point, 32bit 20:12 for scale and translation, 16bit 4:12 for rotation (0x0400 = 90°)).
+The animation section tells how to use them.
+
+
+2. Animation section
+
+This section contains a 36-byte long animation block for each bone to animate.
+Animation blocks are laid out as such:
+Offset	Size	Desc.
+0x00	4	X scale descriptor
+0x04	4	Y scale descriptor
+0x08	4	Z scale descriptor
+0x0C	4	X rotation descriptor
+0x10	4	Y rotation descriptor
+0x14	4	Z rotation descriptor
+0x18	4	X translation descriptor
+0x1C	4	Y translation descriptor
+0x20	4	Z translation descriptor
+
+Each descriptor consists of 4 bytes laid out as such:
+AA BB CC CC (CCCCBBAA when viewed as dword)
+
+Offset	Size	Desc.
+0x00	1		AA: Whether interpolation should be used to calculate odd frame values using the midpoint of the previous and next 
+				frames, 00 - false, 01 - true. Number of values to read = ((Number of frames in animation / 2) + AA)
+0x01	1		BB: Whether offset increments each frame, 00 - false, 01 - true. If false, only the value at start offset (CC) is used.
+0x02	2		CC: Index of first value into the corresponding value section, ushort

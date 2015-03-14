@@ -1,0 +1,42 @@
+BMG files hold the message (text) data. They are originally LZ77 compressed, with the 'LZ77' string at the beginning, but can be reinserted without compression, pretty much like any file in SM64DS's file system. Well, you quickly get why they are compressed: they're above 80k raw, and compression halves their size
+
+Once decompressed, the file begins with the following 32 byte long header:
+0x00 [4b]: GSEM (0x4D455347)
+0x04 [4b]: 1mgb (0x626D6731)
+0x08 [4b]: size of the whole file
+0x0C [4b]: number of sections? always 2
+0x10 [4b]: ???
+0x14 [12b]: zero
+
+Followed by the INF1 section, which tells where each string is in the file. The section begins with a 16 byte header:
+0x00 [4b]: 1FNI (0x494E4631)
+0x04 [4b]: size of the whole section
+0x08 [2b]: number of string entries
+0x0A [2b]: ???
+0x0C [4b]: zero
+Followed by as many entries as said in the header. Each entry is 8 bytes long and laid out as such:
+0x00 [4b]: offset to string data, relative from the end of the DAT1 section header (see below)
+0x04 [2b]: ???
+0x06 [2b]: ???
+
+Now comes the meat: the DAT1 section. It's started by a 8 byte long header:
+0x00 [4b]: 1TAD (0x44414531)
+0x04 [4b]: size of the whole section
+And the string data. At this point, you're just past the DAT1 section header, and the string offsets in the INF1 sections are relative from here.
+
+String data is not ASCII. Each byte represents the corresponding character in the alphabets posted above. For example, 0x00 is a '0', 0x0C is a 'C', 0x20 is a 'W', and 0x33 is a 'a'.
+There are also some special bytes, which are not characters. Here are the main ones:
+0xFF: end of string data
+0xFD: linebreak
+0xFE: special code begin
+
+Known special codes (0xFE character included, listed as hex):
+FE 05 03 00 00 - D-pad glyph
+FE 05 03 00 01 - (A) glyph
+FE 05 03 00 02 - (B) glyph
+FE 05 03 00 03 - (X) glyph
+FE 05 03 00 04 - (Y) glyph
+FE 05 03 00 05 - (L] glyph
+FE 05 03 00 06 - [R) glyph
+FE 07 01 00 00 00 XX - number of stars till you get XX
+FE 07 01 00 00 02 XX - number of glowing rabbits till you have caught XX

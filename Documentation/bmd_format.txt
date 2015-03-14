@@ -1,0 +1,126 @@
+SM64DS BMD (Binary Model Data) format documentation -- by Mega-Mario
+
+0. File header
+It is 60 bytes long and laid out as such:
+Offset	Size	Desc.
+0x00	4		Scale factor (0=normal, 1=2x bigger, 2=4x bigger...)
+0x04	4		Number of bones
+0x08	4		Offset to bones section
+0x0C	4		Number of display lists
+0x10	4		Offset to display lists section
+0x14	4		Number of textures
+0x18	4		Offset to textures section
+0x1C	4		Number of texture palettes
+0x20	4		Offset to texture palettes section
+0x24	4		Number of materials
+0x28	4		Offset to materials section
+0x2C	4		Offset to transform/bone map
+0x38	4		Seems to be the offset of the texture/palette data block
+
+1. Bones section
+The bones map display lists (geometry) to transforms and materials. Each bone entry is 64 bytes long and laid out as such:
+Offset	Size	Desc.
+0x00	4		Bone ID (usually assigned incrementally from zero)
+0x04	4		Offset to bone name (null-terminated ASCII string)
+0x08	2		Offset in bones to parent bone (signed 16-bit. 0=no parent, -1=parent is the previous bone, ...)
+0x0A	2		1 if the bone has children, 0 otherwise
+0x0C	4		Offset in bones to the next sibling bone (0=bone is last child of its parent)
+0x10	4		X scale (32-bit signed, 20:12 fixed point. Think GX command 0x1B)
+0x14	4		Y scale
+0x18	4		Z scale
+0x1C	2		X rotation (16-bit signed, 0x0400 = 90°)
+0x1E	2		Y rotation
+0x20	2		Z rotation
+0x22	2		Zero (padding)
+0x24	4		X translation (32-bit signed, 20:12 fixed point. Think GX command 0x1C)
+0x28	4		Y translation
+0x2C	4		Z translation
+0x30	4		Number of displaylist/material pairs
+0x34	4		Offset to material IDs list
+0x38	4		Offset to displaylist IDs list
+0x3C	4		Bit0: bone is rendered facing the camera (billboard); Bit2: ???
+
+Transforms are applied in SRT order (scale first, then rotation and translation).
+Each bone's transforms are used to build a 4x4 transform matrix.
+Each bone's transform matrix is multiplied with its parent's transform matrix.
+
+The material and displaylist IDs lists are series of bytes, one for each pair.
+
+
+2. Display lists section
+First, there's a list of offsets. Each entry is 8 bytes long.
+Offset	Size	Desc.
+0x00	4		??? (usually 1)
+0x04	4		Offset to the display list
+
+The display list consists into a 16-byte header:
+Offset	Size	Desc
+0x00	4		Number of transforms
+0x04	4		Offset to transforms list
+0x08	4		Size of the display list data in bytes
+0x0C	4		Offset to the display list data
+
+The display list data is a packed GX display list. It is directly copied to the GXFIFO when rendering on a DS.
+
+The transforms list is a series of bytes.
+Every time a Matrix restore (0x14) command is issued by the display list, the command's parameter (the matrix ID)
+is used as an index into the transforms list. The ID obtained from the transforms list is then used as an index into
+the transform/bone map (series of shorts whose offset is defined in the file header, at 0x2C). The ID finally obtained
+is the ID of the bone whose transform matrix will be used to transform oncoming geometry.
+
+
+3. Textures section
+Each texture entry is 20 bytes long and laid out as such:
+Offset	Size	Desc.
+0x00	4		Offset to texture name (null-terminated ASCII string)
+0x04	4		Offset to texture data
+0x08	4		Size of the texture data in bytes
+0x0C	2		Texture width
+0x0E	2		Texture height
+0x10	4		Texture parameters (think GX command 0x2A) (part 1, tells texture size and type)
+
+The IDs of texture entries are assigned incrementally from zero.
+
+For compressed (type 5) textures, the size of the texture data doesn't count the palette index data.
+The texture data is then directly followed by (size/2) of palette index data.
+
+
+4. Texture palettes section
+Each texture palette entry is 16 bytes long and laid out as such:
+Offset	Size	Desc.
+0x00	4		Offset to palette name (null-terminated ASCII string)
+0x04	4		Offset to palette data
+0x08	4		Size of the palette data in bytes
+0x0C	4		??? (usually 0xFFFFFFFF)
+
+The IDs of palette entries are assigned incrementally from zero.
+
+The palette data is 15-bit BGR color.
+
+
+5. Materials section
+Materials tell the texture, colors and other attributes to use for each piece of geometry in the model.
+Each material entry is 48 bytes long and laid out as such:
+Offset	Size	Desc.
+0x00	4		Offset to material name (null-terminated ASCII string)
+0x04	4		Texture ID (0xFFFFFFFF = no texture)
+0x08	4		Texture palette ID (0xFFFFFFFF = no palette)
+0x0C	4		Texture S scale (32-bit signed, 20:12 fixed point)
+0x10	4		Texture T scale
+0x14	2		Texture rotation (16-bit signed, 0x0400 = 90°)
+0x18	4		Texture S translation (32-bit signed, 20:12 fixed point)
+0x1C	4		Texture T translation
+0x20	4		Texture parameters (think GX command 0x2A) (part 2, tells how to apply the texture)
+0x24	4		Polygon attributes (think GX command 0x29)
+0x28	4		Diffuse/ambient parameters (think GX command 0x30)
+0x2C	4		Specular/emission parameters (think GX command 0x31)
+
+The Texture parameters value found in a material entry holds the texture repeat and transform bits. It is ORed with the
+Texture parameters value found in the texture entry (and other stuff) to form the full Texture parameters value.
+Texture transforms are applied in SRT order. They only work if the Texture parameters value indicates a texture transform
+mode different from zero.
+
+A material entry may have a texture assigned but no palette, if the texture is a direct color texture (type 7).
+
+
+Refer to GBAtek for more information about the GX commands and how the DS' GX hardware works.

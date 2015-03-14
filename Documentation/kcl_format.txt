@@ -1,0 +1,57 @@
+SM64DS KCL (3D collision map) format documentation -- by Mega-Mario
+
+0. File header
+It is 56 bytes long and laid out as such:
+Offset	Size	Desc.
+0x00	4		Offset to Section 1 (points)
+0x04	4		Offset to Section 2 (vectors)
+0x08	4		Offset to Section 3 (collision planes) minus 0x10
+0x0C	4		Offset to Section 4 (grid)
+0x10	4		??? does nothing?
+0x14	4		Bounding box X (divide by 64000 to get actual value)
+0x18	4		Bounding box Y (divide by 64000 to get actual value)
+0x1C	4		Bounding box Z (divide by 64000 to get actual value)
+0x20	4		Bounding box width (negative, divide by grid block size to get number of block)
+0x24	4		Bounding box height (negative, divide by grid block size to get number of block)
+0x28	4		Bounding box depth (negative, divide by grid block size to get number of block)
+0x2C	4		1<<val = size of one grid block (grid: see section 4)
+0x30	4		??? Always 2
+0x34	4		??? scale?
+
+
+1. Section 1 (points)
+Section 1 contains points that are referred to by the collision planes defined in Section 3.
+Each point occupies 12 bytes: 4 bytes for each of the XYZ coordinates. The numbers are
+32-bit signed integers, divide them by 64000 to obtain the actual values.
+
+
+2. Section 2 (vectors)
+Section 2 contains vectors that are referred to by the collision planes defined in Section 3.
+Each normal occupies 6 bytes: 2 bytes for each of the XYZ coordinates. The numbers are
+16-bit signed integers, divide them by 4096 to obtain the actual values.
+
+
+3. Section 3 (collision planes)
+Section 3 defines the collision planes that compose the map. Each plane is no more than a
+triangle defined by a point, a normal vector and a few other vectors.
+
+Each entry in the planes section is 16 bytes long.
+Offset	Size	Desc.
+0x00	4		Plane length (divide by 65536000 to get actual value)
+0x04	2		Origin point ID (refers to Section 1)
+0x06	2		Normal vector ID (refers to Section 2)
+0x08	2		Direction 1 vector ID (refers to Section 2)
+0x0A	2		Direction 2 vector ID (refers to Section 2)
+0x0C	2		Direction 3 vector ID (refers to Section 2)
+0x0E	2		Terrain type (used as an index into a table in the level data)
+
+TODO: document how to obtain the triangle's sides from the directionX vectors
+
+
+4. Section 4 (grid)
+KCL collision maps are split into a 3D grid that begins at the collision map's bounding box origin.
+Section 4 tells which planes are found inside each block of the grid, allowing the game to only check
+those specific planes rather than all the planes when checking for collisions.
+
+TODO: document. Can't be done yet because quirks have been observed in certain files and I have to
+investigate about that.

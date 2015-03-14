@@ -1,0 +1,5 @@
+C:\Documents\sources\SM64DSe\HerpaDerp\obj\Release\ResolveAssemblyReference.cache
+C:\Documents\sources\SM64DSe\HerpaDerp\bin\Release\HaxxGLControl.dll
+C:\Documents\sources\SM64DSe\HerpaDerp\bin\Release\HaxxGLControl.pdb
+C:\Documents\sources\SM64DSe\HerpaDerp\obj\Release\HaxxGLControl.dll
+C:\Documents\sources\SM64DSe\HerpaDerp\obj\Release\HaxxGLControl.pdb
