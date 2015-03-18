@@ -767,6 +767,7 @@ namespace SM64DSe
                     {
                         case 0:
                             matgroup.m_TexCoordScale = new Vector2(1.0f, 1.0f);
+                            matgroup.m_TexCoordRot = 0.0f;
                             matgroup.m_TexCoordTrans = new Vector2(0.0f, 0.0f);
                             break;
 
@@ -774,15 +775,13 @@ namespace SM64DSe
                             {
                                 int sscale = (int)m_File.Read32(mchunkoffset + 0x0C);
                                 int tscale = (int)m_File.Read32(mchunkoffset + 0x10);
+                                short trot = (short)m_File.Read16(mchunkoffset + 0x14);
                                 int strans = (int)m_File.Read32(mchunkoffset + 0x18);
                                 int ttrans = (int)m_File.Read32(mchunkoffset + 0x1C);
 
                                 matgroup.m_TexCoordScale = new Vector2((float)sscale / 4096.0f, (float)tscale / 4096.0f);
+                                matgroup.m_TexCoordRot = ((float)trot * (float)Math.PI) / 2048.0f;
                                 matgroup.m_TexCoordTrans = new Vector2((float)strans / 4096.0f, (float)ttrans / 4096.0f);
-                                //matgroup.m_TexCoordTrans = new Vector2(0.0f, 16.0f);
-                                /*System.Windows.Forms.MessageBox.Show(String.Format("textransform: scale:{0} trans:{1} rot:{2:X8}",
-                                    matgroup.m_TexCoordScale, matgroup.m_TexCoordTrans,
-                                    m_File.Read32(mchunkoffset + 0x1C)));*/
                             }
                             break;
 
@@ -1152,6 +1151,7 @@ namespace SM64DSe
             public byte m_Alpha = 255;
 
             public Vector2 m_TexCoordScale;
+            public float m_TexCoordRot;
             public Vector2 m_TexCoordTrans;
 
             public ushort[] m_BoneIDs;

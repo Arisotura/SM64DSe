@@ -1,9 +1,17 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Release" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Importers/BMD_BCA_Importer_DAE.cs">
-    <Files>
-      <File FileName="Importers/BMD_BCA_Importer_DAE.cs" Line="1" Column="1" />
-    </Files>
+  <MonoDevelop.Ide.Workbench>
+    <Pads>
+      <Pad Id="ProjectPad">
+        <State expanded="True">
+          <Node name="SM64DSe" expanded="True">
+            <Node name="LevelEditorForm.cs" expanded="True">
+              <Node name="LevelEditorForm.Designer.cs" selected="True" />
+            </Node>
+          </Node>
+        </State>
+      </Pad>
+    </Pads>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore />

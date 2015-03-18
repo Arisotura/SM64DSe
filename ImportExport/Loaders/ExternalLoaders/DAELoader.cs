@@ -809,7 +809,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                     {
                         ModelBase.PolyListDef polyListDef;
                         string material = null;
-                        ulong count;
+                        ulong count = 0;
                         InputLocalOffset[] inputs = new InputLocalOffset[0];
                         int[] vcount = new int[0];
                         List<int[]> p = new List<int[]>();
@@ -823,10 +823,13 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                             material = (bindMaterials != null && bindMaterials.Count > 0 && bindMaterials.ContainsKey(matAttr)) ?
                                 bindMaterials[matAttr] : matAttr;
                             count = tris.count;
-                            inputs = tris.input;
-                            vcount = new int[] { 3 };
-                            p.Add(Array.ConvertAll<string, int>
-                                (tris.p.Split(new string[] { " ", "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries), Convert.ToInt32));
+                            if (count > 0)
+                            {
+                                inputs = tris.input;
+                                vcount = new int[] { 3 };
+                                p.Add(Array.ConvertAll<string, int>
+                                    (tris.p.Split(new string[] { " ", "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries), Convert.ToInt32));
+                            }
                         }
                         else if (item as polylist != null)
                         {
@@ -836,11 +839,14 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                             material = (bindMaterials != null && bindMaterials.Count > 0 && bindMaterials.ContainsKey(matAttr)) ?
                                 bindMaterials[matAttr] : matAttr;
                             count = plist.count;
-                            inputs = plist.input;
-                            vcount = Array.ConvertAll<string, int>
-                                (plist.vcount.Split(new string[] { " ", "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries), Convert.ToInt32);
-                            p.Add(Array.ConvertAll<string, int>
-                                (plist.p.Split(new string[] { " ", "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries), Convert.ToInt32));
+                            if (count > 0)
+                            {
+                                inputs = plist.input;
+                                vcount = Array.ConvertAll<string, int>
+                                    (plist.vcount.Split(new string[] { " ", "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries), Convert.ToInt32);
+                                p.Add(Array.ConvertAll<string, int>
+                                    (plist.p.Split(new string[] { " ", "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries), Convert.ToInt32));
+                            }
                         }
                         else if (item as polygons != null)
                         {
@@ -850,25 +856,28 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                             material = (bindMaterials != null && bindMaterials.Count > 0 && bindMaterials.ContainsKey(matAttr)) ?
                                 bindMaterials[matAttr] : matAttr;
                             count = pgons.count;
-                            inputs = pgons.input;
-                            vcount = new int[count];
-                            int[] pTmp = new int[0];
-                            int counter = 0;
-                            for (int i = 0; i < pgons.Items.Length; i++)
+                            if (count > 0)
                             {
-                                var element = pgons.Items[i];
-                                if (element as string != null)
+                                inputs = pgons.input;
+                                vcount = new int[count];
+                                int[] pTmp = new int[0];
+                                int counter = 0;
+                                for (int i = 0; i < pgons.Items.Length; i++)
                                 {
-                                    int[] tmp = Array.ConvertAll<string, int>
-                                        ((element as string).Split(new string[] { " ", "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries), 
-                                        Convert.ToInt32);
-                                    vcount[i] = tmp.Length / inputs.Length;
-                                    Array.Resize(ref pTmp, pTmp.Length + (vcount[i] * inputs.Length));
-                                    Array.Copy(tmp, 0, pTmp, counter, tmp.Length);
-                                    counter += tmp.Length;
+                                    var element = pgons.Items[i];
+                                    if (element as string != null)
+                                    {
+                                        int[] tmp = Array.ConvertAll<string, int>
+                                            ((element as string).Split(new string[] { " ", "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries),
+                                            Convert.ToInt32);
+                                        vcount[i] = tmp.Length / inputs.Length;
+                                        Array.Resize(ref pTmp, pTmp.Length + (vcount[i] * inputs.Length));
+                                        Array.Copy(tmp, 0, pTmp, counter, tmp.Length);
+                                        counter += tmp.Length;
+                                    }
                                 }
+                                p.Add(pTmp);
                             }
-                            p.Add(pTmp);
                         }
                         else if (item as tristrips != null)
                         {
@@ -878,37 +887,44 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                             material = (bindMaterials != null && bindMaterials.Count > 0 && bindMaterials.ContainsKey(matAttr)) ?
                                 bindMaterials[matAttr] : matAttr;
                             count = tristrips.count;
-                            inputs = tristrips.input;
-                            vcount = new int[] { 3 };
-                            // Go through <p> elements and convert it so the format is similar to <polylist> for parsing below
-                            // Eg. given: (0,(1,(2),(3),4),5)
-                            // convert to separate triangles: (0,1,2),(1,2,3),(2,3,4),(3,4,5)
-                            // These will be converted back to triangle strips when writing the BMD model
-                            for (int i = 0; i < tristrips.p.Length; i++)
+                            if (count > 0)
                             {
-                                var element = tristrips.p[i];
-                                if (element as string != null)
+                                inputs = tristrips.input;
+                                vcount = new int[] { 3 };
+                                // Go through <p> elements and convert it so the format is similar to <polylist> for parsing below
+                                // Eg. given: (0,(1,(2),(3),4),5)
+                                // convert to separate triangles: (0,1,2),(1,2,3),(2,3,4),(3,4,5)
+                                // These will be converted back to triangle strips when writing the BMD model
+                                for (int i = 0; i < tristrips.p.Length; i++)
                                 {
-                                    int[] tmp = Array.ConvertAll<string, int>
-                                        ((element as string).Split(new string[] { " ", "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries),
-                                        Convert.ToInt32);
-                                    int numTris = ((tmp.Length / inputs.Length) - 3) + 1;
-                                    int numVertsToTris = numTris * 3;
-                                    int[] tmpConv = new int[numVertsToTris * inputs.Length];
-                                    Array.Copy(tmp, tmpConv, (3 * inputs.Length));
-                                    if (tmp.Length > (3 * inputs.Length))
+                                    var element = tristrips.p[i];
+                                    if (element as string != null)
                                     {
-                                        int startInd = 3 * inputs.Length;
-                                        for (int sourceInd = startInd, destInd = startInd; sourceInd < tmp.Length;
-                                            sourceInd += inputs.Length, destInd += (3 * inputs.Length))
+                                        int[] tmp = Array.ConvertAll<string, int>
+                                            ((element as string).Split(new string[] { " ", "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries),
+                                            Convert.ToInt32);
+                                        int numTris = ((tmp.Length / inputs.Length) - 3) + 1;
+                                        int numVertsToTris = numTris * 3;
+                                        int[] tmpConv = new int[numVertsToTris * inputs.Length];
+                                        Array.Copy(tmp, tmpConv, (3 * inputs.Length));
+                                        if (tmp.Length > (3 * inputs.Length))
                                         {
-                                            Array.Copy(tmp, sourceInd - (2 * inputs.Length), tmpConv, destInd, (3 * inputs.Length));
+                                            int startInd = 3 * inputs.Length;
+                                            for (int sourceInd = startInd, destInd = startInd; sourceInd < tmp.Length;
+                                                sourceInd += inputs.Length, destInd += (3 * inputs.Length))
+                                            {
+                                                Array.Copy(tmp, sourceInd - (2 * inputs.Length), tmpConv, destInd, (3 * inputs.Length));
+                                            }
                                         }
+                                        p.Add(tmpConv);
                                     }
-                                    p.Add(tmpConv);
                                 }
                             }
+                        }
 
+                        if (material.Equals("default_white") && !m_Model.m_Materials.ContainsKey("default_white"))
+                        {
+                            AddWhiteMat();
                         }
 
                         polyListDef = new ModelBase.PolyListDef(id + "." + material, material);
@@ -918,6 +934,8 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                             m_Model.m_BoneTree.GetBoneByID(boneID).GetRoot().m_MaterialsInBranch.Add(material);
                         if (!m_Model.m_BoneTree.GetBoneByID(boneID).m_MaterialsInBranch.Contains(material))
                             m_Model.m_BoneTree.GetBoneByID(boneID).m_MaterialsInBranch.Add(material);
+
+                        if (count == 0) continue;
 
                         int inputCount = inputs.Length;
                         int vertexOffset = -1, normalOffset = -1, texCoordOffset = -1, colourOffset = -1;

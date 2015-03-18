@@ -316,7 +316,6 @@ namespace SM64DSe.ImportExport
 
             ModelBase.FaceListDef tStrip = new ModelBase.FaceListDef(ModelBase.PolyListType.TriangleStrip);
 
-            even = true;
             for (int i = 0; i < stripIndices.Count; i++)
             {
                 TriangleRotation requiredRotation = (TriangleRotation)stripRotations[i];
@@ -327,8 +326,6 @@ namespace SM64DSe.ImportExport
                 rotated.m_Vertices[2] = m_Triangles[stripIndices[i]].m_Triangle.m_Vertices[((int)(2 + requiredRotation) % 3)];
 
                 tStrip.m_Faces.Add(rotated);
-
-                even = !even;
             }
 
             return new Tuple<ModelBase.FaceListDef, List<int>>(tStrip, stripIndices);

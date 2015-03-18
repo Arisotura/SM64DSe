@@ -544,6 +544,7 @@ namespace SM64DSe
                 Program.m_ROM.Write32(0x4AF8, 0x2106C0DE);
                 uint binend = (Program.m_ROM.Read32(0x2C) + 0x4000);
                 Program.m_ROM.Write32(binend, 0xDEC00621);
+                Program.m_ROM.Write32(0x4AEC, 0x00000000);
             }
             else
             {
@@ -551,6 +552,7 @@ namespace SM64DSe
                 Program.m_ROM.Write32(0x4AF8, 0x00000000);
                 uint binend = (Program.m_ROM.Read32(0x2C) + 0x4000);
                 Program.m_ROM.Write32(binend, 0x00000000);
+                Program.m_ROM.Write32(0x4AEC, 0x02061504);
             }
 
             Program.m_ROM.EndRW();

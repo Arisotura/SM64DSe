@@ -233,6 +233,8 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
                     writer.WriteEndElement();// extra
                 }
 
+                WriteDAE_ExtraEffectSM64DSe(writer, mat);
+
                 writer.WriteEndElement();// profile_COMMON
                 if (mat.m_PolygonDrawingFace == ModelBase.MaterialDef.PolygonDrawingFace.FrontAndBack)
                 {
@@ -247,6 +249,56 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
             }
 
             writer.WriteEndElement();
+        }
+
+        private static void WriteDAE_ExtraEffectSM64DSe(XmlWriter writer, ModelBase.MaterialDef material)
+        {
+            writer.WriteStartElement("extra");
+            writer.WriteStartElement("technique");
+            writer.WriteAttributeString("profile", "SM64DSe");
+
+            string lights = "";
+            for (int i = 0; i < material.m_Lights.Length; i++)
+            {
+                lights += (material.m_Lights[i]) ? "1" : "0";
+                if (i < material.m_Lights.Length - 1) lights += " ";
+            }
+            writer.WriteElementString("lights", lights);
+
+            writer.WriteElementString("environment_mapping",
+                (material.m_TexGenMode == ModelBase.TexGenMode.Normal) ? "1" : "0");
+
+            writer.WriteElementString("double_sided", 
+                (material.m_PolygonDrawingFace == ModelBase.MaterialDef.PolygonDrawingFace.FrontAndBack) ? "1" : "0");
+
+            string texTile = "";
+            for (int i = 0; i < material.m_TexTiling.Length; i++)
+            {
+                switch (material.m_TexTiling[i])
+                {
+                    case ModelBase.MaterialDef.TexTiling.Clamp:
+                        texTile += "clamp";
+                        break;
+                    case ModelBase.MaterialDef.TexTiling.Flip:
+                        texTile += "flip";
+                        break;
+                    case ModelBase.MaterialDef.TexTiling.Repeat:
+                        texTile += "repeat";
+                        break;
+                }
+                if (i < material.m_TexTiling.Length - 1) texTile += " ";
+            }
+            writer.WriteElementString("tex_tiling", texTile);
+
+            writer.WriteElementString("tex_scale",
+                material.m_TextureScale.X.ToString(Helper.USA) + " " + material.m_TextureScale.Y.ToString(Helper.USA));
+            writer.WriteElementString("tex_rotate",
+                material.m_TextureRotation.ToString(Helper.USA));
+            writer.WriteElementString("tex_translate",
+                material.m_TextureTranslation.X.ToString(Helper.USA) + " " + material.m_TextureTranslation.Y.ToString(Helper.USA));
+
+            writer.WriteEndElement();// technique
+            writer.WriteEndElement();// extra
         }
 
         private static void WriteDAE_LibraryMaterials(XmlWriter writer, Dictionary<string, ModelBase.MaterialDef> materials)

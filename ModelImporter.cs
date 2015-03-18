@@ -1,4 +1,4 @@
-﻿/*
+/*
     Copyright 2012 Kuribo64
 
     This file is part of SM64DSe.
@@ -771,6 +771,11 @@ namespace SM64DSe
         private void chkKeepVertexOrderDuringStripping_CheckedChanged(object sender, EventArgs e)
         {
             m_ExtraOptions.m_KeepVertexOrderDuringStripping = chkKeepVertexOrderDuringStripping.Checked;
+        }
+
+        private void chkVFlipAllTextures_CheckedChanged(object sender, EventArgs e)
+        {
+            m_ExtraOptions.m_VerticallyFlipAllTextures = chkVFlipAllTextures.Checked;
         }
     }
 }

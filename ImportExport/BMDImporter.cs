@@ -203,19 +203,22 @@ namespace SM64DSe.ImportExport
             public bool m_ConvertToTriangleStrips;
             public bool m_KeepVertexOrderDuringStripping;
             public bool m_AlwaysWriteFullVertexCmd23h;
+            public bool m_VerticallyFlipAllTextures;
             //public bool m_SwapYZ;
             //public bool m_ZMirror;
 
             public BMDExtraImportOptions(bool convertToTriangleStrips, 
                                          bool keepVertexOrderDuringStripping,
-                                         bool alwaysWriteFullVertexCmd23h)
+                                         bool alwaysWriteFullVertexCmd23h,
+                                         bool verticallyFlipAllTextures)
             {
                 m_ConvertToTriangleStrips = convertToTriangleStrips;
                 m_KeepVertexOrderDuringStripping = keepVertexOrderDuringStripping;
                 m_AlwaysWriteFullVertexCmd23h = alwaysWriteFullVertexCmd23h;
+                m_VerticallyFlipAllTextures = verticallyFlipAllTextures;
             }
 
-            public static BMDExtraImportOptions DEFAULT = new BMDExtraImportOptions(true, false, true);
+            public static BMDExtraImportOptions DEFAULT = new BMDExtraImportOptions(true, false, true, false);
         }
 
     }

@@ -98,6 +98,7 @@
     <Compile Include="ImportExport\BMD_BCA_KCLExporter.cs" />
     <Compile Include="ImportExport\BMDImporter.cs" />
     <Compile Include="ImportExport\KCLImporter.cs" />
+    <Compile Include="ImportExport\LevelImportExport\LevelImporter.cs" />
     <Compile Include="ImportExport\Loaders\AbstractModelLoader.cs" />
     <Compile Include="ImportExport\Loaders\ExternalLoaders\collada_schema_1_4.cs" />
     <Compile Include="ImportExport\Loaders\ExternalLoaders\DAELoader.cs" />
@@ -130,9 +131,9 @@
     </Compile>
     <Compile Include="Compression.cs" />
     <Compile Include="SM64DSFormats\BCA.cs" />
-    <Compile Include="ImportExport\LevelDataXML_Exporter.cs" />
+    <Compile Include="ImportExport\LevelImportExport\LevelDataXML_Exporter.cs" />
     <Compile Include="Helper.cs" />
-    <Compile Include="ImportExport\LevelDataXML_Importer.cs" />
+    <Compile Include="ImportExport\LevelImportExport\LevelDataXML_Importer.cs" />
     <Compile Include="SM64DSFormats\BTP.cs" />
     <Compile Include="SM64DSFormats\KCL.cs" />
     <Compile Include="KCLEditorForm.cs">

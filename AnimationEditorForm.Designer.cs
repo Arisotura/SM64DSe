@@ -380,6 +380,7 @@
             this.glModelView.MouseMove += new System.Windows.Forms.MouseEventHandler(this.glModelView_MouseMove);
             this.glModelView.MouseUp += new System.Windows.Forms.MouseEventHandler(this.glModelView_MouseUp);
             this.glModelView.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.glModelView_MouseWheel);
+            this.glModelView.KeyDown += new System.Windows.Forms.KeyEventHandler(this.glLevelView_KeyDown);
             this.glModelView.Resize += new System.EventHandler(this.glModelView_Resize);
             // 
             // toolStrip1

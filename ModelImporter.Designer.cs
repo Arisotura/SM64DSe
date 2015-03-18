@@ -1,4 +1,4 @@
-﻿namespace SM64DSe
+namespace SM64DSe
 {
     partial class ModelImporter
     {
@@ -46,19 +46,17 @@
             this.btnAssignTypes = new System.Windows.Forms.Button();
             this.gridColTypes = new System.Windows.Forms.DataGridView();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.chkVFlipAllTextures = new System.Windows.Forms.CheckBox();
+            this.chkKeepVertexOrderDuringStripping = new System.Windows.Forms.CheckBox();
             this.chkStripify = new System.Windows.Forms.CheckBox();
-            this.cbWipeLevel = new System.Windows.Forms.CheckBox();
             this.chkAlwaysWriteFullVertexCmd23h = new System.Windows.Forms.CheckBox();
             this.lbl02 = new System.Windows.Forms.Label();
             this.txtThreshold = new System.Windows.Forms.TextBox();
             this.lbl01 = new System.Windows.Forms.Label();
             this.cbGenerateCollision = new System.Windows.Forms.CheckBox();
             this.lblScale = new System.Windows.Forms.Label();
-            this.cbSwapYZ = new System.Windows.Forms.CheckBox();
             this.tbScale = new System.Windows.Forms.TextBox();
-            this.cbZMirror = new System.Windows.Forms.CheckBox();
             this.ofdLoadModel = new System.Windows.Forms.OpenFileDialog();
-            this.chkKeepVertexOrderDuringStripping = new System.Windows.Forms.CheckBox();
             this.tsToolBar.SuspendLayout();
             this.ssStatusBar.SuspendLayout();
             //((System.ComponentModel.ISupportInitialize)(this.spcMainContainer)).BeginInit();
@@ -258,24 +256,46 @@
             // 
             this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox1.Controls.Add(this.chkVFlipAllTextures);
             this.groupBox1.Controls.Add(this.chkKeepVertexOrderDuringStripping);
             this.groupBox1.Controls.Add(this.chkStripify);
-            this.groupBox1.Controls.Add(this.cbWipeLevel);
             this.groupBox1.Controls.Add(this.chkAlwaysWriteFullVertexCmd23h);
             this.groupBox1.Controls.Add(this.lbl02);
             this.groupBox1.Controls.Add(this.txtThreshold);
             this.groupBox1.Controls.Add(this.lbl01);
             this.groupBox1.Controls.Add(this.cbGenerateCollision);
             this.groupBox1.Controls.Add(this.lblScale);
-            this.groupBox1.Controls.Add(this.cbSwapYZ);
             this.groupBox1.Controls.Add(this.tbScale);
-            this.groupBox1.Controls.Add(this.cbZMirror);
             this.groupBox1.Location = new System.Drawing.Point(3, 3);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(254, 228);
             this.groupBox1.TabIndex = 5;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Model settings";
+            // 
+            // chkVFlipAllTextures
+            // 
+            this.chkVFlipAllTextures.AutoSize = true;
+            this.chkVFlipAllTextures.Enabled = false;
+            this.chkVFlipAllTextures.Location = new System.Drawing.Point(12, 191);
+            this.chkVFlipAllTextures.Name = "chkVFlipAllTextures";
+            this.chkVFlipAllTextures.Size = new System.Drawing.Size(145, 17);
+            this.chkVFlipAllTextures.TabIndex = 14;
+            this.chkVFlipAllTextures.Text = "Vertically Flip All Textures";
+            this.chkVFlipAllTextures.UseVisualStyleBackColor = true;
+            this.chkVFlipAllTextures.Visible = false;
+            this.chkVFlipAllTextures.CheckedChanged += new System.EventHandler(this.chkVFlipAllTextures_CheckedChanged);
+            // 
+            // chkKeepVertexOrderDuringStripping
+            // 
+            this.chkKeepVertexOrderDuringStripping.AutoSize = true;
+            this.chkKeepVertexOrderDuringStripping.Location = new System.Drawing.Point(29, 145);
+            this.chkKeepVertexOrderDuringStripping.Name = "chkKeepVertexOrderDuringStripping";
+            this.chkKeepVertexOrderDuringStripping.Size = new System.Drawing.Size(220, 17);
+            this.chkKeepVertexOrderDuringStripping.TabIndex = 13;
+            this.chkKeepVertexOrderDuringStripping.Text = "Keep Vertex Order (Keep False if Unsure)";
+            this.chkKeepVertexOrderDuringStripping.UseVisualStyleBackColor = true;
+            this.chkKeepVertexOrderDuringStripping.CheckedChanged += new System.EventHandler(this.chkKeepVertexOrderDuringStripping_CheckedChanged);
             // 
             // chkStripify
             // 
@@ -289,18 +309,6 @@
             this.chkStripify.Text = "Convert to Tri Strips (Strongly Recommended)";
             this.chkStripify.UseVisualStyleBackColor = true;
             this.chkStripify.CheckedChanged += new System.EventHandler(this.chkStripify_CheckedChanged);
-            // 
-            // cbWipeLevel
-            // 
-            this.cbWipeLevel.AutoSize = true;
-            this.cbWipeLevel.Enabled = false;
-            this.cbWipeLevel.Location = new System.Drawing.Point(12, 205);
-            this.cbWipeLevel.Name = "cbWipeLevel";
-            this.cbWipeLevel.Size = new System.Drawing.Size(148, 17);
-            this.cbWipeLevel.TabIndex = 0;
-            this.cbWipeLevel.Text = "Wipe level upon importing";
-            this.cbWipeLevel.UseVisualStyleBackColor = true;
-            this.cbWipeLevel.Visible = false;
             // 
             // chkAlwaysWriteFullVertexCmd23h
             // 
@@ -362,19 +370,6 @@
             this.lblScale.TabIndex = 0;
             this.lblScale.Text = "Scale:";
             // 
-            // cbSwapYZ
-            // 
-            this.cbSwapYZ.AutoSize = true;
-            this.cbSwapYZ.Enabled = false;
-            this.cbSwapYZ.Location = new System.Drawing.Point(142, 191);
-            this.cbSwapYZ.Name = "cbSwapYZ";
-            this.cbSwapYZ.Size = new System.Drawing.Size(94, 17);
-            this.cbSwapYZ.TabIndex = 4;
-            this.cbSwapYZ.Text = "Swap Y and Z";
-            this.cbSwapYZ.UseVisualStyleBackColor = true;
-            this.cbSwapYZ.Visible = false;
-            this.cbSwapYZ.CheckedChanged += new System.EventHandler(this.cbSwapYZ_CheckedChanged);
-            // 
             // tbScale
             // 
             this.tbScale.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
@@ -386,33 +381,9 @@
             this.tbScale.Text = "1";
             this.tbScale.TextChanged += new System.EventHandler(this.tbScale_TextChanged);
             // 
-            // cbZMirror
-            // 
-            this.cbZMirror.AutoSize = true;
-            this.cbZMirror.Enabled = false;
-            this.cbZMirror.Location = new System.Drawing.Point(12, 191);
-            this.cbZMirror.Name = "cbZMirror";
-            this.cbZMirror.Size = new System.Drawing.Size(97, 17);
-            this.cbZMirror.TabIndex = 2;
-            this.cbZMirror.Text = "Reverse Z axis";
-            this.cbZMirror.UseVisualStyleBackColor = true;
-            this.cbZMirror.Visible = false;
-            this.cbZMirror.CheckedChanged += new System.EventHandler(this.cbZMirror_CheckedChanged);
-            // 
             // ofdLoadModel
             // 
             this.ofdLoadModel.Title = "Load model file...";
-            // 
-            // chkKeepVertexOrderDuringStripping
-            // 
-            this.chkKeepVertexOrderDuringStripping.AutoSize = true;
-            this.chkKeepVertexOrderDuringStripping.Location = new System.Drawing.Point(29, 145);
-            this.chkKeepVertexOrderDuringStripping.Name = "chkKeepVertexOrderDuringStripping";
-            this.chkKeepVertexOrderDuringStripping.Size = new System.Drawing.Size(220, 17);
-            this.chkKeepVertexOrderDuringStripping.TabIndex = 13;
-            this.chkKeepVertexOrderDuringStripping.Text = "Keep Vertex Order (Keep False if Unsure)";
-            this.chkKeepVertexOrderDuringStripping.UseVisualStyleBackColor = true;
-            this.chkKeepVertexOrderDuringStripping.CheckedChanged += new System.EventHandler(this.chkKeepVertexOrderDuringStripping_CheckedChanged);
             // 
             // ModelImporter
             // 
@@ -455,15 +426,12 @@
         private System.Windows.Forms.ToolStripTextBox tbModelName;
         private System.Windows.Forms.Label lblScale;
         private System.Windows.Forms.OpenFileDialog ofdLoadModel;
-        private System.Windows.Forms.CheckBox cbZMirror;
         private System.Windows.Forms.TextBox tbScale;
         private System.Windows.Forms.ToolStripButton btnImport;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripStatusLabel slStatus;
-        private System.Windows.Forms.CheckBox cbSwapYZ;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.CheckBox cbGenerateCollision;
-        private System.Windows.Forms.CheckBox cbWipeLevel;
         private System.Windows.Forms.TextBox txtThreshold;
         private System.Windows.Forms.Label lbl01;
         private System.Windows.Forms.Label lbl02;
@@ -476,5 +444,6 @@
         private System.Windows.Forms.CheckBox chkAlwaysWriteFullVertexCmd23h;
         private System.Windows.Forms.CheckBox chkStripify;
         private System.Windows.Forms.CheckBox chkKeepVertexOrderDuringStripping;
+        private System.Windows.Forms.CheckBox chkVFlipAllTextures;
     }
 }

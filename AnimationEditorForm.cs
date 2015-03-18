@@ -177,6 +177,29 @@ namespace SM64DSe
             glModelView.SwapBuffers();
         }
 
+        private void glLevelView_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Home)
+            {
+                ZoomCamera(-0.5f);
+                glModelView.Refresh();
+            }
+            if (e.KeyCode == Keys.End)
+            {
+                ZoomCamera(0.5f);
+                glModelView.Refresh();
+            }
+        }
+
+        private void ZoomCamera(float delta)
+        {
+            m_CamTarget.X += delta * (float)Math.Cos(m_CamRotation.X) * (float)Math.Cos(m_CamRotation.Y);
+            m_CamTarget.Y += delta * (float)Math.Sin(m_CamRotation.Y);
+            m_CamTarget.Z += delta * (float)Math.Sin(m_CamRotation.X) * (float)Math.Cos(m_CamRotation.Y);
+
+            UpdateCamera();
+        }
+
         private bool m_GLLoaded;
         private float m_AspectRatio;
 

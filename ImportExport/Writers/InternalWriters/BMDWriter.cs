@@ -506,6 +506,10 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
                 }
             }
 
+            int palLength = pal.Length;
+            if (palLength % 4 != 0)
+                Array.Resize(ref pal, (palLength + 3) & ~3);
+
             uint dstp = GetDSTextureParamsPart1(dswidth, dsheight, textype, 0);
             return new ConvertedTexture(dstp, tex, pal, texname, palname);
         }
@@ -645,24 +649,18 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
             Dictionary<string, ConvertedTexture> convertedTextures = new Dictionary<string, ConvertedTexture>();
             uint ntex = 0, npal = 0;
             int texsize = 0;
-            foreach (KeyValuePair<string, ModelBase.MaterialDef> _mat in materials)
+            foreach (KeyValuePair<string, ModelBase.TextureDefBase> tex in m_Model.m_Textures)
             {
-                ModelBase.MaterialDef mat = _mat.Value;
-                string matname = _mat.Key;
+                ModelBase.TextureDefBase _tex = tex.Value;
 
-                if (mat.m_TextureDefID != null)
+                if (!convertedTextures.ContainsKey(_tex.m_ID))
                 {
-                    ModelBase.TextureDefBase texture = m_Model.m_Textures[mat.m_TextureDefID];
-
-                    if (!convertedTextures.ContainsKey(texture.m_ID))
-                    {
-                        ConvertedTexture tex = ConvertTexture(texture);
-                        tex.m_TextureID = ntex;
-                        tex.m_PaletteID = npal;
-                        if (tex.m_TextureData != null) { ntex++; texsize += tex.m_TextureData.Length; }
-                        if (tex.m_PaletteData != null) { npal++; texsize += tex.m_PaletteData.Length; }
-                        convertedTextures.Add(texture.m_ID, tex);
-                    }
+                    ConvertedTexture convertedTexture = ConvertTexture(_tex);
+                    convertedTexture.m_TextureID = ntex;
+                    convertedTexture.m_PaletteID = npal;
+                    if (convertedTexture.m_TextureData != null) { ntex++; texsize += convertedTexture.m_TextureData.Length; }
+                    if (convertedTexture.m_PaletteData != null) { npal++; texsize += convertedTexture.m_PaletteData.Length; }
+                    convertedTextures.Add(_tex.m_ID, convertedTexture);
                 }
             }
 
@@ -935,13 +933,23 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
                     // 18    Flip in S Direction   (0=No, 1=Flip each 2nd Texture) (requires Repeat)
                     // 19    Flip in T Direction   (0=No, 1=Flip each 2nd Texture) (requires Repeat)
                     if (mat.m_TexTiling[0] == ModelBase.MaterialDef.TexTiling.Repeat)
+                    {
                         teximage_param |= 0x00010000;
+                    }
                     else if (mat.m_TexTiling[0] == ModelBase.MaterialDef.TexTiling.Flip)
+                    {
+                        teximage_param |= 0x00010000;
                         teximage_param |= 0x00040000;
+                    }
                     if (mat.m_TexTiling[1] == ModelBase.MaterialDef.TexTiling.Repeat)
+                    {
                         teximage_param |= 0x00030000;
+                    }
                     else if (mat.m_TexTiling[1] == ModelBase.MaterialDef.TexTiling.Flip)
+                    {
+                        teximage_param |= 0x00030000;
                         teximage_param |= 0x00080000;
+                    }
 
                     if (mat.m_TextureScale.X > 0f && mat.m_TextureScale.Y > 0f)
                     {

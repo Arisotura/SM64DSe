@@ -31,6 +31,7 @@ using System.IO;
 using System.Globalization;
 using System.Xml;
 using SM64DSe.ImportExport;
+using SM64DSe.ImportExport.LevelImportExport;
 
 
 namespace SM64DSe
@@ -2740,8 +2741,9 @@ namespace SM64DSe
 
             if (ofd.ShowDialog() == DialogResult.OK)
             {
+                LevelDataXML_Importer importer = new LevelDataXML_Importer(ofd.FileName, m_Overlay, m_LevelID, m_MinimapFileIDs);
 
-                int success = LevelDataXML_Importer.ImportLevelDataFromXML(ofd.FileName, m_Overlay, m_LevelID, m_MinimapFileIDs, false);
+                int success = importer.ImportLevel(false);
 
                 if (success != 0)
                 {
@@ -2749,7 +2751,7 @@ namespace SM64DSe
                     return;
                 }
 
-                LevelDataXML_Importer.SaveChangesToAllFiles();
+                importer.SaveChangesToAllFiles();
 
                 foreach (LevelObject obj in m_LevelObjects.Values)
                     obj.Release();

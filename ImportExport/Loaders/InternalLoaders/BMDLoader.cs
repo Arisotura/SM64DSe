@@ -84,6 +84,29 @@ namespace SM64DSe.ImportExport.Loaders.InternalLoaders
                     else if ((matgroup.m_PolyAttribs & 0xC0) == 0x40)
                         material.m_PolygonDrawingFace = ModelBase.MaterialDef.PolygonDrawingFace.Back;
 
+                    material.m_TexGenMode = (ModelBase.TexGenMode)(matgroup.m_TexParams >> 30);
+
+                    material.m_TextureScale = matgroup.m_TexCoordScale;
+                    material.m_TextureRotation = matgroup.m_TexCoordRot;
+                    material.m_TextureTranslation = matgroup.m_TexCoordTrans;
+
+                    byte sRepeat = (byte)((matgroup.m_TexParams & 0x10000) >> 0x10);
+                    byte tRepeat = (byte)((matgroup.m_TexParams & 0x20000) >> 0x11);
+                    byte sFlip = (byte)((matgroup.m_TexParams & 0x40000) >> 0x12);
+                    byte tFlip = (byte)((matgroup.m_TexParams & 0x80000) >> 0x13);
+
+                    material.m_TexTiling[0] = (sRepeat == 1) ? ModelBase.MaterialDef.TexTiling.Repeat : ModelBase.MaterialDef.TexTiling.Clamp;
+                    material.m_TexTiling[0] = (sFlip == 1) ? ModelBase.MaterialDef.TexTiling.Flip : material.m_TexTiling[0];
+                    material.m_TexTiling[1] = (tRepeat == 1) ? ModelBase.MaterialDef.TexTiling.Repeat : ModelBase.MaterialDef.TexTiling.Clamp;
+                    material.m_TexTiling[1] = (tFlip == 1) ? ModelBase.MaterialDef.TexTiling.Flip : material.m_TexTiling[1];
+
+                    byte lights = (byte)(matgroup.m_PolyAttribs & 0x0F);
+                    for (int i = 0; i < 4; i++)
+                    {
+                        byte value = (byte)(lights >> i);
+                        material.m_Lights[i] = (value == 1);
+                    }
+
                     if (!m_Model.m_Materials.ContainsKey(material.m_ID))
                         m_Model.m_Materials.Add(material.m_ID, material);
 
