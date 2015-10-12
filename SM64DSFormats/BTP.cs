@@ -12,7 +12,6 @@ namespace SM64DSe.SM64DSFormats
     public class BTP
     {
         private NitroFile m_File;
-        private BMD m_Model;
         private ushort m_NumFrames;
         private uint m_NumTextures, m_TextureHeadersOffset;
         private uint m_NumPalettes, m_PaletteHeadersOffset;
@@ -31,11 +30,10 @@ namespace SM64DSe.SM64DSFormats
         public List<BTPFrameData> m_Frames;
         public Dictionary<string, BTPMaterialData> m_MaterialData;
 
-        public BTP(NitroFile file, BMD model)
+        public BTP(NitroFile file)
         {
             this.m_File = file;
             this.m_FileName = file.m_Name;
-            this.m_Model = model;
 
             m_NumFrames = m_File.Read16(0x00);
 
@@ -97,14 +95,6 @@ namespace SM64DSe.SM64DSFormats
                 BTPMaterialData matData = new BTPMaterialData(m_MaterialNames[i], matFrameChanges, startOffsetFrameChanges, matNumFrames);
 
                 m_MaterialData.Add(m_MaterialNames[i], matData);
-            }
-        }
-
-        public void ReadBMDTextures()
-        {
-            for (int i = 0; i < m_NumTextures; i++)
-            {
-                m_Model.ReadTexture(m_Model.m_TextureIDs[m_TextureNames[i]], m_Model.m_PaletteIDs[m_PaletteNames[i]]);
             }
         }
 

@@ -139,14 +139,11 @@ namespace SM64DSe
         {
             InitializeComponent();
 
-            Text = Program.AppTitle + " " + Program.AppVersion;
+            Text = Program.AppTitle + " " + Program.AppVersion + " " + Program.AppDate;
             Program.m_ROMPath = "";
             Program.m_LevelEditors = new List<LevelEditorForm>();
 
-            if (Program.AppVersion.ToLowerInvariant().Contains("private beta"))
-            {
-                btnMore.DropDownItems.Add("Dump object info", null, btnDumpObjInfo_Click);
-            }
+            btnMore.DropDownItems.Add("Dump object info", null, btnDumpObjInfo_Click);
 
             slStatusLabel.Text = "Ready";
             ObjectDatabase.Initialize();
@@ -294,23 +291,18 @@ namespace SM64DSe
         {
             string msg = Program.AppTitle + " " + Program.AppVersion + " " + Program.AppDate + "\n\n" +
                 "A level editor for Super Mario 64 DS.\n" +
-                "Coding and design by Mega-Mario, with help from others (see credits).\n" +
+                "Coding and design by Mega-Mario (StapleButter), with help from others (see credits).\n" +
                 "Provided to you by Kuribo64, the SM64DS hacking department.\n" +
                 "\n" +
                 "Credits:\n" +
-                "- Treeki for the overlay decompression (Jap77), the object list, and other help\n" +
-                "- Dirbaio for other help\n" +
-                "- blank for helping with generating collision\n" + 
-                "- Fiachra Murray for DAE rigged and animated model importing and exporting, " + 
-                "help with collision, text editing and other help\n" + 
+                "- Treeki: the overlay decompression (Jap77), the object list, and other help\n" +
+                "- Dirbaio: other help\n" +
+                "- blank: help with generating collision\n" + 
+                "- Fiachra Murray: current developer and maintainer\n" + 
                 "\n" +
                 Program.AppTitle + " is free software. If you paid for it, notify Mega-Mario about it.\n" +
                 "\n" +
                 "Visit Kuribo64's site (http://kuribo64.net/) for more details.";
-
-            // for the lulz
-            if (Program.AppVersion.ToLowerInvariant().Contains("private beta"))
-                msg += "\n\nThis is a private beta. Leaking it out will get you sued by Kuribo64.";
 
             MessageBox.Show(msg, "About " + Program.AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }

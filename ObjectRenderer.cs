@@ -329,7 +329,8 @@ namespace SM64DSe
                 case 303: ret = new NormalBMDRenderer("data/special_obj/c0_water/c0_water.bmd", 0.008f); break;
                 // 304 -- SECRET_COIN -- non-graphical
                 case 305: ret = new NormalBMDRenderer("data/normal_obj/b_coin_switch/b_coin_switch.bmd", 0.008f); break;
-                    // 306-311
+                    // 306-310
+                case 311: ret = new NormalBMDRenderer("data/normal_obj/w_ring/w_ring.bmd", 0.016f); break;
                 case 312: ret = new NormalBMDRenderer("data/enemy/pakkun/pakkun_model.bmd", 0.016f); break;
                 case 313: ret = new NormalBMDRenderer("data/enemy/pakkun/pakkun_model.bmd", 0.004f); break;
                 case 314: ret = new NormalBMDRenderer("data/enemy/pakkun/pakkun_model.bmd", 0.008f); break;

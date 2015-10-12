@@ -405,6 +405,8 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
                         }
                     }
 
+                    if (faces.Count < 1) continue;
+
                     WriteDAE_Polylist(writer, root.m_ID, matName, faces,
                         positionsInBranch, 
                         ((normalsInBranch.Count > 0) ? normalsInBranch : null), 
@@ -644,18 +646,18 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
                 writer.WriteStartElement("source");
                 writer.WriteAttributeString("id", root.m_ID + "-skin-joints");
                 StringBuilder boneNamesArray = new StringBuilder();
-                foreach (ModelBase.BoneDef bone in bonesInBranch)
+                foreach (ModelBase.BoneDef bone in model.m_BoneTree)
                     boneNamesArray.Append(bone.m_ID + " ");
                 boneNamesArray.Remove(boneNamesArray.Length - 1, 1);// Remove extra space character at end
-                writer.WriteStartElement("Name_array");
+                writer.WriteStartElement("IDREF_array");
                 writer.WriteAttributeString("id", root.m_ID + "-skin-joints-array");
-                writer.WriteAttributeString("count", "" + bonesInBranch.Count());
+                writer.WriteAttributeString("count", "" + model.m_BoneTree.Count);
                 writer.WriteString(boneNamesArray.ToString());
-                writer.WriteEndElement();// Name_array
+                writer.WriteEndElement();// IDREF_array
                 writer.WriteStartElement("technique_common");
                 writer.WriteStartElement("accessor");
                 writer.WriteAttributeString("source", "#" + root.m_ID + "-skin-joints-array");
-                writer.WriteAttributeString("count", "" + bonesInBranch.Count());
+                writer.WriteAttributeString("count", "" + model.m_BoneTree.Count);
                 writer.WriteAttributeString("stride", "1");
                 writer.WriteStartElement("param");
                 writer.WriteAttributeString("name", "JOINT");
@@ -672,7 +674,7 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
                 writer.WriteAttributeString("id", root.m_ID + "-skin-bind_poses");
 
                 List<Matrix4> invMatrices = new List<Matrix4>();
-                foreach (ModelBase.BoneDef bone in bonesInBranch)
+                foreach (ModelBase.BoneDef bone in model.m_BoneTree)
                 {
                     invMatrices.Add(bone.m_GlobalInverseTransformation);
                 }
@@ -692,13 +694,13 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
 
                 writer.WriteStartElement("float_array");
                 writer.WriteAttributeString("id", root.m_ID + "-skin-bind_poses-array");
-                writer.WriteAttributeString("count", "" + (bonesInBranch.Count() * 16));
+                writer.WriteAttributeString("count", "" + (model.m_BoneTree.Count * 16));
                 writer.WriteString(sb.ToString());
                 writer.WriteEndElement();// float_array
                 writer.WriteStartElement("technique_common");
                 writer.WriteStartElement("accessor");
                 writer.WriteAttributeString("source", "#" + root.m_ID + "-skin-bind_poses-array");
-                writer.WriteAttributeString("count", "" + bonesInBranch.Count());
+                writer.WriteAttributeString("count", "" + model.m_BoneTree.Count);
                 writer.WriteAttributeString("stride", "16");
                 writer.WriteStartElement("param");
                 writer.WriteAttributeString("name", "TRANSFORM");

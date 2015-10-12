@@ -31,7 +31,6 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
             StreamWriter mtlWriter = new StreamWriter(m_ModelFileName.Substring(0, m_ModelFileName.Length - 4) + ".mtl");
             string dir = Path.GetDirectoryName(m_ModelFileName);
             string baseFileName = Path.GetFileNameWithoutExtension(m_ModelFileName);
-            List<BMD.Texture> textures = new List<BMD.Texture>();
             objWriter.Write("#" + Program.AppTitle + " " + Program.AppVersion + " " + Program.AppDate + "\n\n");
             objWriter.Write("mtllib " + baseFileName + ".mtl" + "\n\n"); // Specify name of material library
             objWriter.Write("bonelib " + baseFileName + ".bones" + "\n\n"); // Specify name of bones list

@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 using System.Globalization;
 using OpenTK;
 using System.Drawing;
+using SM64DSe.SM64DSFormats;
 
 namespace SM64DSe.ImportExport
 {
@@ -387,6 +388,20 @@ namespace SM64DSe.ImportExport
                 m_NumVertices = numVertices;
                 m_Vertices = new VertexDef[m_NumVertices];
             }
+
+            public override bool Equals(object obj)
+            {
+                var other = obj as FaceDef;
+                if (other == null) return false;
+
+                if (m_NumVertices != other.m_NumVertices) return false;
+                for (int v = 0; v < m_NumVertices; v++)
+                {
+                    if (!m_Vertices[v].Equals(other.m_Vertices[v])) return false;
+                }
+
+                return true;
+            }
         }
 
         // NOTE: VertexDef is a Value Type. This is avoid issues such as scaling the same vertex twice 
@@ -553,13 +568,13 @@ namespace SM64DSe.ImportExport
             public string m_ID;
             public string m_ImgHash;
             public TextureFormat m_Format;
-            protected uint m_Width;
-            protected uint m_Height;
+            protected int m_Width;
+            protected int m_Height;
             protected string m_TexName;
             protected string m_PalName;
 
-            public virtual uint GetWidth() { return m_Width; }
-            public virtual uint GetHeight() { return m_Height; }
+            public virtual int GetWidth() { return m_Width; }
+            public virtual int GetHeight() { return m_Height; }
             public virtual string GetTexName() { return m_TexName; }
             public virtual string GetPalName() { return m_PalName; }
             public virtual string CalculateHash() { return null; }
@@ -626,10 +641,17 @@ namespace SM64DSe.ImportExport
                 m_ID = id;
                 m_FileName = fileName;
                 m_Format = TextureFormat.ExternalBitmap;
-                using (Bitmap tmp = new Bitmap(fileName))
+                try
                 {
-                    m_Width = (uint)tmp.Width;
-                    m_Height = (uint)tmp.Height;
+                    using (Bitmap tmp = new Bitmap(fileName))
+                    {
+                        m_Width = tmp.Width;
+                        m_Height = tmp.Height;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Error loading image: " + fileName, ex);
                 }
                 TexAndPalNamesFromFilename(fileName);
                 m_ImgHash = CalculateHash();
@@ -652,12 +674,14 @@ namespace SM64DSe.ImportExport
                 m_Bitmap = bmp;
                 m_TexName = id;
                 m_PalName = id + "_pl";
+                m_Width = bmp.Width;
+                m_Height = bmp.Height;
                 m_ImgHash = CalculateHash();
             }
 
             public override Bitmap GetBitmap()
             {
-                return m_Bitmap;
+                return new Bitmap(m_Bitmap);
             }
         }
 
@@ -667,7 +691,7 @@ namespace SM64DSe.ImportExport
             protected byte[] m_PalData;
             protected byte m_Color0Mode;
 
-            public TextureDefNitro(string texID, byte[] texData, uint width, uint height, byte color0Mode, TextureFormat format)
+            public TextureDefNitro(string texID, byte[] texData, int width, int height, byte color0Mode, TextureFormat format)
             {
                 m_ID = texID;
                 m_TexName = texID;
@@ -680,7 +704,7 @@ namespace SM64DSe.ImportExport
             }
 
             public TextureDefNitro(string texID, byte[] texData, string palID, byte[] palData, 
-                uint width, uint height, byte color0Mode, TextureFormat format)
+                int width, int height, byte color0Mode, TextureFormat format)
             {
                 m_ID = texID;
                 m_TexName = texID;
@@ -709,8 +733,8 @@ namespace SM64DSe.ImportExport
 
             public override Bitmap GetBitmap()
             {
-                throw new NotImplementedException();
-                // May implement for exporting IMD directly to OBJ or DAE in future (but why?)
+                return NitroTexture.FromDataAndType(0xFFFFFFFF, m_TexName, 0xFFFFFFFF, m_PalName,
+                    m_TexData, m_PalData, m_Width, m_Height, m_Color0Mode, (int)m_Format).ToBitmap();
             }
 
             public override bool IsNitro()
@@ -1106,6 +1130,82 @@ namespace SM64DSe.ImportExport
                                 }
                             }
                         }
+                    }
+                }
+            }
+        }
+
+        public bool IsTriangulated()
+        {
+            foreach (BoneDef bone in m_BoneTree)
+            {
+                foreach (GeometryDef geometry in bone.m_Geometries.Values)
+                {
+                    foreach (ModelBase.PolyListDef polyList in geometry.m_PolyLists.Values)
+                    {
+                        foreach (FaceListDef faceList in polyList.m_FaceLists)
+                        {
+                            if (faceList.m_Type != PolyListType.Triangles || faceList.m_Type != PolyListType.TriangleStrip)
+                            {
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+
+        public void EnsureTriangulation()
+        {
+            if (!IsTriangulated())
+            {
+                Triangulate();
+            }
+        }
+
+        private void Triangulate()
+        {
+            foreach (ModelBase.BoneDef bone in m_BoneTree)
+            {
+                foreach (GeometryDef geometry in bone.m_Geometries.Values)
+                {
+                    foreach (PolyListDef polyList in geometry.m_PolyLists.Values)
+                    {
+                        List<int> removeFLs = new List<int>();
+                        List<FaceListDef> triangulated = new List<FaceListDef>();
+                        for (int fl = 0; fl < polyList.m_FaceLists.Count; fl++)
+                        {
+                            FaceListDef faceList = polyList.m_FaceLists[fl];
+                            if (faceList.m_Type != PolyListType.Triangles || faceList.m_Type != PolyListType.TriangleStrip)
+                            {
+                                FaceListDef triangles = new FaceListDef(PolyListType.Triangles);
+
+                                for (int pg = 0; pg < faceList.m_Faces.Count; pg++)
+                                {
+                                    FaceDef face = faceList.m_Faces[pg];
+                                    int numTriangles = 1 + (face.m_NumVertices - 3);
+                                    for (int t = 0; t < numTriangles; t++)
+                                    {
+                                        FaceDef triangle = new FaceDef(3);
+                                        triangle.m_Vertices[0] = face.m_Vertices[0];
+                                        triangle.m_Vertices[1] = face.m_Vertices[t + 1];
+                                        triangle.m_Vertices[2] = face.m_Vertices[t + 2];
+                                        triangles.m_Faces.Add(triangle);
+                                    }
+                                }
+
+                                removeFLs.Add(fl);
+                                triangulated.Add(triangles);
+                            }
+                        }
+
+                        for (int i = removeFLs.Count - 1; i >= 0; i--)
+                        {
+                            polyList.m_FaceLists.RemoveAt(i);
+                        }
+
+                        polyList.m_FaceLists.AddRange(triangulated);
                     }
                 }
             }

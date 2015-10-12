@@ -369,7 +369,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                         // controller eg. a morph, we'll just recursively go through until we find a skin with a geometry 
                         // as the source and return the geometry's ID. 
                         // I've seen a skin use a skin as a source where the first skin gave joint indices of -1 from 3DS Max and 
-                        // OpenCOLLAD, in cases like this, we do as above and just take the geometry ID and attach the skin being 
+                        // OpenCOLLADA, in cases like this, we do as above and just take the geometry ID and attach the skin being 
                         // read to that.
                         string skinSourceID = null;
                         var queue = new Queue<controller>();
@@ -393,8 +393,6 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                             }
                         }
 
-                        m_Model.m_BoneTransformsMap.Clear();
-
                         int[] vertexBoneIDs = ReadSkinController(controllerID, skeletonRoot, skinSourceID);
 
                         Dictionary<string, string> bindMaterials = new Dictionary<string, string>();
@@ -402,7 +400,10 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                         {
                             foreach (instance_material instanceMaterial in instanceController.bind_material.technique_common)
                             {
-                                bindMaterials.Add(instanceMaterial.symbol, instanceMaterial.target.Replace("#", ""));
+                                if (!bindMaterials.ContainsKey(instanceMaterial.symbol))
+                                {
+                                    bindMaterials.Add(instanceMaterial.symbol, instanceMaterial.target.Replace("#", ""));
+                                }
                             }
                         }
 
@@ -538,7 +539,8 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
 
             for (int i = 0; i < jointNames.Length; i++)
             {
-                m_Model.m_BoneTransformsMap.Add(jointNames[i], i);
+                if (!m_Model.m_BoneTransformsMap.GetFirstToSecond().ContainsKey(jointNames[i]))
+                    m_Model.m_BoneTransformsMap.Add(jointNames[i], m_Model.m_BoneTransformsMap.Count);
             }
 
             //for (int i = 0; i < jointNames.Length; i++)
@@ -638,7 +640,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                 if (nodeNODE.ItemsElementName[i].Equals(ItemsChoiceType2.matrix))
                 {
                     Matrix4 nodeMatrix = Helper.DoubleArrayToMatrix4((item as matrix).Values);
-                    Helper.DecomposeSRTMatrix1(nodeMatrix, out nodeScale, out nodeRotation, out nodeTranslation);
+                    Helper.DecomposeSRTMatrix2(nodeMatrix, out nodeScale, out nodeRotation, out nodeTranslation);
                     matrixBacked = true;
                 }
                 else
@@ -748,7 +750,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                         }
                     }
 
-                    Helper.DecomposeSRTMatrix1(result, out nodeScale, out nodeRotation, out nodeTranslation);
+                    Helper.DecomposeSRTMatrix2(result, out nodeScale, out nodeRotation, out nodeTranslation);
                 }
             }
         }
@@ -1369,7 +1371,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                     individualValues[12][i], individualValues[13][i], individualValues[14][i], individualValues[15][i] };
                 Matrix4 mat = Helper.FloatArrayToMatrix4(vals);
                 Vector3 scale, rotation, translation;
-                Helper.DecomposeSRTMatrix1(mat, out scale, out rotation, out translation);
+                Helper.DecomposeSRTMatrix2(mat, out scale, out rotation, out translation);
 
                 merged[0][i] = scale.X;
                 merged[1][i] = scale.Y;

@@ -1,7 +1,7 @@
 ﻿/* BMDWriter
  * 
  * Given a ModelBase object created by a Loader class, generates a BMD model.
- */ 
+ */
 
 using System;
 using System.Collections.Generic;
@@ -11,6 +11,9 @@ using OpenTK;
 using System.Windows.Forms;
 using System.IO;
 using System.Drawing;
+using System.Drawing.Imaging;
+using System.Runtime.InteropServices;
+using SM64DSe.SM64DSFormats;
 
 namespace SM64DSe.ImportExport.Writers.InternalWriters
 {
@@ -152,7 +155,6 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
                 return ret.ToArray();
             }
 
-
             public struct GXCommand
             {
                 public byte m_Command;
@@ -168,367 +170,97 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
             public List<GXCommand> m_CommandList;
         }
 
-        public class ConvertedTexture
+        public static NitroTexture ConvertTexture(uint texID, uint palID, ModelBase.TextureDefBase tex, 
+            BMDImporter.BMDExtraImportOptions.TextureQualitySetting qualitySetting = 
+            BMDImporter.BMDExtraImportOptions.TextureQualitySetting.SmallestSize, bool vFlip = false)
         {
-            public ConvertedTexture(uint dstp, byte[] tex, byte[] pal, string tn, string pn)
+            if (tex.IsNitro())
             {
-                m_DSTexParam = dstp;
-                m_TextureData = tex;
-                m_PaletteData = pal;
-                m_TextureName = tn;
-                m_PaletteName = pn;
-                m_TexType = (dstp >> 26) & 0x7;
-
-                m_TextureDataLength = m_TextureData.Length;
-                if ((dstp & 0x1C000000) == 0x14000000)
-                    m_TextureDataLength -= (m_TextureDataLength / 3);
-            }
-
-            public uint m_DSTexParam;
-            public byte[] m_TextureData;
-            public byte[] m_PaletteData;
-            public int m_TextureDataLength;
-            public string m_TextureName;
-            public string m_PaletteName;
-            public uint m_TextureID, m_PaletteID;
-            public uint m_TexType;
-        }
-
-        public class Palette
-        {
-            private static int ColorComparer(ushort c1, ushort c2)
-            {
-                int r1 = c1 & 0x1F;
-                int g1 = (c1 >> 5) & 0x1F;
-                int b1 = (c1 >> 10) & 0x1F;
-                int r2 = c2 & 0x1F;
-                int g2 = (c2 >> 5) & 0x1F;
-                int b2 = (c2 >> 10) & 0x1F;
-
-                int tdiff = (r2 - r1) + (g2 - g1) + (b2 - b1);
-                if (tdiff == 0)
-                    return 0;
-                else if (tdiff < 0)
-                    return 1;
+                if (vFlip)
+                {
+                    return NitroTexture.FromBitmapAndType(texID, tex.GetTexName(), palID, tex.GetPalName(),
+                        VFlipBitmap(tex.GetBitmap()), (int)tex.m_Format);
+                }
                 else
-                    return -1;
-            }
-
-            public Palette(Bitmap bmp, Rectangle region, int depth)
-            {
-                List<ushort> pal = new List<ushort>(depth);
-
-                // 1. get the colors used within the requested region
-                for (int y = region.Top; y < region.Bottom; y++)
                 {
-                    for (int x = region.Left; x < region.Right; x++)
-                    {
-                        ushort col15 = Helper.ColorToBGR15(bmp.GetPixel(x, y));
-                        if (!pal.Contains(col15))
-                            pal.Add(col15);
-                    }
+                    return NitroTexture.FromDataAndType(texID, tex.GetTexName(), palID, tex.GetPalName(), tex.GetNitroTexData(),
+                        tex.GetNitroPalette(), tex.GetWidth(), tex.GetHeight(), tex.GetColor0Mode(), (int)tex.m_Format);
                 }
-
-                // 2. shrink down the palette by removing colors that
-                // are close to others, until it fits within the
-                // requested size
-                pal.Sort(Palette.ColorComparer);
-                int maxdiff = 1;
-                while (pal.Count > depth)
-                {
-                    for (int i = 1; i < pal.Count; )
-                    {
-                        ushort c1 = pal[i - 1];
-                        ushort c2 = pal[i];
-
-                        int r1 = c1 & 0x1F;
-                        int g1 = (c1 >> 5) & 0x1F;
-                        int b1 = (c1 >> 10) & 0x1F;
-                        int r2 = c2 & 0x1F;
-                        int g2 = (c2 >> 5) & 0x1F;
-                        int b2 = (c2 >> 10) & 0x1F;
-
-                        if (Math.Abs(r1 - r2) <= maxdiff && Math.Abs(g1 - g2) <= maxdiff && Math.Abs(b1 - b2) <= maxdiff)
-                        {
-                            ushort cmerged = Helper.BlendColorsBGR15(c1, 1, c2, 1);
-                            pal[i - 1] = cmerged;
-                            pal.RemoveAt(i);
-                        }
-                        else
-                            i++;
-                    }
-
-                    maxdiff++;
-                }
-
-                m_Palette = pal;
-                m_Referenced = new bool[m_Palette.Count];
-                for (int i = 0; i < m_Palette.Count; i++)
-                    m_Referenced[i] = false;
-            }
-
-            public int FindClosestColorID(ushort c)
-            {
-                int r = c & 0x1F;
-                int g = (c >> 5) & 0x1F;
-                int b = (c >> 10) & 0x1F;
-
-                int maxdiff = 1;
-
-                for (; ; )
-                {
-                    for (int i = 0; i < m_Palette.Count; i++)
-                    {
-                        ushort c1 = m_Palette[i];
-                        int r1 = c1 & 0x1F;
-                        int g1 = (c1 >> 5) & 0x1F;
-                        int b1 = (c1 >> 10) & 0x1F;
-
-                        if (Math.Abs(r1 - r) <= maxdiff && Math.Abs(g1 - g) <= maxdiff && Math.Abs(b1 - b) <= maxdiff)
-                        {
-                            m_Referenced[i] = true;
-                            return i;
-                        }
-                    }
-
-                    maxdiff++;
-                }
-            }
-
-            public static bool AreSimilar(Palette p1, Palette p2)
-            {
-                if (p1.m_Palette.Count > p2.m_Palette.Count)
-                    return false;
-
-                for (int i = 0; i < p1.m_Palette.Count; i++)
-                {
-                    ushort c1 = p1.m_Palette[i];
-                    ushort c2 = p2.m_Palette[i];
-
-                    int r1 = c1 & 0x1F;
-                    int g1 = (c1 >> 5) & 0x1F;
-                    int b1 = (c1 >> 10) & 0x1F;
-                    int r2 = c2 & 0x1F;
-                    int g2 = (c2 >> 5) & 0x1F;
-                    int b2 = (c2 >> 10) & 0x1F;
-
-                    if (Math.Abs(r1 - r2) > 1 || Math.Abs(g1 - g2) > 1 || Math.Abs(b1 - b2) > 1)
-                        return false;
-                }
-
-                return true;
-            }
-
-            public List<ushort> m_Palette;
-            public bool[] m_Referenced;
-        }
-
-        public static ConvertedTexture ConvertTexture(ModelBase.TextureDefBase texture)
-        {
-            if (!texture.IsNitro())
-            {
-                return ConvertTexture(texture.m_ID, texture.GetTexName(), texture.GetPalName(), texture.GetBitmap());
             }
             else
             {
-                int textype = (int)texture.m_Format;
-                int dswidth = 0, dsheight = 0, widthPowerOfTwo = 8, heightPowerOfTwo = 8;
-                GetDSWidthAndHeight((int)texture.GetWidth(), (int)texture.GetHeight(), out dswidth, out dsheight, 
-                    out widthPowerOfTwo, out heightPowerOfTwo);
-                uint dstp = GetDSTextureParamsPart1(dswidth, dsheight, textype, texture.GetColor0Mode());
-
-                return new ConvertedTexture(dstp, texture.GetNitroTexData(), texture.GetNitroPalette(), texture.GetTexName(),
-                    texture.GetPalName());
+                Bitmap bmp = (vFlip) ? VFlipBitmap(tex.GetBitmap()) : tex.GetBitmap();
+                return ConvertTexture(texID, tex.GetTexName(), palID, tex.GetPalName(), bmp, qualitySetting);
             }
         }
 
-        public static ConvertedTexture ConvertTexture(string name, string texname, string palname, Bitmap bmp)
+        public static NitroTexture ConvertTexture(uint texID, string texname, uint palID, string palname, Bitmap bmp,
+            BMDImporter.BMDExtraImportOptions.TextureQualitySetting textureQualitySetting =
+            BMDImporter.BMDExtraImportOptions.TextureQualitySetting.SmallestSize)
         {
-            int dswidth = 0, dsheight = 0, widthPowerOfTwo = 8, heightPowerOfTwo = 8;
-            GetDSWidthAndHeight(bmp.Width, bmp.Height, out dswidth, out dsheight, out widthPowerOfTwo, out heightPowerOfTwo);
+            NitroTexture texture = null;
 
-            // cheap resizing for textures whose dimensions aren't power-of-two
-            if ((widthPowerOfTwo != bmp.Width) || (heightPowerOfTwo != bmp.Height))
-            {
-                Bitmap newbmp = new Bitmap(widthPowerOfTwo, heightPowerOfTwo);
-                Graphics g = Graphics.FromImage(newbmp);
-                g.DrawImage(bmp, new Rectangle(0, 0, widthPowerOfTwo, heightPowerOfTwo));
-                bmp = newbmp;
-            }
+            bool alpha = NitroTexture.BitmapUsesTranslucency(bmp);
+            int nColours = NitroTexture.CountColoursInBitmap(bmp);
 
-            bool alpha = false;
-            for (int y = 0; y < heightPowerOfTwo; y++)
-            {
-                for (int x = 0; x < widthPowerOfTwo; x++)
-                {
-                    int a = bmp.GetPixel(x, y).A;
-                    if (a >= 8 && a <= 248)
-                    {
-                        alpha = true;
-                        break;
-                    }
-                }
-            }
-
-            int textype = 0;
-            byte[] tex = null;
-            byte[] pal = null;
+            int widthPowerOfTwo = 8, heightPowerOfTwo = 8;
+            while (widthPowerOfTwo < bmp.Width) { widthPowerOfTwo *= 2; }
+            while (heightPowerOfTwo < bmp.Height) { heightPowerOfTwo *= 2; }
 
             if (alpha)
             {
                 // a5i3/a3i5
-                tex = new byte[widthPowerOfTwo * heightPowerOfTwo];
-                Palette _pal = new Palette(bmp, new Rectangle(0, 0, bmp.Width, bmp.Height), 32);
-                int alphamask = 0;
-
-                if (_pal.m_Palette.Count <= 8)
+                if (nColours <= 8)
                 {
-                    textype = 6;
-                    alphamask = 0xF8;
+                    texture = new NitroTexture_A5I3(texID, texname, palID, palname, bmp);
                 }
                 else
                 {
-                    textype = 1;
-                    alphamask = 0xE0;
-                }
-
-                for (int y = 0; y < heightPowerOfTwo; y++)
-                {
-                    for (int x = 0; x < widthPowerOfTwo; x++)
-                    {
-                        Color c = bmp.GetPixel(x, y);
-                        ushort bgr15 = Helper.ColorToBGR15(c);
-                        int a = c.A & alphamask;
-
-                        byte val = (byte)(_pal.FindClosestColorID(bgr15) | a);
-                        tex[(y * widthPowerOfTwo) + x] = val;
-                    }
-                }
-
-                pal = new byte[_pal.m_Palette.Count * 2];
-                for (int i = 0; i < _pal.m_Palette.Count; i++)
-                {
-                    pal[i * 2] = (byte)(_pal.m_Palette[i] & 0xFF);
-                    pal[(i * 2) + 1] = (byte)(_pal.m_Palette[i] >> 8);
+                    texture = new NitroTexture_A3I5(texID, texname, palID, palname, bmp);
                 }
             }
             else
             {
-                // type5 - compressed
-                textype = 5;
-                tex = new byte[((widthPowerOfTwo * heightPowerOfTwo) / 16) * 6];
-                List<Palette> pallist = new List<Palette>();
-                List<ushort> paldata = new List<ushort>();
-
-                int texoffset = 0;
-                int palidxoffset = ((widthPowerOfTwo * heightPowerOfTwo) / 16) * 4;
-
-                for (int y = 0; y < heightPowerOfTwo; y += 4)
+                if (nColours <= 4)
                 {
-                    for (int x = 0; x < widthPowerOfTwo; x += 4)
-                    {
-                        bool transp = false;
-
-                        for (int y2 = 0; y2 < 4; y2++)
-                        {
-                            for (int x2 = 0; x2 < 4; x2++)
-                            {
-                                Color c = bmp.GetPixel(x + x2, y + y2);
-
-                                if (c.A < 8)
-                                    transp = true;
-                            }
-                        }
-
-                        Palette txpal = new Palette(bmp, new Rectangle(x, y, 4, 4), transp ? 3 : 4);
-                        uint texel = 0;
-                        ushort palidx = (ushort)(transp ? 0x0000 : 0x8000);
-
-                        for (int y2 = 0; y2 < 4; y2++)
-                        {
-                            for (int x2 = 0; x2 < 4; x2++)
-                            {
-                                int px = 0;
-                                Color c = bmp.GetPixel(x + x2, y + y2);
-                                ushort bgr15 = Helper.ColorToBGR15(c);
-
-                                if (transp && c.A < 8)
-                                    px = 3;
-                                else
-                                    px = txpal.FindClosestColorID(bgr15);
-
-                                texel |= (uint)(px << ((2 * x2) + (8 * y2)));
-                            }
-                        }
-
-                        uint paloffset = 0; bool palfound = false;
-                        for (int i = 0; i < pallist.Count; i++)
-                        {
-                            if (Palette.AreSimilar(txpal, pallist[i]))
-                            {
-                                palfound = true;
-                                break;
-                            }
-
-                            paloffset += (uint)pallist[i].m_Palette.Count;
-                            if ((paloffset & 1) != 0) paloffset++;
-                        }
-
-                        paloffset /= 2;
-                        palidx |= (ushort)(paloffset & 0x3FFF);
-
-                        if (!palfound)
-                        {
-                            pallist.Add(txpal);
-
-                            foreach (ushort col in txpal.m_Palette)
-                                paldata.Add(col);
-                            if ((paldata.Count & 1) != 0)
-                                paldata.Add(0x7C1F);
-                        }
-
-                        tex[texoffset] = (byte)(texel & 0xFF);
-                        tex[texoffset + 1] = (byte)((texel >> 8) & 0xFF);
-                        tex[texoffset + 2] = (byte)((texel >> 16) & 0xFF);
-                        tex[texoffset + 3] = (byte)(texel >> 24);
-                        texoffset += 4;
-                        tex[palidxoffset] = (byte)(palidx & 0xFF);
-                        tex[palidxoffset + 1] = (byte)(palidx >> 8);
-                        palidxoffset += 2;
-                    }
+                    // type 2 - 4 colour palette
+                    texture = new NitroTexture_Palette4(texID, texname, palID, palname, bmp);
                 }
-
-                pal = new byte[paldata.Count * 2];
-                for (int i = 0; i < paldata.Count; i++)
+                else if (textureQualitySetting == BMDImporter.BMDExtraImportOptions.TextureQualitySetting.SmallestSize ||
+                        (textureQualitySetting == BMDImporter.BMDExtraImportOptions.TextureQualitySetting.BetterQualityWhereSensible &&
+                         nColours > 256 && (widthPowerOfTwo * heightPowerOfTwo) > 4096))
                 {
-                    pal[i * 2] = (byte)(paldata[i] & 0xFF);
-                    pal[(i * 2) + 1] = (byte)(paldata[i] >> 8);
+                    // type 5 - compressed
+                    texture = new NitroTexture_Tex4x4(texID, texname, palID, palname, bmp);
+                }
+                else
+                {
+                    if (nColours <= 16)
+                    {
+                        // type 3 - 16 colour palette
+                        texture = new NitroTexture_Palette16(texID, texname, palID, palname, bmp);
+                    }
+                    else if (nColours <= 256)
+                    {
+                        // type 4 - 256 colour palette
+                        texture = new NitroTexture_Palette256(texID, texname, palID, palname, bmp);
+                    }
+                    else
+                    {
+                        // type 7 - direct colour
+                        texture = new NitroTexture_Direct(texID, texname, bmp);
+                    }
                 }
             }
 
-            int palLength = pal.Length;
-            if (palLength % 4 != 0)
-                Array.Resize(ref pal, (palLength + 3) & ~3);
-
-            uint dstp = GetDSTextureParamsPart1(dswidth, dsheight, textype, 0);
-            return new ConvertedTexture(dstp, tex, pal, texname, palname);
+            return texture;
         }
 
-        public static void GetDSWidthAndHeight(int texWidth, int texHeight, out int dswidth, out int dsheight,
-            out int widthPowerOfTwo, out int heightPowerOfTwo)
+        private static Bitmap VFlipBitmap(Bitmap bmp)
         {
-            // (for N=0..7: Size=(8 SHL N); ie. 8..1024 texels)
-            widthPowerOfTwo = 8; heightPowerOfTwo = 8;
-            dswidth = 0; dsheight = 0;
-            while (widthPowerOfTwo < texWidth) { widthPowerOfTwo *= 2; dswidth++; }
-            while (heightPowerOfTwo < texHeight) { heightPowerOfTwo *= 2; dsheight++; }
-        }
-
-        public static uint GetDSTextureParamsPart1(int dswidth, int dsheight, int textype, byte color0mode)
-        {
-            uint dstp = (uint)((dswidth << 20) | (dsheight << 23) |
-                    (textype << 26) | (color0mode << 29));
-            return dstp;
+            bmp = new Bitmap(bmp);
+            bmp.RotateFlip(RotateFlipType.RotateNoneFlipY);
+            return bmp;
         }
 
         public enum VertexListPrimitiveTypes
@@ -541,9 +273,7 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
 
         public NitroFile m_ModelFile;
 
-        protected bool m_ConvertToTriangleStrips = true;
-        protected bool m_KeepVertexOrderDuringStripping = false;
-        protected bool m_AlwaysWriteFullVertexCmd23h = true;
+        BMDImporter.BMDExtraImportOptions m_ImportOptions = BMDImporter.BMDExtraImportOptions.DEFAULT;
 
         protected bool m_ZMirror = false;
         protected bool m_SwapYZ = false;
@@ -555,14 +285,11 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
             base(model, modelFile.m_Name)
         {
             m_ModelFile = modelFile;
-            m_ConvertToTriangleStrips = extraOptions.m_ConvertToTriangleStrips;
-            m_KeepVertexOrderDuringStripping = extraOptions.m_KeepVertexOrderDuringStripping;
-            m_AlwaysWriteFullVertexCmd23h = extraOptions.m_AlwaysWriteFullVertexCmd23h;
+            m_ImportOptions = extraOptions;
 
-            if (m_ConvertToTriangleStrips)
-            {
-                Stripify();
-            }
+            m_Model.EnsureTriangulation();
+
+            if (m_ImportOptions.m_ConvertToTriangleStrips) { Stripify(); }
         }
 
         public override void WriteModel(bool save = true)
@@ -646,7 +373,7 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
                 }
             }
 
-            Dictionary<string, ConvertedTexture> convertedTextures = new Dictionary<string, ConvertedTexture>();
+            Dictionary<string, NitroTexture> convertedTextures = new Dictionary<string, NitroTexture>();
             uint ntex = 0, npal = 0;
             int texsize = 0;
             foreach (KeyValuePair<string, ModelBase.TextureDefBase> tex in m_Model.m_Textures)
@@ -655,11 +382,10 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
 
                 if (!convertedTextures.ContainsKey(_tex.m_ID))
                 {
-                    ConvertedTexture convertedTexture = ConvertTexture(_tex);
-                    convertedTexture.m_TextureID = ntex;
-                    convertedTexture.m_PaletteID = npal;
-                    if (convertedTexture.m_TextureData != null) { ntex++; texsize += convertedTexture.m_TextureData.Length; }
-                    if (convertedTexture.m_PaletteData != null) { npal++; texsize += convertedTexture.m_PaletteData.Length; }
+                    NitroTexture convertedTexture = ConvertTexture(ntex, npal, _tex, 
+                        m_ImportOptions.m_TextureQualitySetting, m_ImportOptions.m_VerticallyFlipAllTextures);
+                    if (convertedTexture.m_RawTextureData != null) { ntex++; texsize += convertedTexture.m_RawTextureData.Length; }
+                    if (convertedTexture.m_RawPaletteData != null) { npal++; texsize += convertedTexture.m_RawPaletteData.Length; }
                     convertedTextures.Add(_tex.m_ID, convertedTexture);
                 }
             }
@@ -924,9 +650,9 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
                 uint texscaleT = 0x00001000;
                 if (mat.m_TextureDefID != null && convertedTextures.ContainsKey(mat.m_TextureDefID))
                 {
-                    ConvertedTexture tex = convertedTextures[mat.m_TextureDefID];
+                    NitroTexture tex = convertedTextures[mat.m_TextureDefID];
                     texid = tex.m_TextureID;
-                    palid = (tex.m_PaletteData != null) ? tex.m_PaletteID : 0xFFFFFFFF;
+                    palid = (tex.m_RawTextureData != null) ? tex.m_PaletteID : 0xFFFFFFFF;
 
                     // 16    Repeat in S Direction (0=Clamp Texture, 1=Repeat Texture)
                     // 17    Repeat in T Direction (0=Clamp Texture, 1=Repeat Texture)
@@ -1044,7 +770,7 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
             uint textraoffset = (uint)(texoffset + (0x14 * ntex));
 
             // Write texture entries
-            foreach (ConvertedTexture tex in convertedTextures.Values)
+            foreach (NitroTexture tex in convertedTextures.Values)
             {
                 curoffset = (uint)(texoffset + (0x14 * tex.m_TextureID));
 
@@ -1067,13 +793,13 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
             uint pextraoffset = (uint)(paloffset + (0x10 * npal));
 
             // Write texture palette entries
-            foreach (ConvertedTexture tex in convertedTextures.Values)
+            foreach (NitroTexture tex in convertedTextures.Values)
             {
-                if (tex.m_PaletteData == null)
+                if (tex.m_RawPaletteData == null)
                     continue;
                 curoffset = (uint)(paloffset + (0x10 * tex.m_PaletteID));
 
-                bmd.Write32(curoffset + 0x08, (uint)tex.m_PaletteData.Length);
+                bmd.Write32(curoffset + 0x08, (uint)tex.m_RawPaletteData.Length);
                 bmd.Write32(curoffset + 0x0C, 0xFFFFFFFF);
 
                 bmd.Write32(curoffset + 0x00, pextraoffset);
@@ -1086,24 +812,23 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
             bmd.Write32(0x38, curoffset);
 
             // Write texture and texture palette data
-            foreach (ConvertedTexture tex in convertedTextures.Values)
+            foreach (NitroTexture tex in convertedTextures.Values)
             {
-                bmd.WriteBlock(curoffset, tex.m_TextureData);
+                bmd.WriteBlock(curoffset, tex.m_RawTextureData);
                 bmd.Write32((uint)(texoffset + (0x14 * tex.m_TextureID) + 0x4), curoffset);
-                curoffset += (uint)tex.m_TextureData.Length;
+                curoffset += (uint)tex.m_RawTextureData.Length;
                 curoffset = (uint)((curoffset + 3) & ~3);
 
-                if (tex.m_PaletteData != null)
+                if (tex.m_RawPaletteData != null)
                 {
-                    bmd.WriteBlock(curoffset, tex.m_PaletteData);
+                    bmd.WriteBlock(curoffset, tex.m_RawPaletteData);
                     bmd.Write32((uint)(paloffset + (0x10 * tex.m_PaletteID) + 0x4), curoffset);
-                    curoffset += (uint)tex.m_PaletteData.Length;
+                    curoffset += (uint)tex.m_RawPaletteData.Length;
                     curoffset = (uint)((curoffset + 3) & ~3);
                 }
             }
 
-            if (save)
-                bmd.SaveChanges();
+            if (save) { bmd.SaveChanges(); }
         }
 
         protected void Stripify()
@@ -1125,7 +850,7 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
                                 try
                                 {
                                     TriangleStripper tStripper = new TriangleStripper(faceList);
-                                    List<ModelBase.FaceListDef> tStrips = tStripper.Stripify(m_KeepVertexOrderDuringStripping);
+                                    List<ModelBase.FaceListDef> tStrips = tStripper.Stripify(m_ImportOptions.m_KeepVertexOrderDuringStripping);
                                     removeFLs.Add(fl);
                                     replacedWithTStrips.AddRange(tStrips);
                                 }
@@ -1274,7 +999,7 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
                 dlpacker.AddColorCommand((Color)vertex.m_VertexColour);
                 lastColourARGB = ((Color)vertex.m_VertexColour).ToArgb();
             }
-            dlpacker.AddVertexCommand(vtx, lastvtx, m_AlwaysWriteFullVertexCmd23h);
+            dlpacker.AddVertexCommand(vtx, lastvtx, m_ImportOptions.m_AlwaysWriteFullVertexCmd23h);
             lastvtx = vtx;
         }
 

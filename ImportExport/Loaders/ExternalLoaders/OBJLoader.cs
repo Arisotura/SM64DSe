@@ -201,7 +201,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
 
                                 vert.m_Position = new Vector3(m_Vertices[int.Parse(idxs[0]) - 1].Xyz);
                                 if (m_Model.m_Materials[curmaterial].m_TextureDefID != null && idxs.Length >= 2 && idxs[1].Length > 0)
-                                    vert.m_TextureCoordinate = new Vector2(m_TexCoords[int.Parse(idxs[1]) - 1]);
+                                    vert.m_TextureCoordinate = m_TexCoords[int.Parse(idxs[1]) - 1];
                                 else
                                     vert.m_TextureCoordinate = null;
                                 /*if (idxs.Length >= 3 && !idxs[2].Equals(""))
@@ -349,8 +349,9 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                     case "mapKd": // diffuse map (texture)
                         {
                             string texname = curline.Substring(parts[0].Length + 1).Trim();
+                            string fullPath = (File.Exists(texname)) ? texname : (m_ModelPath + Path.DirectorySeparatorChar + texname);
                             ModelBase.TextureDefBase texture = new
-                                ModelBase.TextureDefExternalBitmap(texname, m_ModelPath + Path.DirectorySeparatorChar + texname);
+                                ModelBase.TextureDefExternalBitmap(texname, fullPath);
                             AddTexture(texture, m_Model.m_Materials[curmaterial]);
                             break;
                         }

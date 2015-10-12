@@ -80,6 +80,7 @@
             this.btnBTPRenameTexture = new System.Windows.Forms.Button();
             this.btnBTPRenamePalette = new System.Windows.Forms.Button();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.chkCompressReplacedTextures = new System.Windows.Forms.CheckBox();
             //((System.ComponentModel.ISupportInitialize)(this.pbxTexture)).BeginInit();
             this.toolStrip1.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -629,6 +630,7 @@
             // 
             // splitContainer1.Panel1
             // 
+            this.splitContainer1.Panel1.Controls.Add(this.chkCompressReplacedTextures);
             this.splitContainer1.Panel1.Controls.Add(this.lblTexture);
             this.splitContainer1.Panel1.Controls.Add(this.btnBTPRenamePalette);
             this.splitContainer1.Panel1.Controls.Add(this.pbxTexture);
@@ -653,6 +655,17 @@
             this.splitContainer1.Size = new System.Drawing.Size(659, 481);
             this.splitContainer1.SplitterDistance = 271;
             this.splitContainer1.TabIndex = 25;
+            // 
+            // chkCompressReplacedTextures
+            // 
+            this.chkCompressReplacedTextures.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.chkCompressReplacedTextures.AutoSize = true;
+            this.chkCompressReplacedTextures.Location = new System.Drawing.Point(416, 244);
+            this.chkCompressReplacedTextures.Name = "chkCompressReplacedTextures";
+            this.chkCompressReplacedTextures.Size = new System.Drawing.Size(165, 17);
+            this.chkCompressReplacedTextures.TabIndex = 25;
+            this.chkCompressReplacedTextures.Text = "Compress Replaced Textures";
+            this.chkCompressReplacedTextures.UseVisualStyleBackColor = true;
             // 
             // TextureEditorForm
             // 
@@ -732,5 +745,6 @@
         private System.Windows.Forms.Button btnBTPRenameTexture;
         private System.Windows.Forms.Button btnBTPRenamePalette;
         private System.Windows.Forms.SplitContainer splitContainer1;
+        private System.Windows.Forms.CheckBox chkCompressReplacedTextures;
     }
 }

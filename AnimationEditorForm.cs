@@ -465,7 +465,7 @@ namespace SM64DSe
                     SetFrame(goFrame);
                 }
             }
-            catch (Exception ex) { }
+            catch { }
         }
 
         private void btnSelectInputAnimation_Click(object sender, EventArgs e)
@@ -512,7 +512,7 @@ namespace SM64DSe
                 float val = float.Parse(txtScale.Text, Helper.USA);
                 scale = new Vector3(val, val, val);
             }
-            catch (Exception ex)
+            catch 
             {
                 MessageBox.Show("Please enter a valid Scale value as a decimal value, eg. 1.234");
                 return;

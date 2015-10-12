@@ -457,7 +457,7 @@ namespace SM64DSe.ImportExport.LevelImportExport
                     string mat_name = m_TextureAnimationAreasToImport[i].m_TextureAnimations[j].m_MaterialName;
                     m_Overlay.WriteString(next_material_name_address, mat_name, mat_name.Length);
 
-                    next_material_name_address += (uint)((mat_name.Length + 3) & ~3);
+                    next_material_name_address += (uint)(((mat_name.Length + 1) + 3) & ~3); // remember that there'll be a null byte after name
 
                     m_DataOffset += 0x1C;
                 }

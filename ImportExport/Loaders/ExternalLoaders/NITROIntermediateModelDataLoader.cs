@@ -188,14 +188,14 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                     }
 
                     texture = new ModelBase.TextureDefNitro(name, dataTex, palette_name, dataPal,
-                        (uint)width, (uint)height, 
+                        width, height, 
                         (byte)((color0_mode != null && color0_mode.Equals("transparency")) ? 1 : 0), 
                         textureFormat);
                 }
                 else
                 {
-                    texture = new ModelBase.TextureDefNitro(name, dataTex, (uint)width, (uint)height,
-                        1, textureFormat);
+                    texture = new ModelBase.TextureDefNitro(name, dataTex, width, height,
+                        0, textureFormat);
                 }
 
                 m_Model.m_Textures.Add(name, texture);
@@ -712,7 +712,6 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                                 //3+(N-1) vertices per N triangles
                                 //(N-3)+1 Triangles per N Vertices
                                 int numFaces = primitive_vertex_size - 2;
-                                int numVertsPerFace = 3;
                                 for (int i = 0; i < numFaces; i++)
                                 {
                                     ModelBase.FaceDef face = new ModelBase.FaceDef(3);

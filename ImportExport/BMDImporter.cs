@@ -204,21 +204,32 @@ namespace SM64DSe.ImportExport
             public bool m_KeepVertexOrderDuringStripping;
             public bool m_AlwaysWriteFullVertexCmd23h;
             public bool m_VerticallyFlipAllTextures;
+            public TextureQualitySetting m_TextureQualitySetting;
             //public bool m_SwapYZ;
             //public bool m_ZMirror;
 
             public BMDExtraImportOptions(bool convertToTriangleStrips, 
                                          bool keepVertexOrderDuringStripping,
                                          bool alwaysWriteFullVertexCmd23h,
-                                         bool verticallyFlipAllTextures)
+                                         bool verticallyFlipAllTextures, 
+                                         TextureQualitySetting textureQualitySetting)
             {
                 m_ConvertToTriangleStrips = convertToTriangleStrips;
                 m_KeepVertexOrderDuringStripping = keepVertexOrderDuringStripping;
                 m_AlwaysWriteFullVertexCmd23h = alwaysWriteFullVertexCmd23h;
                 m_VerticallyFlipAllTextures = verticallyFlipAllTextures;
+                m_TextureQualitySetting = textureQualitySetting;
             }
 
-            public static BMDExtraImportOptions DEFAULT = new BMDExtraImportOptions(true, false, true, false);
+            public static BMDExtraImportOptions DEFAULT = 
+                new BMDExtraImportOptions(true, false, true, false, TextureQualitySetting.SmallestSize);
+
+            public enum TextureQualitySetting 
+            {
+                SmallestSize, 
+                BetterQualityWhereSensible, 
+                BestQuality
+            };
         }
 
     }

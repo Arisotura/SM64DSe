@@ -135,6 +135,7 @@
     <Compile Include="Helper.cs" />
     <Compile Include="ImportExport\LevelImportExport\LevelDataXML_Importer.cs" />
     <Compile Include="SM64DSFormats\BTP.cs" />
+    <Compile Include="SM64DSFormats\BMD.NitroTexture.cs" />
     <Compile Include="SM64DSFormats\KCL.cs" />
     <Compile Include="KCLEditorForm.cs">
       <SubType>Form</SubType>

@@ -362,13 +362,6 @@ namespace SM64DSe
         {
             InitializeComponent();
 
-            // remove debug controls if needed
-            if (!Program.AppVersion.ToLowerInvariant().Contains("private beta"))
-            {
-                btnDumpOverlay.Visible = false;
-                btnEditPaths.Visible = false;
-            }
-
             this.Text = string.Format("[{0}] {1} - {2} {3}", levelid, Strings.LevelNames[levelid], Program.AppTitle, Program.AppVersion);
 
             m_MouseDown = MouseButtons.None;
@@ -1220,6 +1213,7 @@ namespace SM64DSe
 
             LevelObject obj = AddObject(type, id, objectToCopy.m_Layer, objectToCopy.m_Area);
             obj.Position = objectToCopy.Position;
+            if (objectToCopy.SupportsRotation()) obj.YRotation = objectToCopy.YRotation;
             if (obj.Parameters != null) Array.Copy(objectToCopy.Parameters, obj.Parameters, obj.Parameters.Length);
             obj.GenerateProperties();
             pgObjectProperties.SelectedObject = obj.m_Properties;
@@ -2177,7 +2171,12 @@ namespace SM64DSe
 
         private void tvObjectList_AfterSelect(object sender, TreeViewEventArgs e)
         {
-            if (e.Node.Tag == null) return;
+            if (e.Node.Tag == null)
+            {
+                m_SelectedObject = null;
+                m_Selected = m_LastSelected = 0xFFFFFFFF;
+                return;
+            }
 
             uint objid = (uint)e.Node.Tag;
             m_Selected = m_LastSelected = objid;

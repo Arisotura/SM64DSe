@@ -81,6 +81,21 @@ namespace SM64DSe
             return Color.FromArgb(red, green, blue);
         }
 
+        public static uint BytesToUInt32(byte[] values, int index)
+        {
+            return (uint)(values[index] | (values[index + 1] << 8) | (values[index + 2] << 16) | (values[index + 3] << 24));
+        }
+
+        public static ushort BytesToUShort16(byte[] values, int index)
+        {
+            return (ushort)(values[index] | (values[index + 1] << 8));
+        }
+
+        public static ushort BytesToUShort16(byte[] values, int index, ushort defaultValue)
+        {
+            return (index < values.Length) ? BytesToUShort16(values, index) : defaultValue;
+        }
+
         public static ushort BlendColorsBGR15(ushort c1, int w1, ushort c2, int w2)
         {
             int r1 = c1 & 0x1F;

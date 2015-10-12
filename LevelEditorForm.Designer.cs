@@ -61,7 +61,6 @@ namespace SM64DSe
             this.btnOffsetAllCoords = new System.Windows.Forms.ToolStripButton();
             this.glLevelView = new OpenTK.GLControl(new GraphicsMode(new ColorFormat(32), 24, 8));
             this.tsViewActions = new System.Windows.Forms.ToolStrip();
-            this.btnDumpOverlay = new System.Windows.Forms.ToolStripButton();
             this.btnLOL = new System.Windows.Forms.ToolStripButton();
             this.btnImportXML = new System.Windows.Forms.ToolStripButton();
             this.btnExportXML = new System.Windows.Forms.ToolStripButton();
@@ -450,7 +449,6 @@ namespace SM64DSe
             // tsViewActions
             // 
             this.tsViewActions.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.btnDumpOverlay,
             this.btnLOL,
             this.btnImportXML,
             this.btnExportXML,
@@ -462,19 +460,6 @@ namespace SM64DSe
             this.tsViewActions.Size = new System.Drawing.Size(689, 25);
             this.tsViewActions.TabIndex = 0;
             this.tsViewActions.Text = "toolStrip2";
-            // 
-            // btnDumpOverlay
-            // 
-            this.btnDumpOverlay.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
-            this.btnDumpOverlay.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.btnDumpOverlay.Image = ((System.Drawing.Image)(resources.GetObject("btnDumpOverlay.Image")));
-            this.btnDumpOverlay.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnDumpOverlay.Name = "btnDumpOverlay";
-            this.btnDumpOverlay.Size = new System.Drawing.Size(85, 22);
-            this.btnDumpOverlay.Text = "Dump overlay";
-            this.btnDumpOverlay.ToolTipText = "Debugging feature";
-            this.btnDumpOverlay.Visible = false;
-            this.btnDumpOverlay.Click += new System.EventHandler(this.btnDumpOverlay_Click);
             // 
             // btnLOL
             // 
@@ -906,7 +891,6 @@ namespace SM64DSe
         private System.Windows.Forms.ToolStripMenuItem btnAddTpSrc;
         private System.Windows.Forms.ToolStripMenuItem btnAddTpDst;
         private System.Windows.Forms.ToolStripButton btnAddView;
-        private System.Windows.Forms.ToolStripButton btnDumpOverlay;
         private System.Windows.Forms.ToolStripButton btnLOL;
         private OpenTK.GLControl glLevelView;
         private System.Windows.Forms.ToolStripButton btnEditMinimap;

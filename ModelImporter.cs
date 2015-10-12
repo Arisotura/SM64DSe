@@ -715,9 +715,7 @@ namespace SM64DSe
 
         private void btnEditTextures_Click(object sender, EventArgs e)
         {
-            BMD bmd = new BMD(Program.m_ROM.GetFileFromName(m_BMDName));
-
-            new TextureEditorForm(bmd, this).Show(this);
+            new TextureEditorForm(m_BMDName, this).Show(this);
         }
 
         private void chkInGamePreview_CheckedChanged(object sender, EventArgs e)
@@ -776,6 +774,21 @@ namespace SM64DSe
         private void chkVFlipAllTextures_CheckedChanged(object sender, EventArgs e)
         {
             m_ExtraOptions.m_VerticallyFlipAllTextures = chkVFlipAllTextures.Checked;
+        }
+
+        private void rbAlwaysCompress_CheckedChanged(object sender, EventArgs e)
+        {
+            m_ExtraOptions.m_TextureQualitySetting = BMDImporter.BMDExtraImportOptions.TextureQualitySetting.SmallestSize;
+        }
+
+        private void rbBetterQualityWhereSensible_CheckedChanged(object sender, EventArgs e)
+        {
+            m_ExtraOptions.m_TextureQualitySetting = BMDImporter.BMDExtraImportOptions.TextureQualitySetting.BetterQualityWhereSensible;
+        }
+
+        private void rbNeverCompress_CheckedChanged(object sender, EventArgs e)
+        {
+            m_ExtraOptions.m_TextureQualitySetting = BMDImporter.BMDExtraImportOptions.TextureQualitySetting.BestQuality;
         }
     }
 }

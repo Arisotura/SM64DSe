@@ -43,6 +43,8 @@ namespace SM64DSe.ImportExport.Loaders.InternalLoaders
                     listOfBones[listOfBones.Count + mdchunk.m_ParentOffset].AddChild(bone);
                 }
 
+                m_Model.m_BoneTransformsMap.Add(bone.m_ID, m_Model.m_BoneTransformsMap.Count);
+
                 ModelBase.GeometryDef geomDef = null;
                 if (mdchunk.m_MatGroups.Length > 0)
                 {
@@ -67,14 +69,14 @@ namespace SM64DSe.ImportExport.Loaders.InternalLoaders
                     bool hasTextures = (matgroup.m_Texture != null);
                     if (hasTextures)
                     {
-                        if (!m_Model.m_Textures.ContainsKey(matgroup.m_Texture.m_TexName))
+                        if (!m_Model.m_Textures.ContainsKey(matgroup.m_Texture.m_TextureName))
                         {
                             ModelBase.TextureDefBase texture = new ModelBase.TextureDefInMemoryBitmap(
-                                matgroup.m_Texture.m_TexName, ConvertBMDTextureToBitmap(matgroup.m_Texture));
+                                matgroup.m_Texture.m_TextureName, matgroup.m_Texture.ToBitmap());
                             m_Model.m_Textures.Add(texture.m_ID, texture);
                         }
 
-                        material.m_TextureDefID = matgroup.m_Texture.m_TexName;
+                        material.m_TextureDefID = matgroup.m_Texture.m_TextureName;
                     }
                     material.m_Alpha = matgroup.m_Alpha;
                     if ((matgroup.m_PolyAttribs & 0xC0) == 0xC0)
@@ -110,7 +112,10 @@ namespace SM64DSe.ImportExport.Loaders.InternalLoaders
                     if (!m_Model.m_Materials.ContainsKey(material.m_ID))
                         m_Model.m_Materials.Add(material.m_ID, material);
 
-                    bone.m_MaterialsInBranch.Add(matgroup.m_Name);
+                    if (!bone.m_MaterialsInBranch.Contains(matgroup.m_Name))
+                    {
+                        bone.m_MaterialsInBranch.Add(matgroup.m_Name);
+                    }
                     ModelBase.BoneDef upToRoot = bone;
                     while ((upToRoot = upToRoot.m_Parent) != null)
                     {
@@ -128,35 +133,19 @@ namespace SM64DSe.ImportExport.Loaders.InternalLoaders
                             case 0://Separate Triangles
                                 {
                                     ModelBase.FaceListDef faceList = new ModelBase.FaceListDef(ModelBase.PolyListType.Triangles);
-                                    if (vtxList.Count <= 3)//Just 1 triangle
+                                    int numFaces = vtxList.Count / 3;
+                                    for (int a = 0, b = 0; a < numFaces; a++, b = b + 3)
                                     {
                                         ModelBase.FaceDef face = new ModelBase.FaceDef(3);
 
-                                        face.m_Vertices[0] = new ModelBase.VertexDef(vtxList[0].m_Position, vtxList[0].m_TexCoord,
-                                            vtxList[0].m_Normal, vtxList[0].m_Color, (int)matgroup.m_BoneIDs[vtxList[0].m_MatrixID]);
-                                        face.m_Vertices[1] = new ModelBase.VertexDef(vtxList[1].m_Position, vtxList[1].m_TexCoord,
-                                            vtxList[1].m_Normal, vtxList[1].m_Color, (int)matgroup.m_BoneIDs[vtxList[1].m_MatrixID]);
-                                        face.m_Vertices[2] = new ModelBase.VertexDef(vtxList[2].m_Position, vtxList[2].m_TexCoord,
-                                            vtxList[2].m_Normal, vtxList[2].m_Color, (int)matgroup.m_BoneIDs[vtxList[2].m_MatrixID]);
+                                        face.m_Vertices[0] = new ModelBase.VertexDef(vtxList[b + 0].m_Position, vtxList[b + 0].m_TexCoord,
+                                            vtxList[b + 0].m_Normal, vtxList[b + 0].m_Color, (int)matgroup.m_BoneIDs[vtxList[b + 0].m_MatrixID]);
+                                        face.m_Vertices[1] = new ModelBase.VertexDef(vtxList[b + 1].m_Position, vtxList[b + 1].m_TexCoord,
+                                            vtxList[b + 1].m_Normal, vtxList[b + 1].m_Color, (int)matgroup.m_BoneIDs[vtxList[b + 1].m_MatrixID]);
+                                        face.m_Vertices[2] = new ModelBase.VertexDef(vtxList[b + 2].m_Position, vtxList[b + 2].m_TexCoord,
+                                            vtxList[b + 2].m_Normal, vtxList[b + 2].m_Color, (int)matgroup.m_BoneIDs[vtxList[b + 2].m_MatrixID]);
 
                                         faceList.m_Faces.Add(face);
-                                    }
-                                    else if (vtxList.Count > 3 && (float)vtxList.Count % 3 == 0.0f)//Eg. 9 vertices in 3 triangles
-                                    {
-                                        int numFaces = vtxList.Count / 3;
-                                        for (int a = 0, b = 0; a < numFaces; a++, b = b + 3)
-                                        {
-                                            ModelBase.FaceDef face = new ModelBase.FaceDef(3);
-
-                                            face.m_Vertices[0] = new ModelBase.VertexDef(vtxList[b + 0].m_Position, vtxList[b + 0].m_TexCoord,
-                                                vtxList[b + 0].m_Normal, vtxList[b + 0].m_Color, (int)matgroup.m_BoneIDs[vtxList[b + 0].m_MatrixID]);
-                                            face.m_Vertices[1] = new ModelBase.VertexDef(vtxList[b + 1].m_Position, vtxList[b + 1].m_TexCoord,
-                                                vtxList[b + 1].m_Normal, vtxList[b + 1].m_Color, (int)matgroup.m_BoneIDs[vtxList[b + 1].m_MatrixID]);
-                                            face.m_Vertices[2] = new ModelBase.VertexDef(vtxList[b + 2].m_Position, vtxList[b + 2].m_TexCoord,
-                                                vtxList[b + 2].m_Normal, vtxList[b + 2].m_Color, (int)matgroup.m_BoneIDs[vtxList[b + 2].m_MatrixID]);
-
-                                            faceList.m_Faces.Add(face);
-                                        }
                                     }
                                     polyListDef.m_FaceLists.Add(faceList);
                                     break;
@@ -164,39 +153,21 @@ namespace SM64DSe.ImportExport.Loaders.InternalLoaders
                             case 1://Separate Quadrilaterals
                                 {
                                     ModelBase.FaceListDef faceList = new ModelBase.FaceListDef(ModelBase.PolyListType.Polygons);
-                                    if (vtxList.Count <= 4)//Just 1 quadrilateral
+                                    int numFaces = vtxList.Count / 4;
+                                    for (int a = 0, b = 0; a < numFaces; a++, b = b + 4)
                                     {
                                         ModelBase.FaceDef face = new ModelBase.FaceDef(4);
 
-                                        face.m_Vertices[0] = new ModelBase.VertexDef(vtxList[0].m_Position, vtxList[0].m_TexCoord,
-                                            vtxList[0].m_Normal, vtxList[0].m_Color, (int)matgroup.m_BoneIDs[vtxList[0].m_MatrixID]);
-                                        face.m_Vertices[1] = new ModelBase.VertexDef(vtxList[1].m_Position, vtxList[1].m_TexCoord,
-                                            vtxList[1].m_Normal, vtxList[1].m_Color, (int)matgroup.m_BoneIDs[vtxList[1].m_MatrixID]);
-                                        face.m_Vertices[2] = new ModelBase.VertexDef(vtxList[2].m_Position, vtxList[2].m_TexCoord,
-                                            vtxList[2].m_Normal, vtxList[2].m_Color, (int)matgroup.m_BoneIDs[vtxList[2].m_MatrixID]);
-                                        face.m_Vertices[3] = new ModelBase.VertexDef(vtxList[3].m_Position, vtxList[3].m_TexCoord,
-                                            vtxList[3].m_Normal, vtxList[3].m_Color, (int)matgroup.m_BoneIDs[vtxList[3].m_MatrixID]);
+                                        face.m_Vertices[0] = new ModelBase.VertexDef(vtxList[b + 0].m_Position, vtxList[b + 0].m_TexCoord,
+                                            vtxList[b + 0].m_Normal, vtxList[b + 0].m_Color, (int)matgroup.m_BoneIDs[vtxList[b + 0].m_MatrixID]);
+                                        face.m_Vertices[1] = new ModelBase.VertexDef(vtxList[b + 1].m_Position, vtxList[b + 1].m_TexCoord,
+                                            vtxList[b + 1].m_Normal, vtxList[b + 1].m_Color, (int)matgroup.m_BoneIDs[vtxList[b + 1].m_MatrixID]);
+                                        face.m_Vertices[2] = new ModelBase.VertexDef(vtxList[b + 2].m_Position, vtxList[b + 2].m_TexCoord,
+                                            vtxList[b + 2].m_Normal, vtxList[b + 2].m_Color, (int)matgroup.m_BoneIDs[vtxList[b + 2].m_MatrixID]);
+                                        face.m_Vertices[3] = new ModelBase.VertexDef(vtxList[b + 3].m_Position, vtxList[b + 3].m_TexCoord,
+                                            vtxList[b + 3].m_Normal, vtxList[b + 3].m_Color, (int)matgroup.m_BoneIDs[vtxList[b + 3].m_MatrixID]);
 
                                         faceList.m_Faces.Add(face);
-                                    }
-                                    else if (vtxList.Count > 4 && (float)vtxList.Count % 4 == 0.0f)//Eg. 8 vertices in 2 quadrilaterals
-                                    {
-                                        int numFaces = vtxList.Count / 4;
-                                        for (int a = 0, b = 0; a < numFaces; a++, b = b + 4)
-                                        {
-                                            ModelBase.FaceDef face = new ModelBase.FaceDef(4);
-
-                                            face.m_Vertices[0] = new ModelBase.VertexDef(vtxList[b + 0].m_Position, vtxList[b + 0].m_TexCoord,
-                                                vtxList[b + 0].m_Normal, vtxList[b + 0].m_Color, (int)matgroup.m_BoneIDs[vtxList[b + 0].m_MatrixID]);
-                                            face.m_Vertices[1] = new ModelBase.VertexDef(vtxList[b + 1].m_Position, vtxList[b + 1].m_TexCoord,
-                                                vtxList[b + 1].m_Normal, vtxList[b + 1].m_Color, (int)matgroup.m_BoneIDs[vtxList[b + 1].m_MatrixID]);
-                                            face.m_Vertices[2] = new ModelBase.VertexDef(vtxList[b + 2].m_Position, vtxList[b + 2].m_TexCoord,
-                                                vtxList[b + 2].m_Normal, vtxList[b + 2].m_Color, (int)matgroup.m_BoneIDs[vtxList[b + 2].m_MatrixID]);
-                                            face.m_Vertices[3] = new ModelBase.VertexDef(vtxList[b + 3].m_Position, vtxList[b + 3].m_TexCoord,
-                                                vtxList[b + 3].m_Normal, vtxList[b + 3].m_Color, (int)matgroup.m_BoneIDs[vtxList[b + 3].m_MatrixID]);
-
-                                            faceList.m_Faces.Add(face);
-                                        }
                                     }
                                     polyListDef.m_FaceLists.Add(faceList);
                                     break;
@@ -250,7 +221,7 @@ namespace SM64DSe.ImportExport.Loaders.InternalLoaders
                                     int numFaces = ((vtxList.Count - 4) / 2) + 1;
                                     if (vtxList.Count < 4)//Should never be
                                         break;
-                                    ModelBase.FaceListDef faceList = new ModelBase.FaceListDef();
+                                    ModelBase.FaceListDef faceList = new ModelBase.FaceListDef(ModelBase.PolyListType.Polygons);
                                     for (int n = 0, p = 0; n < numFaces; n++, p = p + 2)
                                     {
                                         ModelBase.FaceDef face = new ModelBase.FaceDef(4);
@@ -280,24 +251,6 @@ namespace SM64DSe.ImportExport.Loaders.InternalLoaders
             m_Model.ApplyTransformations();
 
             return m_Model;
-        }
-
-        public Bitmap ConvertBMDTextureToBitmap(BMD.Texture texture)
-        {
-            Bitmap lol = new Bitmap((int)texture.m_Width, (int)texture.m_Height);
-
-            for (int y = 0; y < (int)texture.m_Height; y++)
-            {
-                for (int x = 0; x < (int)texture.m_Width; x++)
-                {
-                    lol.SetPixel(x, y, Color.FromArgb(texture.m_Data[((y * texture.m_Width) + x) * 4 + 3],
-                     texture.m_Data[((y * texture.m_Width) + x) * 4 + 2],
-                     texture.m_Data[((y * texture.m_Width) + x) * 4 + 1],
-                     texture.m_Data[((y * texture.m_Width) + x) * 4]));
-                }
-            }
-
-            return lol;
         }
 
         public override Dictionary<string, ModelBase.MaterialDef> GetModelMaterials()

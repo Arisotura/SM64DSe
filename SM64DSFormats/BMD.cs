@@ -30,333 +30,6 @@ namespace SM64DSe
 {
     public class BMD
     {
-        public Texture ReadTexture(uint texid, uint palid)
-        {
-            uint texentry = m_TexChunksOffset + (texid * 20);
-            uint palentry = (palid == 0xFFFFFFFF) ? 0xFFFFFFFF : (m_PalChunksOffset + (palid * 16));
-
-            string texname = m_File.ReadString(m_File.Read32(texentry), 0);
-            string palname = (palentry == 0xFFFFFFFF) ? "<NO PALETTE>" : m_File.ReadString(m_File.Read32(palentry), 0);
-
-            string texkey = texname + "|" + palname;
-            if (m_Textures.ContainsKey(texkey))
-                return m_Textures[texkey];
-
-            Texture ret = new Texture();
-
-            ret.m_TexID = texid;
-            ret.m_TexName = texname;
-            ret.m_PalID = palid;
-            ret.m_PalName = palname;
-            ret.m_EntryOffset = texentry;
-            ret.m_PalEntryOffset = palentry;
-
-            uint texdataoffset = m_File.Read32(texentry + 0x04);
-            uint texdatasize = m_File.Read32(texentry + 0x08);
-            uint texparam = m_File.Read32(texentry + 0x10);
-            ret.m_TexDataSize = texdatasize;
-            ret.m_Params = texparam;
-
-            uint paldataoffset = 0xFFFFFFFF;
-            uint paldatasize = 0;
-            if (palentry != 0xFFFFFFFF)
-            {
-                paldataoffset = m_File.Read32(palentry + 0x04);
-                paldatasize = m_File.Read32(palentry + 0x08);
-            }
-
-            ret.m_PalOffset = paldataoffset;
-            ret.m_PalSize = paldatasize;
-
-            uint textype = (texparam >> 26) & 0x7;
-            ret.m_TexType = textype;
-            if (textype == 0)
-                return null;
-
-            ret.m_Width = (uint)(8 << (int)((texparam >> 20) & 0x7));
-            ret.m_Height = (uint)(8 << (int)((texparam >> 23) & 0x7));
-
-            if ((palentry == 0xFFFFFFFF) && (textype != 7))
-                throw new Exception("BMD decoder: paletted texture with no associated palette entry; WTF");
-
-            byte zero_alpha = 0xFF;
-            if ((texparam & 0x20000000) == 0x20000000)
-                zero_alpha = 0;
-
-            // texture stored as 8bit ARGB
-            ret.m_Data = new byte[ret.m_Width * ret.m_Height * 4];
-
-            switch (textype)
-            {
-                case 1: // a3i5
-                    {
-                        for (uint _in = 0, _out = 0; _in < texdatasize; _in++, _out += 4)
-                        {
-                            byte texel = m_File.Read8(texdataoffset + _in);
-                            ushort color = m_File.Read16((uint)(paldataoffset + ((texel & 0x1F) << 1)));
-
-                            byte red = (byte)((color & 0x001F) << 3);
-                            byte green = (byte)((color & 0x03E0) >> 2);
-                            byte blue = (byte)((color & 0x7C00) >> 7);
-                            byte _alpha = (byte)(((texel & 0xE0) >> 3) + ((texel & 0xE0) >> 6));
-                            byte alpha = (byte)((_alpha << 3) | (_alpha >> 2));
-
-                            ret.m_Data[_out] = blue;
-                            ret.m_Data[_out + 1] = green;
-                            ret.m_Data[_out + 2] = red;
-                            ret.m_Data[_out + 3] = alpha;
-                        }
-                    }
-                    break;
-
-                case 2: // 4-color
-                    {
-                        for (int _in = 0, _out = 0; _in < texdatasize; _in++, _out += 16)
-                        {
-                            byte texels = m_File.Read8((uint)(texdataoffset + _in));
-
-                            ushort color = m_File.Read16((uint)(paldataoffset + ((texels << 1) & 0x6)));
-                            byte red = (byte)((color & 0x001F) << 3);
-                            byte green = (byte)((color & 0x03E0) >> 2);
-                            byte blue = (byte)((color & 0x7C00) >> 7);
-
-                            ret.m_Data[_out] = blue;
-                            ret.m_Data[_out + 1] = green;
-                            ret.m_Data[_out + 2] = red;
-                            ret.m_Data[_out + 3] = (byte)(((texels & 0x03) != 0) ? (byte) 0xFF : zero_alpha);
-
-                            color = m_File.Read16((uint)(paldataoffset + ((texels >> 1) & 0x6)));
-                            red = (byte)((color & 0x001F) << 3);
-                            green = (byte)((color & 0x03E0) >> 2);
-                            blue = (byte)((color & 0x7C00) >> 7);
-
-                            ret.m_Data[_out + 4] = blue;
-                            ret.m_Data[_out + 5] = green;
-                            ret.m_Data[_out + 6] = red;
-                            ret.m_Data[_out + 7] = (byte)(((texels & 0x0C) != 0) ? (byte) 0xFF : zero_alpha);
-
-                            color = m_File.Read16((uint)(paldataoffset + ((texels >> 3) & 0x6)));
-                            red = (byte)((color & 0x001F) << 3);
-                            green = (byte)((color & 0x03E0) >> 2);
-                            blue = (byte)((color & 0x7C00) >> 7);
-
-                            ret.m_Data[_out + 8] = blue;
-                            ret.m_Data[_out + 9] = green;
-                            ret.m_Data[_out + 10] = red;
-                            ret.m_Data[_out + 11] = (byte)(((texels & 0x30) != 0) ? (byte) 0xFF : zero_alpha);
-
-                            color = m_File.Read16((uint)(paldataoffset + ((texels >> 5) & 0x6)));
-                            red = (byte)((color & 0x001F) << 3);
-                            green = (byte)((color & 0x03E0) >> 2);
-                            blue = (byte)((color & 0x7C00) >> 7);
-
-                            ret.m_Data[_out + 12] = blue;
-                            ret.m_Data[_out + 13] = green;
-                            ret.m_Data[_out + 14] = red;
-                            ret.m_Data[_out + 15] = (byte)(((texels & 0xC0) != 0) ? (byte) 0xFF : zero_alpha);
-                        }
-                    }
-                    break;
-
-                case 3: // 16-color
-                    {
-                        for (int _in = 0, _out = 0; _in < texdatasize; _in++, _out += 8)
-                        {
-                            byte texels = m_File.Read8((uint)(texdataoffset + _in));
-
-                            ushort color = m_File.Read16((uint)(paldataoffset + ((texels << 1) & 0x1E)));
-                            byte red = (byte)((color & 0x001F) << 3);
-                            byte green = (byte)((color & 0x03E0) >> 2);
-                            byte blue = (byte)((color & 0x7C00) >> 7);
-
-                            ret.m_Data[_out] = blue;
-                            ret.m_Data[_out + 1] = green;
-                            ret.m_Data[_out + 2] = red;
-                            ret.m_Data[_out + 3] = (byte)(((texels & 0x0F) != 0) ? (byte) 0xFF : zero_alpha);
-
-                            color = m_File.Read16((uint)(paldataoffset + ((texels >> 3) & 0x1E)));
-                            red = (byte)((color & 0x001F) << 3);
-                            green = (byte)((color & 0x03E0) >> 2);
-                            blue = (byte)((color & 0x7C00) >> 7);
-
-                            ret.m_Data[_out + 4] = blue;
-                            ret.m_Data[_out + 5] = green;
-                            ret.m_Data[_out + 6] = red;
-                            ret.m_Data[_out + 7] = (byte)(((texels & 0xF0) != 0) ? (byte) 0xFF : zero_alpha);
-                        }
-                    }
-                    break;
-
-                case 4: // 256-color
-                    {
-                        for (int _in = 0, _out = 0; _in < texdatasize; _in++, _out += 4)
-                        {
-                            byte texel = m_File.Read8((uint)(texdataoffset + _in));
-
-                            ushort color = m_File.Read16((uint)(paldataoffset + (texel << 1)));
-                            byte red = (byte)((color & 0x001F) << 3);
-                            byte green = (byte)((color & 0x03E0) >> 2);
-                            byte blue = (byte)((color & 0x7C00) >> 7);
-
-                            ret.m_Data[_out] = blue;
-                            ret.m_Data[_out + 1] = green;
-                            ret.m_Data[_out + 2] = red;
-                            ret.m_Data[_out + 3] = (byte)((texel != 0) ? (byte) 0xFF : zero_alpha);
-                        }
-                    }
-                    break;
-
-                case 5: // motherfucking compressed
-                    {   // as usual, shitty code but works
-                        int yout = 0, xout = 0;
-
-                        for (int _in = 0; _in < texdatasize; _in += 4)
-                        {
-                            uint blox = m_File.Read32((uint)(texdataoffset + _in));
-                            ushort palidx_data = m_File.Read16((uint)(texdataoffset + texdatasize + (_in >> 1)));
-
-                            for (int y = 0; y < 4; y++)
-                            {
-                                for (int x = 0; x < 4; x++)
-                                {
-                                    byte texel = (byte)(blox & 0x3);
-                                    blox >>= 2;
-
-                                    uint pal_offset = (uint)((palidx_data & 0x3FFF) << 2);
-                                    ushort color_mode = (ushort)(palidx_data >> 14);
-                                    uint color = 0xFFFFFFFF;
-
-                                    switch (texel)
-                                    {
-                                        case 0: color = m_File.Read16(paldataoffset + pal_offset); break;
-                                        case 1: color = m_File.Read16(paldataoffset + pal_offset + 2); break;
-                                        case 2:
-                                            {
-                                                switch (color_mode)
-                                                {
-                                                    case 0:
-                                                    case 2: color = m_File.Read16(paldataoffset + pal_offset + 4); break;
-                                                    case 1:
-                                                        {
-                                                            ushort c0 = m_File.Read16(paldataoffset + pal_offset);
-                                                            ushort c1 = m_File.Read16(paldataoffset + pal_offset + 2);
-                                                            color = Helper.BlendColorsBGR15(c0, 1, c1, 1);
-                                                        }
-                                                        break;
-                                                    case 3:
-                                                        {
-                                                            ushort c0 = m_File.Read16(paldataoffset + pal_offset);
-                                                            ushort c1 = m_File.Read16(paldataoffset + pal_offset + 2);
-                                                            color = Helper.BlendColorsBGR15(c0, 5, c1, 3);
-                                                        }
-                                                        break;
-                                                }
-                                            }
-                                            break;
-                                        case 3:
-                                            {
-                                                switch (color_mode)
-                                                {
-                                                    case 0:
-                                                    case 1: color = 0xFFFFFFFF; break;
-                                                    case 2: color = m_File.Read16(paldataoffset + pal_offset + 6); break;
-                                                    case 3:
-                                                        {
-                                                            ushort c0 = m_File.Read16(paldataoffset + pal_offset);
-                                                            ushort c1 = m_File.Read16(paldataoffset + pal_offset + 2);
-                                                            color = Helper.BlendColorsBGR15(c0, 3, c1, 5);
-                                                        }
-                                                        break;
-                                                }
-                                            }
-                                            break;
-                                    }
-
-                                    int _out = (int)(((yout * ret.m_Width) + xout) * 4);
-                                    int yoff = (int)(y * ret.m_Width * 4);
-                                    int xoff = (int)(x * 4);
-
-                                    if (color == 0xFFFFFFFF)
-                                    {
-                                        ret.m_Data[_out + yoff + xoff] = 0;
-                                        ret.m_Data[_out + yoff + xoff + 1] = 0;
-                                        ret.m_Data[_out + yoff + xoff + 2] = 0;
-                                        ret.m_Data[_out + yoff + xoff + 3] = 0;
-                                    }
-                                    else
-                                    {
-                                        byte red = (byte)((color & 0x001F) << 3);
-                                        byte green = (byte)((color & 0x03E0) >> 2);
-                                        byte blue = (byte)((color & 0x7C00) >> 7);
-
-                                        ret.m_Data[_out + yoff + xoff] = blue;
-                                        ret.m_Data[_out + yoff + xoff + 1] = green;
-                                        ret.m_Data[_out + yoff + xoff + 2] = red;
-                                        ret.m_Data[_out + yoff + xoff + 3] = 0xFF;
-                                    }
-                                }
-                            }
-
-                            xout += 4;
-                            if (xout >= ret.m_Width)
-                            {
-                                xout = 0;
-                                yout += 4;
-                            }
-                        }
-                    }
-                    break;
-
-                case 6: // a5i3
-                    {
-                        for (int _in = 0, _out = 0; _in < texdatasize; _in++, _out += 4)
-                        {
-                            byte texel = m_File.Read8((uint)(texdataoffset + _in));
-                            ushort color = m_File.Read16((uint)(paldataoffset + ((texel & 0x07) << 1)));
-
-                            byte red = (byte)((color & 0x001F) << 3);
-                            byte green = (byte)((color & 0x03E0) >> 2);
-                            byte blue = (byte)((color & 0x7C00) >> 7);
-                            byte alpha = (byte)((texel & 0xF8) | ((texel & 0xF8) >> 5));
-
-                            ret.m_Data[_out] = blue;
-                            ret.m_Data[_out + 1] = green;
-                            ret.m_Data[_out + 2] = red;
-                            ret.m_Data[_out + 3] = alpha;
-                        }
-                    }
-                    break;
-
-                case 7: // direct color
-                    {
-                        for (int _in = 0, _out = 0; _in < texdatasize; _in += 2, _out += 4)
-                        {
-                            ushort color = m_File.Read16((uint)(texdataoffset + _in));
-                            byte red = (byte)((color & 0x001F) << 3);
-                            byte green = (byte)((color & 0x03E0) >> 2);
-                            byte blue = (byte)((color & 0x7C00) >> 7);
-
-                            ret.m_Data[_out] = blue;
-                            ret.m_Data[_out + 1] = green;
-                            ret.m_Data[_out + 2] = red;
-                            ret.m_Data[_out + 3] = (byte)(((color & 0x8000) != 0) ? (byte) 0xFF : zero_alpha);
-                        }
-                    }
-                    break;
-            }
-
-            /*Bitmap lol = new Bitmap((int)ret.m_Width, (int)ret.m_Height);
-            for (int y = 0; y < (int)ret.m_Height; y++)
-                for (int x = 0; x < (int)ret.m_Width; x++)
-                    lol.SetPixel(x, y, Color.FromArgb(ret.m_Data[((y * ret.m_Width) + x) * 4 + 3],
-                        ret.m_Data[((y * ret.m_Width) + x) * 4 + 2],
-                        ret.m_Data[((y * ret.m_Width) + x) * 4 + 1],
-                        ret.m_Data[((y * ret.m_Width) + x) * 4]));
-            lol.Save(ret.m_TexName + ".png", System.Drawing.Imaging.ImageFormat.Png);*/
-
-            m_Textures[texname] = ret;
-            return ret;
-        }
         bool lolol = false;
         private void ProcessGXCommand(MaterialGroup matgroup, byte cmd, ref uint pos)
         {
@@ -667,7 +340,7 @@ namespace SM64DSe
             m_BoneMapOffset = m_File.Read32(0x2C);
             AddPointer(0x2C);
 
-            m_Textures = new Dictionary<string, Texture>();
+            m_Textures = new Dictionary<string, NitroTexture>();
             m_ModelChunks = new ModelChunk[m_NumModelChunks];
 
             for (uint c = 0; c < m_NumModelChunks; c++)
@@ -799,7 +472,7 @@ namespace SM64DSe
                     if (texid != 0xFFFFFFFF)
                     {
                         matgroup.m_Texture = ReadTexture(texid, palid);
-                        matgroup.m_TexParams |= matgroup.m_Texture.m_Params;
+                        matgroup.m_TexParams |= matgroup.m_Texture.m_DSTexParam;
                     }
                     else
                         matgroup.m_Texture = null;
@@ -861,6 +534,12 @@ namespace SM64DSe
             }
         }
 
+        private NitroTexture ReadTexture(uint texID, uint palID)
+        {
+            NitroTexture tex = NitroTexture.ReadFromBMD(this, texID, palID);
+            m_Textures[tex.m_TextureName] = tex;
+            return tex;
+        }
 
         public void PrepareToRender()
         {
@@ -952,7 +631,7 @@ namespace SM64DSe
                 m_PointerList[i] = ptrref;
             }
 
-            foreach (Texture tex in m_Textures.Values)
+            foreach (NitroTexture tex in m_Textures.Values)
             {
                 if (tex.m_EntryOffset >= offset)
                     tex.m_EntryOffset += amount;
@@ -984,7 +663,7 @@ namespace SM64DSe
                 m_PointerList[i] = ptrref;
             }
 
-            foreach (Texture tex in m_Textures.Values)
+            foreach (NitroTexture tex in m_Textures.Values)
             {
                 if (tex.m_EntryOffset >= (offset + amount))
                     tex.m_EntryOffset -= amount;
@@ -992,84 +671,6 @@ namespace SM64DSe
                     tex.m_PalEntryOffset -= amount;
                 if (tex.m_PalOffset >= (offset + amount))
                     tex.m_PalOffset -= amount;
-            }
-        }
-
-
-        public class Texture
-        {
-            public uint m_TexID, m_PalID;
-            public string m_TexName, m_PalName;
-
-            public uint m_Width, m_Height;
-            public uint m_Params; // typically width/height and type
-            public byte[] m_Data;
-            public uint m_TexDataSize;
-            public uint m_TexType;
-
-            public uint m_EntryOffset, m_PalEntryOffset;
-            public uint m_PalOffset, m_PalSize;
-
-            public override bool Equals(Object obj)
-            {
-                var tx = obj as Texture;
-                if (tx == null)
-                    return false;
-
-                if (tx.m_Data == null || this.m_Data == null)
-                {
-                    if (!(tx.m_Data == this.m_Data))
-                        return false;
-                }
-                else
-                {
-                    if (tx.m_Data.SequenceEqual(this.m_Data) == false)
-                        return false;
-                }
-
-                if (!(this.m_EntryOffset == tx.m_EntryOffset))
-                    return false;
-                if (!(this.m_Height == tx.m_Height))
-                    return false;
-                if (!(this.m_PalEntryOffset == tx.m_PalEntryOffset))
-                    return false;
-                if (!(this.m_PalID == tx.m_PalID))
-                    return false;
-
-                if (this.m_PalName == null || tx.m_PalName == null)
-                {
-                    if (this.m_PalName != tx.m_PalName)
-                        return false;
-                }
-                else if (!(this.m_PalName.Equals(tx.m_PalName)))
-                    return false;
-
-                if (!(this.m_PalOffset == tx.m_PalOffset))
-                    return false;
-                if (!(this.m_PalSize == tx.m_PalSize))
-                    return false;
-                if (!(this.m_Params == tx.m_Params))
-                    return false;
-                if (!(this.m_TexDataSize == tx.m_TexDataSize))
-                    return false;
-
-                if (!(this.m_TexID == tx.m_TexID))
-                    return false;
-
-                if (this.m_TexName == null || tx.m_TexName == null)
-                {
-                    if (this.m_TexName != tx.m_TexName)
-                        return false;
-                }
-                else if (!(this.m_TexName.Equals(tx.m_TexName)))
-                    return false;
-
-                if (!(this.m_TexType == tx.m_TexType))
-                    return false;
-                if (!(this.m_Width == tx.m_Width))
-                    return false;
-
-                return true;
             }
         }
 
@@ -1107,7 +708,7 @@ namespace SM64DSe
                 m_GLTextureID = GL.GenTexture();
                 GL.BindTexture(TextureTarget.Texture2D, m_GLTextureID);
                 GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Four, (int)m_Texture.m_Width, (int)m_Texture.m_Height,
-                    0, PixelFormat.Bgra, PixelType.UnsignedByte, m_Texture.m_Data);
+                    0, OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, m_Texture.GetARGB());
 
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
@@ -1157,7 +758,7 @@ namespace SM64DSe
             public ushort[] m_BoneIDs;
             public Matrix4[] m_BoneMatrices;
 
-            public Texture m_Texture;
+            public NitroTexture m_Texture;
             public List<VertexList> m_Geometry;
 
             public int m_GLTextureID;
@@ -1365,7 +966,7 @@ namespace SM64DSe
         public uint m_NumMatChunks, m_MatChunksOffset;
         public uint m_BoneMapOffset;
 
-        public Dictionary<string, Texture> m_Textures;
+        public Dictionary<string, NitroTexture> m_Textures;
         public Dictionary<string, uint> m_TextureIDs;
         public Dictionary<string, uint> m_PaletteIDs;
         public ModelChunk[] m_ModelChunks;

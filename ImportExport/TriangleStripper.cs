@@ -303,7 +303,8 @@ namespace SM64DSe.ImportExport
                     // f 4 1 3
                     // f 4 5 1
                     // Build strip from edge CA. 
-                    // # 2 3 1 (LS)      <- Need to Left Shift vertices so that CA is the second edge.
+                    // # 2 3 1 (LS)      <- Need to Left Shift vertices so that CA is the second edge (in a tri. strip it's 
+                    //                      always the second edge that's shared - see diagram at top).
                     // #   3 1 4 (4 1 3) <- For odd faces the new vertex must be at index [0]
                     //                      No Rot required, link-back CW: AB, CW forward: AB + 1 = BC, 
                     //                      CCW forward: edge in CCW that contains vertices in (CW forward) = AB
@@ -361,10 +362,10 @@ namespace SM64DSe.ImportExport
                 TriangleLinked firstBest = DetermineBestNextNeighbour(twoTop[0], firstLinked, edge, true);
                 TriangleLinked secondBest = DetermineBestNextNeighbour(twoTop[1], secondLinked, edge, true);
 
-                if (GetNumLinked(firstBest) < GetNumLinked(secondBest))
-                    return twoTop[0];
-                else
-                    return twoTop[1];
+                if (firstBest == null) { return twoTop[1]; }
+                else if (secondBest == null) { return twoTop[0]; }
+                else if (GetNumLinked(firstBest) < GetNumLinked(secondBest)) { return twoTop[0]; }
+                else { return twoTop[1]; }
             }
             else if (tieBreak)
             {
@@ -422,7 +423,8 @@ namespace SM64DSe.ImportExport
         // Return true if two of a triangle's vertices are the same
         private bool IsDegenerateFace(ModelBase.FaceDef triangle)
         {
-            return (triangle.m_Vertices.ToList().Except(triangle.m_Vertices.ToList()).Count() != 0);
+            List<ModelBase.VertexDef> verts = triangle.m_Vertices.ToList();
+            return (verts.Count() != verts.Distinct().Count());
         }
 
         private VertexLinked GetVertex(ModelBase.VertexDef vertexDef)

@@ -343,7 +343,7 @@ namespace SM64DSe
                     sizeList.Add(pair[2], uint.Parse(pair[1]));
                 }
                 catch (Exception e) { MessageBox.Show("Error in " + filename + "\n\n" + "Line " + i + "\n\n" + 
-                    pair[0] + "\t" + pair[1] + "\t" + pair[2]); }
+                    pair[0] + "\t" + pair[1] + "\t" + pair[2] + "\n\n" + e.Message); }
             }
 
         }
