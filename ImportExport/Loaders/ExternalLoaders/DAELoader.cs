@@ -939,7 +939,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
 
                         if (count == 0) continue;
 
-                        int inputCount = inputs.Length;
+                        int maxOffset = -1;
                         int vertexOffset = -1, normalOffset = -1, texCoordOffset = -1, colourOffset = -1;
                         string vertexSource = "", normalSource = "", texCoordSource = "", colourSource = "";
                         foreach (InputLocalOffset input in inputs)
@@ -964,7 +964,10 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                                 colourOffset = (int)input.offset;
                                 colourSource = input.source.Replace("#", "");
                             }
+
+                            if ((int)input.offset > maxOffset) { maxOffset = (int)input.offset; }
                         }
+                        int inputCount = maxOffset + 1;
 
                         foreach (int[] pArr in p)
                         {

@@ -436,6 +436,7 @@ namespace SM64DSe
             // ofdLoadModel
             // 
             this.ofdLoadModel.Title = "Load model file...";
+            this.ofdLoadModel.Filter = Helper.MODEL_FORMATS_FILTER;
             // 
             // ModelImporter
             // 
