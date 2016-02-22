@@ -99,9 +99,9 @@ namespace SM64DSe
                         short x = (short)((param << 6) & 0xFFC0);
                         short y = (short)((param >> 4) & 0xFFC0);
                         short z = (short)((param >> 14) & 0xFFC0);
-                        m_CurVertex.m_Normal.X = (float)x / 512.0f;
-                        m_CurVertex.m_Normal.Y = (float)y / 512.0f;
-                        m_CurVertex.m_Normal.Z = (float)z / 512.0f;
+                        m_CurVertex.m_Normal.X = (float)x / 32768.0f;
+                        m_CurVertex.m_Normal.Y = (float)y / 32768.0f;
+                        m_CurVertex.m_Normal.Z = (float)z / 32768.0f;
                     }
                     break;
 

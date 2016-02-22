@@ -398,6 +398,12 @@ namespace SM64DSe.ImportExport
                         linkedIndices.RemoveAt(j);
                         continue;
                     }
+                    // Ignore triangles which share all 3 vertices
+                    if (m_Triangles[linkedIndices[j]].m_Triangle.m_Vertices.Except(triangle.m_Triangle.m_Vertices).Count() == 0)
+                    {
+                        linkedIndices.RemoveAt(j);
+                        continue;
+                    }
                 }
                 linked[i] = new List<TriangleLinked>();
                 for (int j = 0; j < linkedIndices.Count; j++)

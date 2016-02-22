@@ -112,25 +112,37 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                 if (profileCommon.technique == null || profileCommon.technique.Item == null) continue;
 
                 common_color_or_texture_type diffuse = null;
+                common_color_or_texture_type ambient = null;
+                common_color_or_texture_type specular = null;
+                common_color_or_texture_type emission = null;
                 common_float_or_param_type transparency = null;
 
                 if ((profileCommon.technique.Item as effectFx_profile_abstractProfile_COMMONTechniquePhong) != null)
                 {
                     diffuse = (profileCommon.technique.Item as effectFx_profile_abstractProfile_COMMONTechniquePhong).diffuse;
+                    ambient = (profileCommon.technique.Item as effectFx_profile_abstractProfile_COMMONTechniquePhong).ambient;
+                    specular = (profileCommon.technique.Item as effectFx_profile_abstractProfile_COMMONTechniquePhong).specular;
+                    emission = (profileCommon.technique.Item as effectFx_profile_abstractProfile_COMMONTechniquePhong).emission;
                     transparency = (profileCommon.technique.Item as effectFx_profile_abstractProfile_COMMONTechniquePhong).transparency;
                 }
                 else if ((profileCommon.technique.Item as effectFx_profile_abstractProfile_COMMONTechniqueLambert) != null)
                 {
                     diffuse = (profileCommon.technique.Item as effectFx_profile_abstractProfile_COMMONTechniqueLambert).diffuse;
+                    ambient = (profileCommon.technique.Item as effectFx_profile_abstractProfile_COMMONTechniqueLambert).ambient;
+                    emission = (profileCommon.technique.Item as effectFx_profile_abstractProfile_COMMONTechniqueLambert).emission;
                     transparency = (profileCommon.technique.Item as effectFx_profile_abstractProfile_COMMONTechniqueLambert).transparency;
                 }
                 else if ((profileCommon.technique.Item as effectFx_profile_abstractProfile_COMMONTechniqueBlinn) != null)
                 {
                     diffuse = (profileCommon.technique.Item as effectFx_profile_abstractProfile_COMMONTechniqueBlinn).diffuse;
+                    ambient = (profileCommon.technique.Item as effectFx_profile_abstractProfile_COMMONTechniqueBlinn).ambient;
+                    specular = (profileCommon.technique.Item as effectFx_profile_abstractProfile_COMMONTechniqueBlinn).specular;
+                    emission = (profileCommon.technique.Item as effectFx_profile_abstractProfile_COMMONTechniqueBlinn).emission;
                     transparency = (profileCommon.technique.Item as effectFx_profile_abstractProfile_COMMONTechniqueBlinn).transparency;
                 }
                 else if ((profileCommon.technique.Item as effectFx_profile_abstractProfile_COMMONTechniqueConstant) != null)
                 {
+                    emission = (profileCommon.technique.Item as effectFx_profile_abstractProfile_COMMONTechniqueConstant).emission;
                     transparency = (profileCommon.technique.Item as effectFx_profile_abstractProfile_COMMONTechniqueConstant).transparency;
                 }
 
@@ -194,6 +206,30 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
 
                         matDef.m_Diffuse = Color.White;
                     }
+                }
+
+                if (ambient != null && ambient.Item != null)
+                {
+                    var ambientColour = ambient.Item as common_color_or_texture_typeColor;
+
+                    matDef.m_Ambient = Color.FromArgb((int)(ambientColour.Values[0] * 255f),
+                        (int)(ambientColour.Values[1] * 255f), (int)(ambientColour.Values[2] * 255f));
+                }
+
+                if (specular != null && specular.Item != null)
+                {
+                    var specularColour = specular.Item as common_color_or_texture_typeColor;
+
+                    matDef.m_Specular = Color.FromArgb((int)(specularColour.Values[0] * 255f),
+                        (int)(specularColour.Values[1] * 255f), (int)(specularColour.Values[2] * 255f));
+                }
+
+                if (emission != null && emission.Item != null)
+                {
+                    var emissionColour = emission.Item as common_color_or_texture_typeColor;
+
+                    matDef.m_Emission = Color.FromArgb((int)(emissionColour.Values[0] * 255f),
+                        (int)(emissionColour.Values[1] * 255f), (int)(emissionColour.Values[2] * 255f));
                 }
 
                 if (transparency != null && transparency.Item != null)
@@ -277,6 +313,10 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                                 elem.InnerText.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries),
                                 Convert.ToSingle);
                             matDef.m_TextureTranslation = new Vector2(tex_translation[0], tex_translation[1]);
+                        }
+                        else if (elem.LocalName.ToLowerInvariant().Equals("fog_enable"))
+                        {
+                            matDef.m_FogFlag = elem.InnerText.Equals("1");
                         }
                     }
                 }
@@ -794,6 +834,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
             if (geom.Item as mesh != null)
             {
                 mesh geomMesh = geom.Item as mesh;
+                if (geomMesh.source == null || geomMesh.Items == null) return geomDef;
                 Dictionary<string, string> geometryVertices = new Dictionary<string,string>();
                 geometryVertices.Add(geomMesh.vertices.id, 
                     geomMesh.vertices.input.Where(input0 => input0.semantic.Equals("POSITION")).ElementAt(0).source.Replace("#", ""));
@@ -929,7 +970,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                             AddWhiteMat();
                         }
 
-                        polyListDef = new ModelBase.PolyListDef(id + "." + material, material);
+                        polyListDef = new ModelBase.PolyListDef("pl_" + geomDef.m_PolyLists.Count, material);
 
                         // The parent (root) bone should have a list of all materials used by itself and its children
                         if (!m_Model.m_BoneTree.GetBoneByID(boneID).GetRoot().m_MaterialsInBranch.Contains(material))
@@ -989,13 +1030,12 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                                     float[] tmp = GetValueFromFloatArraySource(sources[vertexSource], vertexIndex);
                                     vert.m_Position = new Vector3(tmp[0], tmp[1], tmp[2]);
 
-                                    /*if (normalOffset != -1)
+                                    if (normalOffset != -1)
                                     {
                                         tmp = GetValueFromFloatArraySource(sources[normalSource], pArr[pIndex + (ulong)normalOffset]);
-                                        vert.m_Normal = new Vector3(tmp[0], tmp[1], tmp[2]);
-                                        ((Vector3)vert.m_Normal).Normalize();
+                                        vert.m_Normal = new Vector3(tmp[0], tmp[1], tmp[2]).Normalized();
                                     }
-                                    else*/
+                                    else
                                     {
                                         vert.m_Normal = null;
                                     }
@@ -1065,7 +1105,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                             polyListDef.m_FaceLists.Add(faceList);
                         }
 
-                        geomDef.m_PolyLists.Add(boneID + "." + material, polyListDef);
+                        geomDef.m_PolyLists.Add("pl_" + geomDef.m_PolyLists.Count, polyListDef);
                     }
                 }
             }

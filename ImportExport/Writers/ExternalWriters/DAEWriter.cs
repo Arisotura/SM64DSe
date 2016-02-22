@@ -297,6 +297,9 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
             writer.WriteElementString("tex_translate",
                 material.m_TextureTranslation.X.ToString(Helper.USA) + " " + material.m_TextureTranslation.Y.ToString(Helper.USA));
 
+            writer.WriteElementString("fog_enable",
+                (material.m_FogFlag) ? "1" : "0");
+
             writer.WriteEndElement();// technique
             writer.WriteEndElement();// extra
         }
@@ -346,8 +349,7 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
                                 {
                                     foreach (ModelBase.VertexDef vert in face.m_Vertices)
                                     {
-                                        if (!verticesInBranch.Contains(vert))
-                                            verticesInBranch.Add(vert);
+                                        if (!verticesInBranch.Contains(vert)) verticesInBranch.Add(vert);
                                     }
                                 }
                             }
@@ -359,8 +361,7 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
                 {
                     positionsInBranch.Add(vert.m_Position);
                     texCoordsInBranch.Add(vert.m_TextureCoordinate);
-                    if (vert.m_Normal != null)
-                        normalsInBranch.Add(vert.m_Normal);
+                    if (vert.m_Normal != null) normalsInBranch.Add(vert.m_Normal);
                     vColoursInBranch.Add(vert.m_VertexColour);
                 }
 
@@ -370,12 +371,9 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
                 writer.WriteStartElement("mesh");
 
                 WriteDAE_Source_positions(writer, root, positionsInBranch);
-                if (normalsInBranch.Count > 0)
-                    WriteDAE_Source_normals(writer, root, normalsInBranch);
-                if (texCoordsInBranch.Count > 0)
-                    WriteDAE_Source_map(writer, root, texCoordsInBranch);
-                if (vColoursInBranch.Count > 0)
-                    WriteDAE_Source_colors(writer, root, vColoursInBranch);
+                if (normalsInBranch.Count > 0) WriteDAE_Source_normals(writer, root, normalsInBranch);
+                if (texCoordsInBranch.Count > 0) WriteDAE_Source_map(writer, root, texCoordsInBranch);
+                if (vColoursInBranch.Count > 0) WriteDAE_Source_colors(writer, root, vColoursInBranch);
 
                 writer.WriteStartElement("vertices");
                 writer.WriteAttributeString("id", root.m_ID + "-mesh-vertices");
@@ -384,34 +382,23 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
                 writer.WriteAttributeString("source", "#" + root.m_ID + "-mesh-positions");
                 writer.WriteEndElement();// input
                 writer.WriteEndElement();// vertices
-
-                foreach (string matName in root.m_MaterialsInBranch)
+                
+                foreach (ModelBase.BoneDef bone in bonesInBranch)
                 {
-                    List<ModelBase.FaceDef> faces = new List<ModelBase.FaceDef>();
-
-                    foreach (ModelBase.BoneDef bone in bonesInBranch)
+                    foreach (ModelBase.GeometryDef geometry in bone.m_Geometries.Values)
                     {
-                        foreach (ModelBase.GeometryDef geometry in bone.m_Geometries.Values)
+                        foreach (ModelBase.PolyListDef polyList in geometry.m_PolyLists.Values)
                         {
-                            IEnumerable<KeyValuePair<string, ModelBase.PolyListDef>> polyListForMat =
-                                geometry.m_PolyLists.Where(pl => pl.Value.m_MaterialName.Equals(matName));
-                            foreach (KeyValuePair<string, ModelBase.PolyListDef> polyList in polyListForMat)
+                            foreach (ModelBase.FaceListDef faceList in polyList.m_FaceLists)
                             {
-                                foreach (ModelBase.FaceListDef faceList in polyList.Value.m_FaceLists)
-                                {
-                                    faces.AddRange(faceList.m_Faces);
-                                }
+                                WriteDAE_Polylist(writer, root.m_ID, polyList.m_MaterialName, faceList.m_Faces,
+                                    positionsInBranch,
+                                    ((normalsInBranch.Count > 0) ? normalsInBranch : null),
+                                    ((model.m_Materials[polyList.m_MaterialName].m_TextureDefID != null) ? texCoordsInBranch : null),
+                                    vColoursInBranch);
                             }
                         }
                     }
-
-                    if (faces.Count < 1) continue;
-
-                    WriteDAE_Polylist(writer, root.m_ID, matName, faces,
-                        positionsInBranch, 
-                        ((normalsInBranch.Count > 0) ? normalsInBranch : null), 
-                        ((model.m_Materials[matName].m_TextureDefID != null) ? texCoordsInBranch : null), 
-                        vColoursInBranch);
                 }
 
                 writer.WriteEndElement();// mesh

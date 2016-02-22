@@ -102,6 +102,8 @@ namespace SM64DSe.ImportExport.Loaders.InternalLoaders
                     material.m_TexTiling[1] = (tRepeat == 1) ? ModelBase.MaterialDef.TexTiling.Repeat : ModelBase.MaterialDef.TexTiling.Clamp;
                     material.m_TexTiling[1] = (tFlip == 1) ? ModelBase.MaterialDef.TexTiling.Flip : material.m_TexTiling[1];
 
+                    material.m_FogFlag = (matgroup.m_PolyAttribs & 0x8000) > 0;
+
                     byte lights = (byte)(matgroup.m_PolyAttribs & 0x0F);
                     for (int i = 0; i < 4; i++)
                     {
@@ -203,7 +205,7 @@ namespace SM64DSe.ImportExport.Loaders.InternalLoaders
                                             face.m_Vertices[0] = new ModelBase.VertexDef(vtxList[n + 2].m_Position, vtxList[n + 2].m_TexCoord,
                                                 vtxList[n + 2].m_Normal, vtxList[n + 2].m_Color, (int)matgroup.m_BoneIDs[vtxList[n + 2].m_MatrixID]);
                                             face.m_Vertices[1] = new ModelBase.VertexDef(vtxList[n + 1].m_Position, vtxList[n + 1].m_TexCoord,
-                                                vtxList[n + 2].m_Normal, vtxList[n + 1].m_Color, (int)matgroup.m_BoneIDs[vtxList[n + 1].m_MatrixID]);
+                                                vtxList[n + 1].m_Normal, vtxList[n + 1].m_Color, (int)matgroup.m_BoneIDs[vtxList[n + 1].m_MatrixID]);
                                             face.m_Vertices[2] = new ModelBase.VertexDef(vtxList[n + 0].m_Position, vtxList[n + 0].m_TexCoord,
                                                 vtxList[n + 0].m_Normal, vtxList[n + 0].m_Color, (int)matgroup.m_BoneIDs[vtxList[n + 0].m_MatrixID]);
 

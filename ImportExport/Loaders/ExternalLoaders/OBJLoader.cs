@@ -142,8 +142,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                             float y = float.Parse(parts[2], USA);
                             float z = float.Parse(parts[3], USA);
 
-                            Vector3 vec = new Vector3(x, y, z);
-                            vec.Normalize();
+                            Vector3 vec = new Vector3(x, y, z).Normalized();
                             m_Normals.Add(vec);
                         }
                         break;

@@ -488,6 +488,7 @@ namespace SM64DSe.ImportExport
             public Color m_Ambient;
             public Color m_Specular;
             public Color m_Emission;
+            public bool m_ShininessTableEnabled;
             public TexTiling[] m_TexTiling;
             public Vector2 m_TextureScale;
             public float m_TextureRotation;
@@ -510,8 +511,9 @@ namespace SM64DSe.ImportExport
                 m_FarClipping = true;
                 m_Diffuse = Color.White;
                 m_Ambient = Color.White;
-                m_Specular = Color.White;
+                m_Specular = Color.Black;
                 m_Emission = Color.Black;
+                m_ShininessTableEnabled = false;
                 m_TexTiling = new TexTiling[] { TexTiling.Repeat, TexTiling.Repeat };
                 m_TextureScale = new Vector2(1f, 1f);
                 m_TextureRotation = 0.0f;

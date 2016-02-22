@@ -129,12 +129,12 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
         {
             if (tex_image_array == null) return;
             int texImageArray_size = int.Parse(tex_image_array.Attributes["size"].Value);
-            int texPaletteArray_size = int.Parse(tex_palette_array.Attributes["size"].Value);
+            int texPaletteArray_size = (tex_palette_array != null) ? int.Parse(tex_palette_array.Attributes["size"].Value) : 0;
 
             if (texImageArray_size < 1) return;
 
             XmlNodeList tex_images = tex_image_array.SelectNodes("tex_image");
-            XmlNodeList tex_palettes = tex_palette_array.SelectNodes("tex_palette");
+            XmlNodeList tex_palettes = (tex_palette_array != null) ? tex_palette_array.SelectNodes("tex_palette") : null;
 
             foreach (XmlNode tex_image in tex_images)
             {
@@ -348,6 +348,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                     (int)(specular[0] / 31f * 255f), (int)(specular[1] / 31f * 255f), (int)(specular[2] / 31f * 255f));
                 matDef.m_Emission = Color.FromArgb(
                     (int)(emission[0] / 31f * 255f), (int)(emission[1] / 31f * 255f), (int)(emission[2] / 31f * 255f));
+                matDef.m_ShininessTableEnabled = shininess_table_flag;
                 matDef.m_TexTiling = tex_tiling;
                 matDef.m_TextureScale = (tex_scale != null) ? new Vector2(tex_scale[0], tex_scale[1]) : Vector2.One;
                 matDef.m_TextureRotation = tex_rotate;

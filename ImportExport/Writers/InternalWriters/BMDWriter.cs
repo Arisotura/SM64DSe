@@ -114,9 +114,9 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
 
             public void AddNormalCommand(Vector3 nrm)
             {
-                short x = (short)(nrm.X * 512.0f);
-                short y = (short)(nrm.Y * 512.0f);
-                short z = (short)(nrm.Z * 512.0f);
+                short x = (short)(nrm.X * 32768.0f);
+                short y = (short)(nrm.Y * 32768.0f);
+                short z = (short)(nrm.Z * 32768.0f);
                 uint param = (uint)(((ushort)x) >> 6 | ((((ushort)y) << 4) & 0xFFC00) |
                     ((((ushort)z) << 14) & 0x3FF00000));
                 AddCommand(0x21, param);
@@ -406,8 +406,6 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
             uint dllistoffset = curoffset;
             curoffset += (uint)(materials.Count * 8);
 
-            int lastColourARGB = -1;
-
             // build display lists
             b = 0;
             foreach (ModelBase.MaterialDef mat in materials.Values)
@@ -431,8 +429,7 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
                     {
                         foreach (ModelBase.PolyListDef polyList in geometry.m_PolyLists.Values)
                         {
-                            if (!polyList.m_MaterialName.Equals(curmaterial))
-                                continue;
+                            if (!polyList.m_MaterialName.Equals(curmaterial)) continue;
                             foreach (ModelBase.FaceListDef faceList in polyList.m_FaceLists)
                             {
                                 foreach (ModelBase.FaceDef face in faceList.m_Faces)
@@ -458,13 +455,16 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
                     Vector2.Divide(ref tcscale, _tcscale, out tcscale);
                 }
                 else
+                {
                     mat.m_TextureScale = Vector2.Zero;
+                }
 
                 dlpacker.ClearCommands();
                 int lastface = -1;
                 int lastmatrix = -1;
                 Vector4 lastvtx = new Vector4(0f, 0f, 0f, 12345678f);
                 Vector3 lastnrm = Vector3.Zero;
+                int lastColourARGB = -1;
                 foreach (ModelBase.BoneDef bone in boneTree)
                 {
                     foreach (ModelBase.GeometryDef geometry in bone.m_Geometries.Values)
@@ -736,10 +736,11 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
                 uint diffuse_ambient = 0x00000000;
                 diffuse_ambient |= Helper.ColorToBGR15(mat.m_Diffuse);
                 diffuse_ambient |= 0x8000;
-                diffuse_ambient |= (uint)(Helper.ColorToBGR15(mat.m_Diffuse) << 0x10);
+                diffuse_ambient |= (uint)(Helper.ColorToBGR15(mat.m_Ambient) << 0x10);
                 uint specular_emission = 0x00000000;
                 specular_emission |= Helper.ColorToBGR15(mat.m_Specular);
                 specular_emission |= (uint)(Helper.ColorToBGR15(mat.m_Emission) << 0x10);
+                if (mat.m_ShininessTableEnabled) specular_emission |= 0x8000;
 
                 bmd.Write32(curoffset + 0x04, texid);
                 bmd.Write32(curoffset + 0x08, palid);
@@ -989,15 +990,18 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
             {
                 dlpacker.AddTexCoordCommand(Vector2.Multiply((Vector2)vertex.m_TextureCoordinate, tcscale));
             }
-            if (vertex.m_Normal != null && (Vector3)vertex.m_Normal != lastnrm)
-            {
-                dlpacker.AddNormalCommand((Vector3)vertex.m_Normal);
-                lastnrm = (Vector3)vertex.m_Normal;
-            }
+            // The vertex colour command must come before the normal command as the normal command calculates 
+            // the vertex colour based on lighting parameters, setting the vertex colour after the normal 
+            // command will overwrite lighting changes.
             if (vertex.m_VertexColour != null && ((Color)vertex.m_VertexColour).ToArgb() != lastColourARGB)
             {
                 dlpacker.AddColorCommand((Color)vertex.m_VertexColour);
                 lastColourARGB = ((Color)vertex.m_VertexColour).ToArgb();
+            }
+            if (vertex.m_Normal != null && (Vector3)vertex.m_Normal != lastnrm)
+            {
+                dlpacker.AddNormalCommand((Vector3)vertex.m_Normal);
+                lastnrm = (Vector3)vertex.m_Normal;
             }
             dlpacker.AddVertexCommand(vtx, lastvtx, m_ImportOptions.m_AlwaysWriteFullVertexCmd23h);
             lastvtx = vtx;
