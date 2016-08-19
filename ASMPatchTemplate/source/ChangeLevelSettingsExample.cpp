@@ -17,20 +17,6 @@
 // The below example shows how to update the level's settings.
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct LevelSettings
-{
-	byte ObjectBankSettings[8];
-	unsigned short BMD_FileID;
-	unsigned short KCL_FileID;
-	unsigned short ICG_FileID;
-	unsigned short ICL_FileID;
-	bool CameraStartZoomedOut;
-	unsigned short MinimapScaleFactor;
-	byte SkyBox;
-	byte MusicSettings[3];
-	byte ActSelectorID;
-};
-
 LevelSettings RequiredLevelSettings = 
 {
 	{ 0, 0, 0, 0, 4, 0, 0, 0 }, 

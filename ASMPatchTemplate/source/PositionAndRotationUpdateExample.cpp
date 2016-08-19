@@ -1,4 +1,5 @@
 #include "SM64DS.h"
+#include "PositionAndRotationHelper.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // POSITION AND ROTATION UPDATE EXAMPLE	
@@ -20,35 +21,6 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 unsigned int OBJ_106_ObjectAddress = 0xFFFFFFFF;
-
-void SetMarioPositionUpdate(unsigned int objectAddress)
-{
-	*((volatile unsigned int*)(objectAddress + OBJ_UPDATE_MARIO_POS_OFFSET)) = 
-		UPDATE_MARIO_POS_ON_ROT_METHOD;
-}
-
-void UpdateObjectPositionAndRotation(unsigned int objectAddress)
-{
-	int xPos_asr3 = (int)(*((volatile int*)(objectAddress + OBJ_X_LOC_OFFSET)) >> 3);
-	int yPos_asr3 = (int)(*((volatile int*)(objectAddress + OBJ_Y_LOC_OFFSET)) >> 3);
-	int zPos_asr3 = (int)(*((volatile int*)(objectAddress + OBJ_Z_LOC_OFFSET)) >> 3);
-	
-	*((volatile int*)(objectAddress + 0x114)) = xPos_asr3;
-	*((volatile int*)(objectAddress + 0x118)) = yPos_asr3;
-	*((volatile int*)(objectAddress + 0x11C)) = zPos_asr3;
-	
-	short int xRot = *((volatile short int*)(objectAddress + OBJ_X_ROT_OFFSET));
-	short int yRot = *((volatile short int*)(objectAddress + OBJ_Y_ROT_OFFSET));
-	short int zRot = *((volatile short int*)(objectAddress + OBJ_Z_ROT_OFFSET));
-	
-	UpdateObjectModelRotation((unsigned int)(objectAddress + 0xF0), xRot, yRot, zRot);
-	
-	*((volatile int*)(objectAddress + 0x114)) = xPos_asr3;
-	*((volatile int*)(objectAddress + 0x118)) = yPos_asr3;
-	*((volatile int*)(objectAddress + 0x11C)) = zPos_asr3;
-	
-	UpdateObjectCollisionRotation(objectAddress);
-}
 
 //////////////////////////// WL_SUBMARINE ////////////////////////////
 
@@ -100,5 +72,5 @@ void hook_021119B0_ov_1A()
 	*((volatile int*)(OBJ_106_ObjectAddress + OBJ_Y_LOC_OFFSET)) += 0x800;
 	*((volatile int*)(OBJ_106_ObjectAddress + OBJ_Z_LOC_OFFSET)) += 0x800;
 	
-	UpdateObjectPositionAndRotation(OBJ_106_ObjectAddress);
+	UpdateObjectPositionAndRotation(OBJ_106_ObjectAddress, 0xF0, 0x114);
 }

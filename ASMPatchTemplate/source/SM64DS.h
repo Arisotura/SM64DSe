@@ -18,7 +18,7 @@ struct MarioActor
 	void* vtable;
 	u32 unk004;
 	u32 unk008;
-	u32 unk00C;
+	u32 unk00C; // camera related, always 0xBF
 	u32 unk010;
 	u32 unk014;
 	u32 unk018;
@@ -38,7 +38,7 @@ struct MarioActor
 	u32 unk050;
 	u32 unk054;
 	u32 unk058;
-	int32 xPos; //05C
+	int32 xPos; //0x5C
 	int32 yPos;
 	int32 zPos;
 	u32 unk068;
@@ -50,17 +50,18 @@ struct MarioActor
 	u32 unk080;
 	u32 unk084;
 	u32 unk088;
-	s16 xRot;
-	s16 yRot;
-	s16 zRot;
+	s16 xRot; // 0x8C
+	s16 yRot; // 0x8E
+	s16 zRot; // 0x90
 	u16 unk092;
-	u32 unk094;
-	int32 forwardSpeed; // 098
+	s16 forwardDirection; // 0x94
+	u16 unk096;
+	int32 forwardSpeed; // 0x98
 	u32 unk09C;
 	u32 unk0A0;
-	int32 xSpeed; // 0A4
-	int32 ySpeed;	// 0A8
-	int32 zSpeed; // 0AC
+	int32 xSpeed; // 0xA4
+	int32 ySpeed;	// 0xA8
+	int32 zSpeed; // 0xAC
 	u32 unk0B0;
 	u32 unk0B4;
 	u32 unk0B8;
@@ -237,15 +238,15 @@ struct MarioActor
 	u32 unk364;
 	u32 unk368;
 	u32 unk36C;
-	u32 unk370;
-	u32 unk374;
-	u32 unk378;
+	u32* currentActionAddress_1; // 0x370
+	u32* lastActionAddress; // 0x374
+	u32* currentActionAddress_2; // 0x378
 	u32 unk37C;
 	u32 unk380;
 	u32 unk384;
 	u32 unk388;
 	u32 unk38C;
-	u8 unk390;
+	u8 isOnGround_Related_1_x390;
 	u8 isOnGround;
 	u8 unk392;
 	u8 unk393;
@@ -260,7 +261,10 @@ struct MarioActor
 	u32 unk3B4;
 	u32 unk3B8;
 	u32 unk3BC;
-	u32 unk3C0;
+	u8 isInWater; // 0x3C0
+	u8 unk3C1;
+	u8 unk3C2;
+	u8 unk3C3;
 	u32 unk3C4;
 	u32 unk3C8;
 	u32 unk3CC;
@@ -420,7 +424,7 @@ struct MarioActor
 	u32 unk634;
 	u32 unk638;
 	u8 unk63C;
-	u8 generalState;
+	u8 currentMovementState; // 0x63D: 0 - moving, 1 - standing still, 2 - swimming 
 	u8 unk63E;
 	u8 unk63F;
 	u32 unk640;
@@ -434,7 +438,7 @@ struct MarioActor
 	u32 unk660;
 	u32 unk664;
 	u32 unk668;
-	u8 standingInWater; // 03 if true, 04 if false
+	u8 currentTerrainType; // 0x66C: 03 - water
 	u8 unk66D;
 	u8 unk66E;
 	u8 unk66F;
@@ -443,7 +447,7 @@ struct MarioActor
 	u32 unk678;
 	u32 unk67C;
 	u32 unk680;
-	int32 jumpPeakHeight;
+	int32 jumpPeakHeight; // 0x684
 	u32 unk688;
 	u32 unk68C;
 	u32 unk690;
@@ -454,7 +458,7 @@ struct MarioActor
 	u32 unk6A4;
 	u32 unk6A8;
 	u16 unk6AC;
-	u16 featherCapTimeRemaining;
+	u16 featherCapTimeRemaining; // 0x6AE
 	u32 unk6B0;
 	u32 unk6B4;
 	u32 unk6B8;
@@ -466,20 +470,61 @@ struct MarioActor
 	u32 unk6D0;
 	u32 unk6D4;
 	u32 unk6D8;
-	u8 previousHatCharacter;
-	u8 currentHatCharacter;
+	u8 previousHatCharacter; // 0x6DC
+	u8 currentHatCharacter; // 0x6DD
 	u8 unk6DE;
 	u8 unk6DF;
 	u8 unk6E0;
-	u8 currentJumpNumber; // 0 - first, 1 - second, 2 - triple jump
+	u8 currentJumpNumber; // 0x6E1: 0 - first, 1 - second, 2 - triple jump, more?
 	u8 unk6E2;
-	u8 unk6E3;
+	u8 climbingOrPushingRelated; // 0x6E3: 1 - on pole or moving along wall, 2 - moving while grabbing roof or pushing object, 3 - hitting wall under water?
+	u32 unk6E4;
+	u8 unk6E8;
+	u8 currentCollisionState; // 0x06E9: 0 - not colliding, 1 - standing on ground, 2 - colliding with wall in water, 3 - colliding with wall on land 
+	u16 unk6EA;
+	u32 unk6EC;
+	u32 unk6F0;
+	u32 unk6F4;
+	u32 unk6F8;
+	u32 unk6FC;
+	u32 unk700;
+	u32 unk704;
+	u32 unk708;
+	u32 unk70C;
+	u16 unk710;
+	u8 isInAir; // 0x712
+	u8 unk713;
+	u32 unk714;
+	u32 unk718;
+	u32 unk71C;
+	u32 unk720;
+	u32 unk724;
+	u32 unk728;
+	u32 unk72C;
+	u32 unk730;
+	u32 unk734;
+	u32 unk738;
+	u32 unk73C;
+	u32 unk740;
+	u32 unk744;
+	u32 unk748;
+	u32 unk74C;
+	u32 unk750;
+	u32 unk754;
+	u32 unk758;
+	u32 unk75C;
+	u32 unk760;
+	u32 unk764;
+	u32 unk768;
+	u32 unk76C;
+	u32 unk770;
 	// TODO: This struct's huge, add rest
 };
 
 extern MarioActor* PLAYER;
 
 extern byte Player_CurrentAction;
+extern byte Player_PreviousUniqueAction;
 
 const unsigned int SDAT_MINUS_0x10 = 0x0209B4A4;
 
@@ -492,6 +537,9 @@ const unsigned int STAR_COMPLETEION_BITMAP_ADDRESS = 0x0209CAB4;
 
 extern byte PreviousLevelID;
 extern byte CurrentLevelID;
+
+// So that when spawning an object, there's a constant reference to the TmpThreeIntArray
+extern int TmpThreeIntArray[3]; 
 
 const byte OBJECT_BANK_0_OFFSET = 0x54;
 const byte OBJECT_BANK_7_OFFSET = 0x5C;
@@ -510,13 +558,42 @@ const short int OBJ_Z_LOC_OFFSET = 0x64;
 const short int OBJ_X_ROT_OFFSET = 0x8C;
 const short int OBJ_Y_ROT_OFFSET = 0x8E;
 const short int OBJ_Z_ROT_OFFSET = 0x90;
+const short int OBJ_X_SPEED_OFFSET = 0xA4;
+const short int OBJ_Y_SPEED_OFFSET = 0xA8;
+const short int OBJ_Z_SPEED_OFFSET = 0xAC;
+const short int OBJ_FORWARD_DIRECTION_OFFSET = 0x94;
+const short int OBJ_FORWARD_SPEED_OFFSET = 0x98;
+const short int OBJ_DRAW_DISTANCE_OFFSET = 0xBC;
 const short int OBJ_PARAMETER_01_OFFSET = 0x08;
 const short int OBJ_PARAMETER_02_OFFSET = 0x8C;
 const short int OBJ_PARAMETER_03_OFFSET = 0x90;
 const short int OBJ_UPDATE_MARIO_POS_OFFSET = 0x13C;
 
-const unsigned int UPDATE_MARIO_POS_METHOD = 0x0203923C;
-const unsigned int UPDATE_MARIO_POS_ON_ROT_METHOD = 0x0203929C;
+struct OAMSettings
+{
+	byte unk00;
+	byte unk01;
+	byte unk02;
+	byte unk03;
+	byte TileID;
+	byte unk05; // bits 5 - 8 seem to be palette row index
+	byte unk06;
+	byte unk07;
+};
+
+struct LevelSettings
+{
+	byte ObjectBankSettings[8];
+	unsigned short BMD_FileID;
+	unsigned short KCL_FileID;
+	unsigned short ICG_FileID;
+	unsigned short ICL_FileID;
+	bool CameraStartZoomedOut;
+	unsigned short MinimapScaleFactor;
+	byte SkyBox;
+	byte MusicSettings[3];
+	byte ActSelectorID;
+};
 
 struct MarioTalkDirection
 {
@@ -531,18 +608,31 @@ extern "C"
 		MarioActor *, 
 		char action, 
 		unsigned int loop_related, 
-		unsigned short playspeed_20_12);
+		unsigned short playspeed_20_12
+	);
 		
 	void ParticleEffect(
 		short int effect_id, 
 		int x_position, 
 		int y_position, 
-		int z_position);
+		int z_position
+	);
+	
+	void ComplexParticleEffectForObject( 
+		unsigned int object_address, 
+		short int effect_id, 
+		unsigned int four_free_bytes_offset
+	);
+		
+	void OBJ_028_PositionUpdateDrawMethod(
+		unsigned int obj_028_address
+	);
 		
 	void Player_PlaySoundEffect(
 		unsigned int sdat_minus_0x10, 
 		byte zero_unknown, 
-		byte sound_effect_id);
+		byte sound_effect_id
+	);
 	
 	// Spawns an object with specified Actor ID, 
 	// Object Bank settings must allows object in current level, 
@@ -551,39 +641,63 @@ extern "C"
 		short int actor_id, 
 		unsigned short int parameter01, 
 		int* xyz_positions, 
-		short int* xyz_rotations);
+		short int* xyz_rotations
+	);
+	
+	// Removes the specified object from the scene 
+	void DestroyObject(
+		unsigned int object_address
+	);
+	
+	void OBJ_UpdateObjectXYZSpeedBasedOnForwardSpeedAndDirection( 
+		unsigned int object_address
+	);
 	
 	// Returns the address of the next object in a level with 
 	// the specified Actor ID starting after the object whose 
-	// address is specified. Set address_of_last_known_object 
+	// address is specified. Set search_from_address 
 	// to zero to find the first object.
 	unsigned int FindNextObjectByActorID(
 		short int actor_id, 
-		unsigned int address_of_last_known_object);
+		unsigned int search_from_address
+	);
 	
 	// Allows an object to talk to Mario with message at specified 
 	// index into message data. 
 	// object_address: address of object talking to Mario
 	// message_index: index of message in message data
 	// direction: direction Mario's body and head should face 
-	void TalkToPlayer(
+	void OBJ_TalkToPlayer(
 		MarioActor *, 
 		unsigned int object_address, 
 		unsigned short int message_index, 
-		MarioTalkDirection * direction);
+		MarioTalkDirection * direction
+	);
+	
+	unsigned short int ObjectMessageIDToActualMessageID( 
+		unsigned short int object_message_id
+	);
 	
 	// Update object's model and collision map to match its 
-	// X, Y and Z rotation values. 
-	// Important: +0x114, +0x118 and +0x11C must be set to 
-	// the object's X, Y and Z positions respectively, shifted right by 3
-	void UpdateObjectModelRotation(
-		unsigned int object_address_plus_0xF0, 
+	// X, Y and Z rotation values. To find the model rotation offset 
+	// look for three occurrences of 0x00001000 each 16 bytes apart
+	void OBJ_UpdateObjectModelRotation(
+		unsigned int object_address_model_rotation_offset, 
 		short int x_rot, 
 		short int y_rot, 
-		short int z_rot);
+		short int z_rot
+	);
 	
-	void UpdateObjectCollisionRotation(
-		unsigned int object_address);
+	void OBJ_UpdateObjectModelRotationY(
+		unsigned int object_address_model_rotation_offset, 
+		short int y_rot
+	);
+	
+	// Important: +0x114, +0x118 and +0x11C << CHECK FOR ALL << must be set to 
+	// the object's X, Y and Z positions respectively, shifted right by 3
+	void OBJ_UpdateObjectCollisionRotation(
+		unsigned int object_address
+	);
 	
 	bool AreCannonsActivatedForCurrentLevel();
 	void SetCannonsToActivatedForCurrentLevel();
@@ -597,9 +711,31 @@ extern "C"
 		byte level_id, 
 		byte entrance_id, 
 		unsigned int unknown_minus_one, 
-		byte mode);
-		
+		byte mode
+	);
+	
+	bool Player_HitWall( 
+		MarioActor *
+	);
+	
+	bool Player_KnockedBackUnderWater(
+		MarioActor * 
+	);
+	
+	byte GetActSelectorID( 
+		byte level_id
+	); 
+	
+	//Printing
+	void nocashPrint(const char* txt);
+	void nocashPrint1(const char* txt, u32 r0);
+	void nocashPrint2(const char* txt, u32 r0, u32 r1);
+	void nocashPrint3(const char* txt, u32 r0, u32 r1, u32 r2);
 }
+
+void HexPrint(unsigned int value, char *result);
+
+extern OAMSettings* OAM_ThinNumbers[10];
 
 void hook_020E5098();
 
@@ -676,7 +812,7 @@ enum PlayerActions
 	ACT_TooWeakToGetUpFromBack = 0x04,
 	ACT_Cough = 0x05,
 	ACT_SuffocateAndDie = 0x06,
-	ACT_SwaySideToSideAndDropDiwn = 0x07,
+	ACT_SwaySideToSideAndDropDown = 0x07,
 	ACT_GetUpFromSittingOnGround = 0x08,
 	ACT_SleepOnSide = 0x09,
 	ACT_SettleToSleepOnSide = 0x0A,
@@ -709,6 +845,9 @@ enum PlayerActions
 	ACT_Punch = 0x38,
 	ACT_DoublePunch = 0x39,
 	ACT_Kick = 0x3A,
+	ACT_GroundPoundStart = 0x3B,
+	ACT_GroundPound = 0x3C, 
+	ACT_GroundPoundEnd = 0x3D, 
 	ACT_Run = 0x3F,
 	ACT_SlideBackOnStomach = 0x43,
 	ACT_QuicklyTurn = 0x45,
@@ -731,7 +870,13 @@ enum PlayerActions
 	ACT_Tumble2 = 0x56,
 	ACT_HangByLeftArm = 0x57,
 	ACT_HangByRightArm = 0x58,
-	ACT_MoveWhileHanging = 0x59,
+	ACT_MoveWhileHangingLeftToRight = 0x59,
+	ACT_MoveWhileHangingRightToLeft = 0x5A, 
+	ACT_HangByRightArmStart = 0x5B, 
+	ACT_HugWallMoveLeft = 0x5C, 
+	ACT_HugWallMoveRight = 0x5D, 
+	ACT_HugWallStandStill = 0x5E, 
+	ACT_SpinJumpTPosition = 0x5F, 
 	ACT_Sneak = 0x61,
 	ACT_EndCrawl = 0x62,
 	ACT_Crawl = 0x63,
