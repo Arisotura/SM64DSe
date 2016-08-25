@@ -579,8 +579,30 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
 
             for (int i = 0; i < jointNames.Length; i++)
             {
-                if (!m_Model.m_BoneTransformsMap.GetFirstToSecond().ContainsKey(jointNames[i]))
-                    m_Model.m_BoneTransformsMap.Add(jointNames[i], m_Model.m_BoneTransformsMap.Count);
+                Queue<ModelBase.BoneDef> hierarchy = new Queue<ModelBase.BoneDef>();
+                ModelBase.BoneDef child = m_Model.m_BoneTree.GetBoneByID(jointNames[i]);
+                hierarchy.Enqueue(child);
+                while (child.m_Parent != null)
+                {
+                    if (!m_Model.m_BoneTransformsMap.GetFirstToSecond().ContainsKey(child.m_Parent.m_ID))
+                    {
+                        hierarchy.Enqueue(child.m_Parent);
+                        child = child.m_Parent;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                while (hierarchy.Count > 0)
+                {
+                    ModelBase.BoneDef current = hierarchy.Dequeue();
+                    if (!m_Model.m_BoneTransformsMap.GetFirstToSecond().ContainsKey(current.m_ID))
+                    {
+                        m_Model.m_BoneTransformsMap.Add(current.m_ID, m_Model.m_BoneTransformsMap.Count);
+                    }
+                }
             }
 
             //for (int i = 0; i < jointNames.Length; i++)
@@ -1043,18 +1065,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                                     if (texCoordOffset != -1 && m_Model.m_Materials[material].m_TextureDefID != null)
                                     {
                                         tmp = GetValueFromFloatArraySource(sources[texCoordSource], pArr[pIndex + (ulong)texCoordOffset]);
-                                        if (m_Model.m_Materials[material].m_TexGenMode != ModelBase.TexGenMode.Normal)
-                                        {
-                                            vert.m_TextureCoordinate = new Vector2(tmp[0], tmp[1]);
-                                        }
-                                        else
-                                        {
-                                            vert.m_Normal = new Vector3(
-                                                tmp[0] * m_Model.m_Textures[m_Model.m_Materials[material].m_TextureDefID].GetWidth(),
-                                                tmp[1] * m_Model.m_Textures[m_Model.m_Materials[material].m_TextureDefID].GetHeight(), 
-                                                0.0f);
-                                            vert.m_TextureCoordinate = null;
-                                        }
+                                        vert.m_TextureCoordinate = new Vector2(tmp[0], tmp[1]);
                                     }
                                     else
                                     {

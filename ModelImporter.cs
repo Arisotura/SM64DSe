@@ -73,8 +73,8 @@ namespace SM64DSe
         private uint m_UnderCursor;
 
         // display
-        private BMD m_MarioHeadModel;
-        private BMD m_MarioBodyModel;
+        private BMD m_MarioHeadModel = ModelCache.GetModel("data/player/mario_head_cap.bmd");
+        private BMD m_MarioBodyModel = ModelCache.GetModel("data/player/mario_model.bmd");
         private int m_PDisplayList;
         private int m_DisplayList;
         private uint[] m_PickingFrameBuffer;
@@ -208,8 +208,6 @@ namespace SM64DSe
 
         private void PrerenderModel()
         {
-            m_MarioHeadModel = ModelCache.GetModel("data/player/mario_head_cap.bmd");
-            m_MarioBodyModel = ModelCache.GetModel("data/player/mario_model.bmd");
             int[] mheaddl = ModelCache.GetDisplayLists(m_MarioHeadModel);
             int[] mbodydl = ModelCache.GetDisplayLists(m_MarioBodyModel);
 
@@ -265,27 +263,12 @@ namespace SM64DSe
 
                 m_ImportedModel.PrepareToRender();
 
-                // Render model converted to BMD
-                int[] dl = new int[2];
-
-                dl[0] = GL.GenLists(1);
-                GL.NewList(dl[0], ListMode.Compile);
                 m_ImportedModel.Render(RenderMode.Opaque, 1f);
-                //GL.EndList();
-
-                dl[1] = GL.GenLists(1);
-                GL.NewList(dl[1], ListMode.Compile);
                 m_ImportedModel.Render(RenderMode.Translucent, 1f);
-                GL.EndList();
 
                 GL.PopMatrix();
-
-                //GL.EndList();
-
-                //GL.CallList(dl[0]);
-                //GL.CallList(dl[1]);
-                // End
             }
+            GL.EndList();
 
             if (m_PDisplayList == 0)
                 m_PDisplayList = GL.GenLists(1);
@@ -304,6 +287,8 @@ namespace SM64DSe
             GL.PopMatrix();
 
             GL.EndList();
+
+            m_EarlyClosure = false;
         }
 
         private bool VectorInList(List<Vector3> l, Vector3 p)

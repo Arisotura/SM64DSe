@@ -169,7 +169,7 @@ namespace SM64DSe
         public override object ConvertTo(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value, Type destinationType)
         {
             if (destinationType == typeof(string))
-                return ((ushort)value).ToString("X");
+                return ((ushort)value).ToString("X4");
             return base.ConvertTo(context, culture, value, destinationType);
         }
 

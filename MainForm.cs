@@ -66,8 +66,8 @@ namespace SM64DSe
                 if (Program.m_ROM != null)
                 {
                     Program.m_ROM.EndRW();
-                    Program.m_ROMPath = "";
                 }
+                Program.m_ROMPath = "";
                 return;
             }
 

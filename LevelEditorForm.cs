@@ -2095,8 +2095,7 @@ namespace SM64DSe
         private void btnImportModel_Click(object sender, EventArgs e)
         {
             ModelImporter form = new ModelImporter(Program.m_ROM.GetFileFromInternalID(m_LevelSettings.BMDFileID).m_Name, Program.m_ROM.GetFileFromInternalID(m_LevelSettings.KCLFileID).m_Name);
-            if (form.ShowDialog(this) == DialogResult.Cancel)
-                return;
+            form.Show();
         }
 
         private void tvObjectList_DrawNode(object sender, DrawTreeNodeEventArgs e)
