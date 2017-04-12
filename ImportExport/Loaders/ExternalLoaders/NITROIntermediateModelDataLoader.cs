@@ -30,9 +30,11 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
     public class NITROIntermediateModelDataLoader : AbstractModelLoader
     {
         protected model_info model_info;
-        protected Vector3[] vtx_pos_data;
+        protected AccurateVertex[] vtx_pos_data;
         protected Color[] vtx_color_data;
         protected Dictionary<int, string> m_OriginalNodeIndices = new Dictionary<int, string>(); // Need this to get Bone ID from matrix
+
+        private static string[] WHITESPACE = new string[] { " ", "\n", "\r\n", "\t" };
 
         public NITROIntermediateModelDataLoader(string modelFileName) :
             base(modelFileName) { }
@@ -81,11 +83,11 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
             this.model_info.tex_matrix_mode = model_info.Attributes["tex_matrix_mode"].Value;
             this.model_info.compress_node = model_info.Attributes["compress_node"].Value;
             this.model_info.node_size = Array.ConvertAll(
-                model_info.Attributes["node_size"].Value.Split(new string[] { " ", "\n", "\r\n", "\t" }, StringSplitOptions.RemoveEmptyEntries),
+                model_info.Attributes["node_size"].Value.Split(WHITESPACE, StringSplitOptions.RemoveEmptyEntries),
                 Convert.ToInt32);
             this.model_info.compress_material = model_info.Attributes["compress_material"].Value.Equals("on");
             this.model_info.material_size = Array.ConvertAll(
-                model_info.Attributes["material_size"].Value.Split(new string[] { " ", "\n", "\r\n", "\t" }, 
+                model_info.Attributes["material_size"].Value.Split(WHITESPACE, 
                 StringSplitOptions.RemoveEmptyEntries),
                 Convert.ToInt32);
             this.model_info.output_texture = model_info.Attributes["output_texture"].Value;
@@ -98,15 +100,15 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
             if (vtx_pos_data != null)
             {
                 int pos_size = int.Parse(vtx_pos_data.Attributes["pos_size"].Value);
-                this.vtx_pos_data = new Vector3[pos_size];
+                this.vtx_pos_data = new AccurateVertex[pos_size];
                 string[] valuesStr = vtx_pos_data.InnerText.
-                    Split(new string[] { " ", "\n", "\r\n", "\t" }, StringSplitOptions.RemoveEmptyEntries);
+                    Split(WHITESPACE, StringSplitOptions.RemoveEmptyEntries);
                 for (int i = 0; i < pos_size; i++)
                 {
-                    float x = float.Parse(valuesStr[(i * 3) + 0], Helper.USA);
-                    float y = float.Parse(valuesStr[(i * 3) + 1], Helper.USA);
-                    float z = float.Parse(valuesStr[(i * 3) + 2], Helper.USA);
-                    this.vtx_pos_data[i] = new Vector3(x, y, z);
+                    string x = valuesStr[(i * 3) + 0];
+                    string y = valuesStr[(i * 3) + 1];
+                    string z = valuesStr[(i * 3) + 2];
+                    this.vtx_pos_data[i] = new AccurateVertex(x, y, z);
                 }
             }
             if (vtx_color_data != null)
@@ -114,7 +116,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                 int color_size = int.Parse(vtx_color_data.Attributes["color_size"].Value);
                 this.vtx_color_data = new Color[color_size];
                 string[] valuesStr = vtx_color_data.InnerText.
-                    Split(new string[] { " ", "\n", "\r\n", "\t" }, StringSplitOptions.RemoveEmptyEntries);
+                    Split(WHITESPACE, StringSplitOptions.RemoveEmptyEntries);
                 for (int i = 0; i < color_size; i++)
                 {
                     int r = (int)(((float)int.Parse(valuesStr[(i * 3) + 0], Helper.USA) / 31f) * 255f);
@@ -227,7 +229,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
 
             // AB12 -> [] { 12, AB }
             // AB12CD34 -> [] { 34, CD, 12, AB }
-            string[] words = dataStr.Split(new string[] { " ", "\n", "\r\n", "\t" }, StringSplitOptions.RemoveEmptyEntries);
+            string[] words = dataStr.Split(WHITESPACE, StringSplitOptions.RemoveEmptyEntries);
             for (int i = 0; i < numWords; i++)
             {
                 ushort value = ushort.Parse(words[i], System.Globalization.NumberStyles.HexNumber);
@@ -546,7 +548,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                 int boneID = -1;
                 Vector2? tex = null;
                 Vector3? nrm = null;
-                Vector3 pos = Vector3.Zero;
+                AccurateVertex pos = new AccurateVertex("0", "0", "0");
                 Color clr = Color.White;
                 foreach (XmlNode primitive in primitives)
                 {
@@ -613,10 +615,11 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                                 break;
                             case "pos_xyz":
                                 {
-                                    float[] pos_xyz = Array.ConvertAll(
-                                        child.Attributes["xyz"].Value.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries),
-                                        Convert.ToSingle);
-                                    pos = new Vector3(pos_xyz[0], pos_xyz[1], pos_xyz[2]);
+                                    string[] pos_xyz = child.Attributes["xyz"].Value.Split(new string[] { " " }, 
+                                        StringSplitOptions.RemoveEmptyEntries);
+                                    pos.x = new BasicBigFloat(pos_xyz[0]);
+                                    pos.y = new BasicBigFloat(pos_xyz[1]);
+                                    pos.z = new BasicBigFloat(pos_xyz[2]);
 
                                     AddVertexToList(boneID, tex, nrm, pos, this.model_info.pos_scale, clr, vertexList);
                                 }
@@ -624,30 +627,30 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                             case "pos_s": goto case "pos_xyz";
                             case "pos_xy":
                                 {
-                                    float[] pos_xy = Array.ConvertAll(
-                                        child.Attributes["xy"].Value.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries),
-                                        Convert.ToSingle);
-                                    pos = new Vector3(pos_xy[0], pos_xy[1], pos.Z);
+                                    string[] pos_xy = child.Attributes["xy"].Value.Split(new string[] { " " },
+                                        StringSplitOptions.RemoveEmptyEntries);
+                                    pos.x = new BasicBigFloat(pos_xy[0]);
+                                    pos.y = new BasicBigFloat(pos_xy[1]);
 
                                     AddVertexToList(boneID, tex, nrm, pos, this.model_info.pos_scale, clr, vertexList);
                                 }
                                 break;
                             case "pos_xz":
                                 {
-                                    float[] pos_xz = Array.ConvertAll(
-                                        child.Attributes["xz"].Value.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries),
-                                        Convert.ToSingle);
-                                    pos = new Vector3(pos_xz[0], pos.Y, pos_xz[1]);
+                                    string[] pos_xz = child.Attributes["xz"].Value.Split(new string[] { " " },
+                                        StringSplitOptions.RemoveEmptyEntries);
+                                    pos.x = new BasicBigFloat(pos_xz[0]);
+                                    pos.z = new BasicBigFloat(pos_xz[1]);
 
                                     AddVertexToList(boneID, tex, nrm, pos, this.model_info.pos_scale, clr, vertexList);
                                 }
                                 break;
                             case "pos_yz":
                                 {
-                                    float[] pos_yz = Array.ConvertAll(
-                                        child.Attributes["yz"].Value.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries),
-                                        Convert.ToSingle);
-                                    pos = new Vector3(pos.X, pos_yz[0], pos_yz[1]);
+                                    string[] pos_yz = child.Attributes["yz"].Value.Split(new string[] { " " },
+                                        StringSplitOptions.RemoveEmptyEntries);
+                                    pos.y = new BasicBigFloat(pos_yz[0]);
+                                    pos.z = new BasicBigFloat(pos_yz[1]);
 
                                     AddVertexToList(boneID, tex, nrm, pos, this.model_info.pos_scale, clr, vertexList);
                                 }
@@ -655,11 +658,11 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                             case "pos_diff":
                                 {
                                     // (-0.125 ≤ real numbers ≤ 0.125) (x3)
-                                    float[] pos_diff = Array.ConvertAll(
-                                        child.Attributes["xyz"].Value.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries),
-                                        Convert.ToSingle);
-
-                                    pos = new Vector3(pos.X + pos_diff[0], pos.Y + pos_diff[1], pos.Z + pos_diff[2]);
+                                    string[] pos_diff = child.Attributes["xyz"].Value.Split(new string[] { " " },
+                                        StringSplitOptions.RemoveEmptyEntries);
+                                    pos.x = BasicBigFloat.Add(pos.x, new BasicBigFloat(pos_diff[0]));
+                                    pos.y = BasicBigFloat.Add(pos.y, new BasicBigFloat(pos_diff[1]));
+                                    pos.z = BasicBigFloat.Add(pos.z, new BasicBigFloat(pos_diff[2]));
 
                                     AddVertexToList(boneID, tex, nrm, pos, this.model_info.pos_scale, clr, vertexList);
                                 }
@@ -767,6 +770,17 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
             vertexList.Add(vertex);
         }
 
+        protected static void AddVertexToList(int boneID, Vector2? tex, Vector3? nrm, AccurateVertex pos, int pos_scale,
+            Color clr, List<ModelBase.VertexDef> vertexList)
+        {
+            AccurateVertex scaledPos = new AccurateVertex(
+                BasicBigFloat.IntMultiply(pos.x, (1 << pos_scale)), 
+                BasicBigFloat.IntMultiply(pos.y, (1 << pos_scale)), 
+                BasicBigFloat.IntMultiply(pos.z, (1 << pos_scale)));
+            AddVertexToList(boneID, tex, nrm, new Vector3(scaledPos.x.ToFloat(), scaledPos.y.ToFloat(), scaledPos.z.ToFloat()),
+                0, clr, vertexList);
+        }
+
         public override Dictionary<string, ModelBase.MaterialDef> GetModelMaterials()
         {
             if (m_Model.m_Materials.Count > 0)
@@ -794,5 +808,26 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
         public string output_texture;
         public bool force_full_weight;
         public bool use_primitive_strip;
+    }
+
+    public struct AccurateVertex
+    {
+        public BasicBigFloat x;
+        public BasicBigFloat y;
+        public BasicBigFloat z;
+
+        public AccurateVertex(BasicBigFloat x, BasicBigFloat y, BasicBigFloat z)
+        {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+
+        public AccurateVertex(string x, string y, string z)
+        {
+            this.x = new BasicBigFloat(x);
+            this.y = new BasicBigFloat(y);
+            this.z = new BasicBigFloat(z);
+        }
     }
 }

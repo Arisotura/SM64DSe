@@ -99,9 +99,7 @@ namespace SM64DSe
                         short x = (short)((param << 6) & 0xFFC0);
                         short y = (short)((param >> 4) & 0xFFC0);
                         short z = (short)((param >> 14) & 0xFFC0);
-                        m_CurVertex.m_Normal.X = (float)x / 32768.0f;
-                        m_CurVertex.m_Normal.Y = (float)y / 32768.0f;
-                        m_CurVertex.m_Normal.Z = (float)z / 32768.0f;
+                        m_CurVertex.m_Normal = new Vector3((float)x / 32768.0f, (float)y / 32768.0f, (float)z / 32768.0f);
                     }
                     break;
 
@@ -679,7 +677,8 @@ namespace SM64DSe
             public Vector3 m_Position;
             public Color m_Color;
             public Vector2 m_TexCoord;
-            public Vector3 m_Normal;
+            // Normals should only be used when one or more lights enabled for material
+            public Vector3? m_Normal;
 
             public uint m_MatrixID; // used for animations and such :)
         }
@@ -919,8 +918,8 @@ namespace SM64DSe
                                 if (matgroup.m_GLTextureID != 0)
                                     GL.TexCoord2(vtx.m_TexCoord);
 
-                                if ((matgroup.m_PolyAttribs & 0xF) != 0x0)
-                                    GL.Normal3(vtx.m_Normal);
+                                if ((matgroup.m_PolyAttribs & 0xF) != 0x0 && vtx.m_Normal != null)
+                                    GL.Normal3((Vector3)vtx.m_Normal);
 
                                 Vector3 finalvtx = vtx.m_Position;
                                 if (!usesAnimation)

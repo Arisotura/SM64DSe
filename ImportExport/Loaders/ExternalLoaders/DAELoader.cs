@@ -1002,6 +1002,8 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
 
                         if (count == 0) continue;
 
+                        ModelBase.MaterialDef currentMaterial = m_Model.m_Materials[material];
+
                         int maxOffset = -1;
                         int vertexOffset = -1, normalOffset = -1, texCoordOffset = -1, colourOffset = -1;
                         string vertexSource = "", normalSource = "", texCoordSource = "", colourSource = "";
@@ -1014,8 +1016,11 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                             }
                             else if (input.semantic.Equals("NORMAL"))
                             {
-                                normalOffset = (int)input.offset;
-                                normalSource = input.source.Replace("#", "");
+                                if (currentMaterial.m_Lights.Contains(true))
+                                {
+                                    normalOffset = (int)input.offset;
+                                    normalSource = input.source.Replace("#", "");
+                                }
                             }
                             else if (input.semantic.Equals("TEXCOORD"))
                             {

@@ -94,6 +94,7 @@
     <Compile Include="AnimationEditorForm.Designer.cs">
       <DependentUpon>AnimationEditorForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="BasicBigFloat.cs" />
     <Compile Include="BiDictionaryOneToOne.cs" />
     <Compile Include="ImportExport\BMD_BCA_KCLExporter.cs" />
     <Compile Include="ImportExport\BMDImporter.cs" />

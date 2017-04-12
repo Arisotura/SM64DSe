@@ -179,14 +179,15 @@ namespace SM64DSe
 
         private void glLevelView_KeyDown(object sender, KeyEventArgs e)
         {
+            float zoomMultiplier = e.Shift ? 4.0f : 1.0f;
             if (e.KeyCode == Keys.Home)
             {
-                ZoomCamera(-0.5f);
+                ZoomCamera(-0.5f * zoomMultiplier);
                 glModelView.Refresh();
             }
             if (e.KeyCode == Keys.End)
             {
-                ZoomCamera(0.5f);
+                ZoomCamera(0.5f * zoomMultiplier);
                 glModelView.Refresh();
             }
         }
