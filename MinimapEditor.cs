@@ -195,21 +195,24 @@ namespace SM64DSe
             Color[] palette = bmp.Palette.Entries.ToArray<Color>();
             if (palette.Length > 256)
             {
-                MessageBox.Show("Too many colours\n\n" + 
-                    "You must import an indexed bitmap with 256 colours or fewer.");
+                MessageBox.Show("Too many colours\n\nYou must import an indexed bitmap with a maximum of 256 colours.");
                 return;
             }
 
-            //Write new palette
+            // Write new palette
             m_PalFile = Program.m_ROM.GetFileFromName(txtSelNCL.Text);
             m_PalFile.Clear();
             for (int i = 0; i < palette.Length; i++)
             {
-                //Colour in BGR15 format (16 bits) written to every even address 0,2,4...
+                // Colour in BGR15 format (16 bits) written to every even address 0,2,4...
                 m_PalFile.Write16((uint)i * 2, (ushort)(Helper.ColorToBGR15(palette[i])));
             }
-            for (int i = palette.Length; i < 256; i++)
+            // Pad the palette to a multiple of 16 colours
+            byte nColourSlots = (byte)((palette.Length + 16) & ~15);
+            for (int i = palette.Length; i < nColourSlots; i++)
+            {
                 m_PalFile.Write16((uint)i * 2, 0);
+            }
 
             m_PalFile.SaveChanges();
             
@@ -348,8 +351,8 @@ namespace SM64DSe
             m_TileSetFile.SaveChanges();
 
             // If it's a minimap that's being replaced, fill the tile maps to allow for multiple maps 
-            // and ensure the image's displayed at the right size as you can't change the size of 
-            // a level's minimap - it seems to be hardcoded somewhere (in level header?)
+            // and ensure the image's displayed at the right size since minimap sizes are hard-coded, 
+            // they are not based on the size of the imported image.
             if (replaceMinimap)
             {
                 try
@@ -361,6 +364,9 @@ namespace SM64DSe
                 }
                 catch (Exception ex) { MessageBox.Show(ex.Message + ex.Source + ex.StackTrace); }
             }
+
+            m_SizeX = sizeX;
+            m_SizeY = sizeY;
         }
 
         public void SwitchBackground(int swapped)
@@ -558,6 +564,7 @@ namespace SM64DSe
 
         private void btnImport_Click(object sender, EventArgs e)
         {
+            m_IsUsingTileMap = (txtSelNSC.Text.Trim().Length > 0);
             if (m_BPP == 8)
             {
                 OpenFileDialog ofd = new OpenFileDialog();
