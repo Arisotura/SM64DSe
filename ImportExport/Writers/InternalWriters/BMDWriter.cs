@@ -114,9 +114,9 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
 
             public void AddNormalCommand(Vector3 nrm)
             {
-                short x = (short)(nrm.X * 32768.0f);
-                short y = (short)(nrm.Y * 32768.0f);
-                short z = (short)(nrm.Z * 32768.0f);
+                short x = (short)((nrm.X * 0.99f) * 32768.0f);
+                short y = (short)((nrm.Y * 0.99f) * 32768.0f);
+                short z = (short)((nrm.Z * 0.99f) * 32768.0f);
                 uint param = (uint)(((ushort)x) >> 6 | ((((ushort)y) << 4) & 0xFFC00) |
                     ((((ushort)z) << 14) & 0x3FF00000));
                 AddCommand(0x21, param);
@@ -390,7 +390,7 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
                 }
             }
 
-            if (texsize >= 49152)
+            if (texsize >= 49152 && !Properties.Settings.Default.DisableTextureSizeWarning)
             {
                 if (MessageBox.Show("Your textures would occupy more than 48k of VRAM.\nThis could cause glitches or freezes.\n\nImport anyway?",
                     Program.AppTitle, MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.No)

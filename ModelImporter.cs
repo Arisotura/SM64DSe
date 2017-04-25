@@ -51,11 +51,28 @@ namespace SM64DSe
 
         private LevelSettings m_LevelSettings;
 
-        // model settings
-        private Vector3 m_Scale;
-        private BMDImporter.BMDExtraImportOptions m_ExtraOptions = BMDImporter.BMDExtraImportOptions.DEFAULT;
-        private float m_CustomScale;
-        private float m_InGameModelScale;
+        // importation settings
+        private class ModelImportSettings
+        {
+            public Vector3 m_Scale;
+            public float m_CustomScale;
+            public float m_InGameModelScale;
+            public BMDImporter.BMDExtraImportOptions m_ExtraOptions;
+            public bool m_GenerateKCL;
+            public float m_KCLMinimumFaceSize;
+
+            public ModelImportSettings(float customScale)
+            {
+                m_Scale = new Vector3(1f, 1f, 1f);
+                m_CustomScale = customScale;
+                m_InGameModelScale = customScale;
+                m_ExtraOptions = BMDImporter.BMDExtraImportOptions.DEFAULT;
+                m_GenerateKCL = true;
+                m_KCLMinimumFaceSize = 0.0005f;
+            }
+        }
+        private static Dictionary<string, ModelImportSettings> m_SavedModelImportSettings = new Dictionary<string, ModelImportSettings>();
+        private ModelImportSettings m_ModelImportSettings;
 
         // camera
         private Vector2 m_CamRotation;
@@ -83,6 +100,7 @@ namespace SM64DSe
 
         private Dictionary<string, ModelBase.MaterialDef> m_Materials;
         private Dictionary<string, int> m_MatColTypes = new Dictionary<string, int>();
+        private static Dictionary<string, Dictionary<string, int>> m_SavedMaterialCollisionTypes = new Dictionary<string, Dictionary<string, int>>();
 
         // misc
         private Vector3 m_MarioPosition;
@@ -97,7 +115,7 @@ namespace SM64DSe
         {
             InitializeComponent();
 
-            Text = "[EXPERIMENTAL] Model importer - " + Program.AppTitle + " " + Program.AppVersion;
+            Text = "Model importer - " + Program.AppTitle + " " + Program.AppVersion;
 
             m_GLLoaded = false;
             m_MdlLoaded = false;
@@ -108,16 +126,36 @@ namespace SM64DSe
 
             m_ImportedModel = new BMD(Program.m_ROM.GetFileFromName(m_BMDName));
 
-            m_Scale = new Vector3(1f, 1f, 1f);
-            m_CustomScale = customScale;
+            m_ModelImportSettings = m_SavedModelImportSettings.ContainsKey(m_BMDName) ? 
+                m_SavedModelImportSettings[m_BMDName] : new ModelImportSettings(customScale);
 
-            m_InGameModelScale = customScale;
-            txtInGameSizePreview.Text = m_InGameModelScale.ToString(Helper.USA);
-            if (m_InGameModelScale == 1f)
+            tbScale.Text = m_ModelImportSettings.m_Scale.X.ToString(Helper.USA);
+            txtInGameSizePreview.Text = m_ModelImportSettings.m_InGameModelScale.ToString(Helper.USA);
+            if (m_ModelImportSettings.m_InGameModelScale == 1f)
             {
                 chkInGamePreview.Checked = false;
                 txtInGameSizePreview.Enabled = false;
             }
+
+            cbGenerateCollision.Checked = m_ModelImportSettings.m_GenerateKCL;
+            txtThreshold.Text = m_ModelImportSettings.m_KCLMinimumFaceSize.ToString(Helper.USA);
+
+            chkAlwaysWriteFullVertexCmd23h.Checked = m_ModelImportSettings.m_ExtraOptions.m_AlwaysWriteFullVertexCmd23h;
+            chkStripify.Checked = m_ModelImportSettings.m_ExtraOptions.m_ConvertToTriangleStrips;
+            chkKeepVertexOrderDuringStripping.Checked = m_ModelImportSettings.m_ExtraOptions.m_KeepVertexOrderDuringStripping;
+            switch (m_ModelImportSettings.m_ExtraOptions.m_TextureQualitySetting)
+            {
+                case BMDImporter.BMDExtraImportOptions.TextureQualitySetting.SmallestSize:
+                    rbAlwaysCompress.Checked = true;
+                    break;
+                case BMDImporter.BMDExtraImportOptions.TextureQualitySetting.BetterQualityWhereSensible:
+                    rbBetterQualityWhereSensible.Checked = true;
+                    break;
+                case BMDImporter.BMDExtraImportOptions.TextureQualitySetting.BestQuality:
+                    rbNeverCompress.Checked = true;
+                    break;
+            }
+            chkVFlipAllTextures.Checked = m_ModelImportSettings.m_ExtraOptions.m_VerticallyFlipAllTextures;
 
             m_DisplayList = 0;
         }
@@ -138,12 +176,13 @@ namespace SM64DSe
 
                 BMDImporter importer = new BMDImporter();
                 m_ImportedModel = importer.ConvertModelToBMD(ref m_ImportedModel.m_File,
-                    m_ModelFileName, Vector3.One, m_ExtraOptions, false);
+                    m_ModelFileName, Vector3.One, m_ModelImportSettings.m_ExtraOptions, false);
                 m_Materials = importer.GetModelMaterials(m_ModelFileName);
 
                 m_MdlLoaded = true;
 
                 PrerenderModel();
+                glModelView.Refresh();
 
                 PopulateColTypes();
 
@@ -156,16 +195,40 @@ namespace SM64DSe
             }
         }
 
-        private void PopulateColTypes()
+        private void PopulateColTypes(bool forceClear = false)
         {
-            m_MatColTypes.Clear();
-            foreach (string matName in m_Materials.Keys)
+            bool reset = true;
+            if (!forceClear && Properties.Settings.Default.RememberMaterialCollisionTypeAssignments)
             {
-                m_MatColTypes.Add(matName, 0);
+                string key = m_ModelPath + m_ModelFileName;
+                if (m_SavedMaterialCollisionTypes.ContainsKey(key))
+                {
+                    Dictionary<string, int> materialCollisionTypeAssignments = m_SavedMaterialCollisionTypes[key];
+                    if (materialCollisionTypeAssignments.Keys.Count == m_Materials.Keys.Count &&
+                        materialCollisionTypeAssignments.Keys.Except(m_Materials.Keys).Count() < 1)
+                    {
+                        m_MatColTypes = materialCollisionTypeAssignments;
+                        reset = false;
+                    }
+                    else
+                    {
+                        m_SavedMaterialCollisionTypes.Remove(key);
+                    }
+                }
+            }
+
+            if (reset)
+            {
+                m_MatColTypes.Clear();
+                foreach (string matName in m_Materials.Keys)
+                {
+                    m_MatColTypes.Add(matName, 0);
+                }
             }
 
             gridColTypes.ColumnCount = 2;
             gridColTypes.Columns[0].HeaderText = "Material";
+            gridColTypes.Columns[0].ReadOnly = true;
             gridColTypes.Columns[1].HeaderText = "Col. Type";
 
             int numMats = m_Materials.Count;
@@ -211,7 +274,7 @@ namespace SM64DSe
             int[] mheaddl = ModelCache.GetDisplayLists(m_MarioHeadModel);
             int[] mbodydl = ModelCache.GetDisplayLists(m_MarioBodyModel);
 
-            Vector3 mariopos = Vector3.Multiply(m_MarioPosition, m_Scale);
+            Vector3 mariopos = Vector3.Multiply(m_MarioPosition, m_ModelImportSettings.m_Scale);
 
             if (m_DisplayList == 0)
                 m_DisplayList = GL.GenLists(1);
@@ -251,8 +314,8 @@ namespace SM64DSe
             GL.CallList(mheaddl[1]);
             GL.PopMatrix();
 
-            Vector3 previewScale = m_Scale;
-            previewScale = Vector3.Multiply(m_Scale, m_InGameModelScale);
+            Vector3 previewScale = m_ModelImportSettings.m_Scale;
+            previewScale = Vector3.Multiply(m_ModelImportSettings.m_Scale, m_ModelImportSettings.m_InGameModelScale);
 
             if (m_MdlLoaded)
             {
@@ -434,49 +497,52 @@ namespace SM64DSe
 
         private void ImportModel()
         {
-            float faceSizeThreshold = 0.001f;
-            if (txtThreshold.Text == "")
-                faceSizeThreshold = 0.001f;//Default value
-            else
-            {
-                try { faceSizeThreshold = float.Parse(txtThreshold.Text, Helper.USA); }
-                catch { MessageBox.Show(txtThreshold.Text + "\nis not a valid float value. Please enter a value in format 0.123"); return; }
-            }
             NitroFile kcl;//This'll hold the KCL file that is to be replaced, either a level's or an object's
             //If it's an object it'll be scaled down - need to get back to original value
             slStatus.Text = "Importing model...";
             glModelView.Refresh();
             BMDImporter importer = new BMDImporter();
             m_ImportedModel = importer.ConvertModelToBMD(ref m_ImportedModel.m_File,
-                m_ModelFileName, m_Scale, m_ExtraOptions, true);
+                m_ModelFileName, m_ModelImportSettings.m_Scale, m_ModelImportSettings.m_ExtraOptions, true);
 
             PrerenderModel();
             glModelView.Refresh();
-            if (cbGenerateCollision.Checked)
+            if (m_ModelImportSettings.m_GenerateKCL)
             {
-                float kclScale = (!chkInGamePreview.Checked) ? m_Scale.X : (m_Scale.X * m_InGameModelScale);
+                float kclScale = (!chkInGamePreview.Checked) ? m_ModelImportSettings.m_Scale.X : (m_ModelImportSettings.m_Scale.X * m_ModelImportSettings.m_InGameModelScale);
                 slStatus.Text = "Importing collision map... This may take a few minutes, please be patient.";
                 try
                 {
                     kcl = Program.m_ROM.GetFileFromName(m_KCLName);
-                    new KCLImporter().ConvertModelToKCL(kcl, m_ModelFileName, kclScale, faceSizeThreshold, m_MatColTypes);
+                    new KCLImporter().ConvertModelToKCL(kcl, m_ModelFileName, kclScale, m_ModelImportSettings.m_KCLMinimumFaceSize, m_MatColTypes);
                 }
                 catch (Exception e)
                 {
-                    if (e.Message.Contains("NitroROM: cannot find file"))
-                        MessageBox.Show("This object has no collision data, however the model will still be imported.");
-                    else
-                        MessageBox.Show("An error occurred importing the collision map:\n\n" +
-                            e.Message + "\n\n" + e.StackTrace);
+                    string errorMessage = e.Message.Contains("NitroROM: cannot find file") ?
+                        "This object has no collision data, however the model will still be imported." :
+                        "An error occurred importing the collision map:\n\n" + e.Message + "\n\n" + e.StackTrace;
+                    MessageBox.Show(errorMessage);
                 }
             }
             slStatus.Text = "Finished importing.";
 
+            m_SavedModelImportSettings[m_BMDName] = m_ModelImportSettings;
+            m_SavedMaterialCollisionTypes[m_ModelPath + m_ModelFileName] = m_MatColTypes;
+
             RefreshScale(1f);
             tbScale.Text = "1";
 
-            try { ((LevelEditorForm)Owner).UpdateLevelModel(); }
-            catch { }
+            if (Owner != null)
+            {
+                try 
+                {
+                    ((LevelEditorForm)Owner).UpdateLevelModel();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.StackTrace);
+                }
+            }
         }
 
         private static void ClampRotation(ref float val, float twopi)
@@ -551,7 +617,7 @@ namespace SM64DSe
                         Vector3.Subtract(ref m_CamPosition, ref m_MarioPosition, out between);
 
                         float objz = (((between.X * (float)Math.Cos(m_CamRotation.X)) + (between.Z * (float)Math.Sin(m_CamRotation.X))) * (float)Math.Cos(m_CamRotation.Y)) + (between.Y * (float)Math.Sin(m_CamRotation.Y));
-                        objz /= m_Scale.X;
+                        objz /= m_ModelImportSettings.m_Scale.X;
 
                         xdelta *= m_PixelFactorX * objz;
                         ydelta *= -m_PixelFactorY * objz;
@@ -610,7 +676,7 @@ namespace SM64DSe
             {
                 float delta = -(e.Delta / 120f);
                 delta = ((delta < 0f) ? -1f : 1f) * (float)Math.Pow(delta, 2f) * 0.05f;
-                delta /= m_Scale.X;
+                delta /= m_ModelImportSettings.m_Scale.X;
 
                 Vector3 offset = Vector3.Zero;
                 offset.X += delta * (float)Math.Cos(m_CamRotation.X) * (float)Math.Cos(m_CamRotation.Y);
@@ -642,15 +708,15 @@ namespace SM64DSe
 
         private void cbZMirror_CheckedChanged(object sender, EventArgs e)
         {
-            //m_ExtraOptions.m_ZMirror = cbZMirror.Checked;
+            //m_ModelImportSettings.m_ExtraOptions.m_ZMirror = cbZMirror.Checked;
             PrerenderModel();
             glModelView.Refresh();
         }
 
         private void tbScale_TextChanged(object sender, EventArgs e)
         {
-            float val;
-            if (float.TryParse(tbScale.Text, out val) || float.TryParse(tbScale.Text, NumberStyles.Float, Helper.USA, out val))
+            float val = 1f;
+            if (Helper.TryParseFloat(tbScale, ref val))
             {
                 RefreshScale(val);
             }
@@ -658,9 +724,12 @@ namespace SM64DSe
 
         private void RefreshScale(float val)
         {
-            m_Scale = new Vector3(val, val, val);
-            PrerenderModel();
-            glModelView.Refresh();
+            m_ModelImportSettings.m_Scale = new Vector3(val, val, val);
+            if (m_MdlLoaded)
+            {
+                PrerenderModel();
+                glModelView.Refresh();
+            }
         }
 
         private void ModelImporter_FormClosed(object sender, FormClosedEventArgs e)
@@ -683,9 +752,19 @@ namespace SM64DSe
 
         private void cbSwapYZ_CheckedChanged(object sender, EventArgs e)
         {
-            //m_ExtraOptions.m_SwapYZ = cbSwapYZ.Checked;
+            //m_ModelImportSettings.m_ExtraOptions.m_SwapYZ = cbSwapYZ.Checked;
             PrerenderModel();
             glModelView.Refresh();
+        }
+
+        private void cbGenerateCollision_CheckedChanged(object sender, System.EventArgs e)
+        {
+            m_ModelImportSettings.m_GenerateKCL = cbGenerateCollision.Checked;
+        }
+
+        private void txtThreshold_TextChanged(object sender, System.EventArgs e)
+        {
+            Helper.TryParseFloat(txtThreshold, ref m_ModelImportSettings.m_KCLMinimumFaceSize);
         }
 
         private void btnAssignTypes_Click(object sender, EventArgs e)
@@ -698,6 +777,11 @@ namespace SM64DSe
             }
         }
 
+        private void btnClearTypes_Click(object sender, EventArgs e)
+        {
+            PopulateColTypes(true);
+        }
+
         private void btnEditTextures_Click(object sender, EventArgs e)
         {
             new TextureEditorForm(m_BMDName, this).Show(this);
@@ -707,43 +791,46 @@ namespace SM64DSe
         {
             if (chkInGamePreview.Checked)
             {
-                try { m_InGameModelScale = float.Parse(txtInGameSizePreview.Text, Helper.USA); }
-                catch { MessageBox.Show("Please enter a valid scale in the format 1.23"); }
+                Helper.TryParseFloat(txtInGameSizePreview.Text, ref m_ModelImportSettings.m_InGameModelScale);
                 txtInGameSizePreview.Enabled = true;
             }
             else if (!chkInGamePreview.Checked)
             {
-                m_InGameModelScale = m_CustomScale;
-                txtInGameSizePreview.Text = m_InGameModelScale.ToString(Helper.USA);
+                m_ModelImportSettings.m_InGameModelScale = m_ModelImportSettings.m_CustomScale;
+                txtInGameSizePreview.Text = m_ModelImportSettings.m_InGameModelScale.ToString(Helper.USA);
                 txtInGameSizePreview.Enabled = false;
             }
 
-            PrerenderModel();
-            glModelView.Refresh();
+            if (m_MdlLoaded)
+            {
+                PrerenderModel();
+                glModelView.Refresh();
+            }
         }
 
         private void txtInGameSizePreview_TextChanged(object sender, EventArgs e)
         {
             if (chkInGamePreview.Checked)
             {
-                try
+                if (Helper.TryParseFloat(txtInGameSizePreview, ref m_ModelImportSettings.m_InGameModelScale))
                 {
-                    m_InGameModelScale = float.Parse(txtInGameSizePreview.Text, Helper.USA);
-                    PrerenderModel();
-                    glModelView.Refresh();
+                    if (m_MdlLoaded)
+                    {
+                        PrerenderModel();
+                        glModelView.Refresh();
+                    }
                 }
-                catch { }
             }
         }
 
         private void chkAlwaysWriteFullVertexCmd23h_CheckedChanged(object sender, EventArgs e)
         {
-            m_ExtraOptions.m_AlwaysWriteFullVertexCmd23h = chkAlwaysWriteFullVertexCmd23h.Checked;
+            m_ModelImportSettings.m_ExtraOptions.m_AlwaysWriteFullVertexCmd23h = chkAlwaysWriteFullVertexCmd23h.Checked;
         }
 
         private void chkStripify_CheckedChanged(object sender, EventArgs e)
         {
-            m_ExtraOptions.m_ConvertToTriangleStrips = chkStripify.Checked;
+            m_ModelImportSettings.m_ExtraOptions.m_ConvertToTriangleStrips = chkStripify.Checked;
 
             if (chkStripify.Checked)
                 chkKeepVertexOrderDuringStripping.Enabled = true;
@@ -753,27 +840,27 @@ namespace SM64DSe
 
         private void chkKeepVertexOrderDuringStripping_CheckedChanged(object sender, EventArgs e)
         {
-            m_ExtraOptions.m_KeepVertexOrderDuringStripping = chkKeepVertexOrderDuringStripping.Checked;
+            m_ModelImportSettings.m_ExtraOptions.m_KeepVertexOrderDuringStripping = chkKeepVertexOrderDuringStripping.Checked;
         }
 
         private void chkVFlipAllTextures_CheckedChanged(object sender, EventArgs e)
         {
-            m_ExtraOptions.m_VerticallyFlipAllTextures = chkVFlipAllTextures.Checked;
+            m_ModelImportSettings.m_ExtraOptions.m_VerticallyFlipAllTextures = chkVFlipAllTextures.Checked;
         }
 
         private void rbAlwaysCompress_CheckedChanged(object sender, EventArgs e)
         {
-            m_ExtraOptions.m_TextureQualitySetting = BMDImporter.BMDExtraImportOptions.TextureQualitySetting.SmallestSize;
+            m_ModelImportSettings.m_ExtraOptions.m_TextureQualitySetting = BMDImporter.BMDExtraImportOptions.TextureQualitySetting.SmallestSize;
         }
 
         private void rbBetterQualityWhereSensible_CheckedChanged(object sender, EventArgs e)
         {
-            m_ExtraOptions.m_TextureQualitySetting = BMDImporter.BMDExtraImportOptions.TextureQualitySetting.BetterQualityWhereSensible;
+            m_ModelImportSettings.m_ExtraOptions.m_TextureQualitySetting = BMDImporter.BMDExtraImportOptions.TextureQualitySetting.BetterQualityWhereSensible;
         }
 
         private void rbNeverCompress_CheckedChanged(object sender, EventArgs e)
         {
-            m_ExtraOptions.m_TextureQualitySetting = BMDImporter.BMDExtraImportOptions.TextureQualitySetting.BestQuality;
+            m_ModelImportSettings.m_ExtraOptions.m_TextureQualitySetting = BMDImporter.BMDExtraImportOptions.TextureQualitySetting.BestQuality;
         }
     }
 }

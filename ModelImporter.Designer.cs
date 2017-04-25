@@ -61,6 +61,7 @@ namespace SM64DSe
             this.lblScale = new System.Windows.Forms.Label();
             this.tbScale = new System.Windows.Forms.TextBox();
             this.ofdLoadModel = new System.Windows.Forms.OpenFileDialog();
+            this.btnClearTypes = new System.Windows.Forms.Button();
             this.tsToolBar.SuspendLayout();
             this.ssStatusBar.SuspendLayout();
             //((System.ComponentModel.ISupportInitialize)(this.spcMainContainer)).BeginInit();
@@ -149,8 +150,7 @@ namespace SM64DSe
             // slStatus
             // 
             this.slStatus.Name = "slStatus";
-            this.slStatus.Size = new System.Drawing.Size(20, 17);
-            this.slStatus.Text = "lol";
+            this.slStatus.Size = new System.Drawing.Size(0, 17);
             // 
             // glModelView
             // 
@@ -184,6 +184,7 @@ namespace SM64DSe
             // 
             // spcMainContainer.Panel1
             // 
+            this.spcMainContainer.Panel1.Controls.Add(this.btnClearTypes);
             this.spcMainContainer.Panel1.Controls.Add(this.txtInGameSizePreview);
             this.spcMainContainer.Panel1.Controls.Add(this.chkInGamePreview);
             this.spcMainContainer.Panel1.Controls.Add(this.label1);
@@ -390,7 +391,7 @@ namespace SM64DSe
             this.txtThreshold.Name = "txtThreshold";
             this.txtThreshold.Size = new System.Drawing.Size(86, 20);
             this.txtThreshold.TabIndex = 5;
-            this.txtThreshold.Text = "0.0005";
+            this.txtThreshold.TextChanged += new System.EventHandler(this.txtThreshold_TextChanged);
             // 
             // lbl01
             // 
@@ -404,14 +405,13 @@ namespace SM64DSe
             // cbGenerateCollision
             // 
             this.cbGenerateCollision.AutoSize = true;
-            this.cbGenerateCollision.Checked = true;
-            this.cbGenerateCollision.CheckState = System.Windows.Forms.CheckState.Checked;
             this.cbGenerateCollision.Location = new System.Drawing.Point(12, 49);
             this.cbGenerateCollision.Name = "cbGenerateCollision";
             this.cbGenerateCollision.Size = new System.Drawing.Size(133, 17);
             this.cbGenerateCollision.TabIndex = 4;
             this.cbGenerateCollision.Text = "Generate collision map";
             this.cbGenerateCollision.UseVisualStyleBackColor = true;
+            this.cbGenerateCollision.CheckedChanged += new System.EventHandler(this.cbGenerateCollision_CheckedChanged);
             // 
             // lblScale
             // 
@@ -430,13 +430,23 @@ namespace SM64DSe
             this.tbScale.Name = "tbScale";
             this.tbScale.Size = new System.Drawing.Size(188, 20);
             this.tbScale.TabIndex = 3;
-            this.tbScale.Text = "1";
             this.tbScale.TextChanged += new System.EventHandler(this.tbScale_TextChanged);
             // 
             // ofdLoadModel
             // 
+            this.ofdLoadModel.Filter = "All Supported Models|*.dae;*.imd;*.obj|COLLADA DAE|*.dae|NITRO Intermediate Model" +
+                " Data|*.imd|Wavefront OBJ|*.obj";
             this.ofdLoadModel.Title = "Load model file...";
-            this.ofdLoadModel.Filter = Helper.MODEL_FORMATS_FILTER;
+            // 
+            // btnClearTypes
+            // 
+            this.btnClearTypes.Location = new System.Drawing.Point(177, 461);
+            this.btnClearTypes.Name = "btnClearTypes";
+            this.btnClearTypes.Size = new System.Drawing.Size(75, 23);
+            this.btnClearTypes.TabIndex = 14;
+            this.btnClearTypes.Text = "Clear";
+            this.btnClearTypes.UseVisualStyleBackColor = true;
+            this.btnClearTypes.Click += new System.EventHandler(this.btnClearTypes_Click);
             // 
             // ModelImporter
             // 
@@ -504,5 +514,6 @@ namespace SM64DSe
         private System.Windows.Forms.RadioButton rbAlwaysCompress;
         private System.Windows.Forms.RadioButton rbNeverCompress;
         private System.Windows.Forms.RadioButton rbBetterQualityWhereSensible;
+        private System.Windows.Forms.Button btnClearTypes;
     }
 }

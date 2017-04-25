@@ -692,7 +692,7 @@ namespace SM64DSe
             {
                 case 0:
                     {
-                        btnImportModel.Visible = true;// Properties.Settings.Default.lolhax;
+                        btnImportModel.Visible = true;
                         btnExportLevelModel.Visible = true;
                         //btnAddTexAnim.Visible = true;
                         //btnRemoveSel.Visible = true;
@@ -2095,7 +2095,7 @@ namespace SM64DSe
         private void btnImportModel_Click(object sender, EventArgs e)
         {
             ModelImporter form = new ModelImporter(Program.m_ROM.GetFileFromInternalID(m_LevelSettings.BMDFileID).m_Name, Program.m_ROM.GetFileFromInternalID(m_LevelSettings.KCLFileID).m_Name);
-            form.Show();
+            form.Show(this);
         }
 
         private void tvObjectList_DrawNode(object sender, DrawTreeNodeEventArgs e)
@@ -2385,16 +2385,10 @@ namespace SM64DSe
 
         private void btnStarAll_DoubleClick(object sender, EventArgs e)
         {
-            if (Properties.Settings.Default.lolhax)
-            {
-                btnStarAll.Checked = !btnStarAll.Checked;
-                m_ShowCommonLayer = btnStarAll.Checked;
-                glLevelView.Refresh();
-                return;
-            }
-
-            new TempHaxForm().ShowDialog();
-            btnImportModel.Visible = (m_EditMode == 0) && Properties.Settings.Default.lolhax;
+            btnStarAll.Checked = !btnStarAll.Checked;
+            m_ShowCommonLayer = btnStarAll.Checked;
+            glLevelView.Refresh();
+            return;
         }
 
         private void btnDumpOverlay_Click(object sender, EventArgs e)

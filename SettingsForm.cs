@@ -37,11 +37,17 @@ namespace SM64DSe
         private void SettingsForm_Load(object sender, EventArgs e)
         {
             cbAutoUpdateODB.Checked = Properties.Settings.Default.AutoUpdateODB;
+            chkRememberLastUsedModelImportationSettings.Checked = Properties.Settings.Default.RememberLastUsedModelImportationSettings;
+            chkRememberLastUsedCollisionTypeAssignments.Checked = Properties.Settings.Default.RememberMaterialCollisionTypeAssignments;
+            chkDisableTextureSizeWarning.Checked = Properties.Settings.Default.DisableTextureSizeWarning;
         }
 
         private void btnOk_Click(object sender, EventArgs e)
         {
             Properties.Settings.Default.AutoUpdateODB = cbAutoUpdateODB.Checked;
+            Properties.Settings.Default.RememberLastUsedModelImportationSettings = chkRememberLastUsedModelImportationSettings.Checked;
+            Properties.Settings.Default.RememberMaterialCollisionTypeAssignments = chkRememberLastUsedCollisionTypeAssignments.Checked;
+            Properties.Settings.Default.DisableTextureSizeWarning = chkDisableTextureSizeWarning.Checked;
             Properties.Settings.Default.Save();
         }
     }

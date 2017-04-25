@@ -529,13 +529,45 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
 
             int offset = 0;
 
+            bool hasNormals = false;
+            if (normalsInBranch != null)
+            {
+                foreach (ModelBase.FaceDef face in faces) 
+                {
+                    foreach (ModelBase.VertexDef vertex in face.m_Vertices) 
+                    {
+                        if (vertex.m_Normal != null) 
+                        {
+                            hasNormals = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            bool hasTexCoords = false;
+            if (texCoordsInBranch != null)
+            {
+                foreach (ModelBase.FaceDef face in faces)
+                {
+                    foreach (ModelBase.VertexDef vertex in face.m_Vertices)
+                    {
+                        if (vertex.m_TextureCoordinate != null)
+                        {
+                            hasTexCoords = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
             writer.WriteStartElement("input");
             writer.WriteAttributeString("semantic", "VERTEX");
             writer.WriteAttributeString("source", "#" + boneName + "-mesh-vertices");
             writer.WriteAttributeString("offset", "" + offset++);
             writer.WriteEndElement();// input
 
-            if (normalsInBranch != null)
+            if (hasNormals)
             {
                 writer.WriteStartElement("input");
                 writer.WriteAttributeString("semantic", "NORMAL");
@@ -544,7 +576,7 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
                 writer.WriteEndElement();// input
             }
 
-            if (texCoordsInBranch != null)
+            if (hasTexCoords)
             {
                 writer.WriteStartElement("input");
                 writer.WriteAttributeString("semantic", "TEXCOORD");
@@ -576,10 +608,16 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
             {
                 foreach (ModelBase.VertexDef vert in face.m_Vertices)
                 {
-                    sb.Append(positionsInBranch.IndexOf(vert.m_Position) + " " + 
-                        ((normalsInBranch != null) ? normalsInBranch.IndexOf((Vector3)vert.m_Normal) + " " : "") +
-                        ((texCoordsInBranch != null) ? texCoordsInBranch.IndexOf((Vector2)vert.m_TextureCoordinate) + " " : "") + 
-                        vColoursInBranch.IndexOf((Color)vert.m_VertexColour) + " ");
+                    sb.Append(positionsInBranch.IndexOf(vert.m_Position)).Append(" ");
+                    if (hasNormals)
+                    {
+                        sb.Append(normalsInBranch.IndexOf((Vector3)vert.m_Normal)).Append(" ");
+                    }
+                    if (hasTexCoords)
+                    {
+                        sb.Append(texCoordsInBranch.IndexOf((Vector2)vert.m_TextureCoordinate)).Append(" ");
+                    }
+                    sb.Append(vColoursInBranch.IndexOf((Color)vert.m_VertexColour)).Append(" ");
                 }
             }
             sb.Remove(sb.Length - 1, 1);// Remove extra space character at end

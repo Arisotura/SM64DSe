@@ -32,13 +32,12 @@ namespace SM64DSe
 
         public List<KCL.ColFace> m_Planes;
 
-        CultureInfo usa = new CultureInfo("en-US");
+        private List<Color> m_Colours;
 
-        List<Color> colours;
+        private KCL m_KCL;
 
-        KCL m_KCL;
-
-        Dictionary<string, int> matColTypes;
+        private Dictionary<string, int> m_MatColTypes = new Dictionary<string, int>();
+        private static Dictionary<string, Dictionary<string, int>> m_SavedMaterialCollisionTypes = new Dictionary<string, Dictionary<string, int>>();
 
         public KCLEditorForm(NitroFile kclIn)
         {
@@ -48,7 +47,6 @@ namespace SM64DSe
             cmbPolygonMode.Items.Add("Fill");
             cmbPolygonMode.Items.Add("Wireframe");
             cmbPolygonMode.SelectedIndex = 0;
-            matColTypes = new Dictionary<string, int>();
         }
 
         private void LoadColours()
@@ -60,7 +58,7 @@ namespace SM64DSe
                     uniqueCollisionTypes.Add(plane.type);
             }
             uniqueCollisionTypes.Sort();
-            colours = KCLLoader.GetColours(uniqueCollisionTypes[uniqueCollisionTypes.Count - 1] + 1);
+            m_Colours = KCLLoader.GetColours(uniqueCollisionTypes[uniqueCollisionTypes.Count - 1] + 1);
         }
 
         public void LoadKCL(NitroFile kcl)
@@ -184,7 +182,7 @@ namespace SM64DSe
             GL.PolygonOffset(1f, 1f);
             for (int i = 0; i < m_Planes.Count; i++)
             {
-                Color planeColour = colours[m_Planes[i].type];
+                Color planeColour = m_Colours[m_Planes[i].type];
 
                 GL.Begin(BeginMode.Triangles);
                 GL.Color3(planeColour);
@@ -531,7 +529,24 @@ namespace SM64DSe
             if (ofd.ShowDialog() == DialogResult.OK)
             {
                 txtModelName.Text = ofd.FileName;
-                matColTypes = new KCLImporter().GetMaterialsList(ofd.FileName);
+                m_MatColTypes = new KCLImporter().GetMaterialsList(ofd.FileName);
+                if (Properties.Settings.Default.RememberMaterialCollisionTypeAssignments)
+                {
+                    string key = ofd.FileName;
+                    if (m_SavedMaterialCollisionTypes.ContainsKey(key))
+                    {
+                        Dictionary<string, int> materialCollisionTypeAssignments = m_SavedMaterialCollisionTypes[key];
+                        if (materialCollisionTypeAssignments.Keys.Count == m_MatColTypes.Keys.Count &&
+                            materialCollisionTypeAssignments.Keys.Except(m_MatColTypes.Keys).Count() < 1)
+                        {
+                            m_MatColTypes = materialCollisionTypeAssignments;
+                        }
+                        else
+                        {
+                            m_SavedMaterialCollisionTypes.Remove(key);
+                        }
+                    }
+                }
                 PopulateColTypes();
             }
         }
@@ -540,14 +555,15 @@ namespace SM64DSe
         {
             gridColTypes.ColumnCount = 2;
             gridColTypes.Columns[0].HeaderText = "Material";
+            gridColTypes.Columns[0].ReadOnly = true;
             gridColTypes.Columns[1].HeaderText = "Col. Type";
 
-            int numMats = matColTypes.Count;
+            int numMats = m_MatColTypes.Count;
             gridColTypes.RowCount = numMats;
             for (int i = 0; i < numMats; i++)
             {
-                gridColTypes.Rows[i].Cells[0].Value = matColTypes.Keys.ElementAt(i);
-                gridColTypes.Rows[i].Cells[1].Value = matColTypes.Values.ElementAt(i);
+                gridColTypes.Rows[i].Cells[0].Value = m_MatColTypes.Keys.ElementAt(i);
+                gridColTypes.Rows[i].Cells[1].Value = m_MatColTypes.Values.ElementAt(i);
             }
         }
 
@@ -566,7 +582,7 @@ namespace SM64DSe
 
             try
             {
-                new KCLImporter().ConvertModelToKCL(m_KCL.m_File, txtModelName.Text, scale, faceSizeThreshold, matColTypes);
+                new KCLImporter().ConvertModelToKCL(m_KCL.m_File, txtModelName.Text, scale, faceSizeThreshold, m_MatColTypes);
             }
             catch (Exception ex)
             {
@@ -583,7 +599,7 @@ namespace SM64DSe
         {
             for (int i = 0; i < gridColTypes.RowCount; i++)
             {
-                matColTypes[gridColTypes.Rows[i].Cells[0].Value.ToString()] = int.Parse(gridColTypes.Rows[i].Cells[1].Value.ToString());
+                m_MatColTypes[gridColTypes.Rows[i].Cells[0].Value.ToString()] = int.Parse(gridColTypes.Rows[i].Cells[1].Value.ToString());
             }
         }
 

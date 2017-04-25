@@ -32,32 +32,14 @@ namespace SM64DSe
 {
     static class Helper
     {
-        public static uint ACT_SELECTOR_ID_TABLE;
-        public static CultureInfo USA = new CultureInfo("en-US");
-        public static MD5CryptoServiceProvider m_MD5 = new MD5CryptoServiceProvider();
+        public static readonly CultureInfo USA = new CultureInfo("en-US");
+        public static readonly MD5CryptoServiceProvider m_MD5 = new MD5CryptoServiceProvider();
+        public static readonly Color LIGHT_RED = Color.FromArgb(230, 100, 100);
+
         public static readonly string MODEL_FORMATS_FILTER = "All Supported Models|*.dae;*.imd;*.obj|" + 
                 "COLLADA DAE|*.dae|NITRO Intermediate Model Data|*.imd|Wavefront OBJ|*.obj";
         public static readonly string MODEL_ANIMATION_FORMATS_FILTER = "All Supported Animation Formats|*.dae;*.ica|" +
                 "COLLADA DAE|*.dae|NITRO Intermediate Character Animation|*.ica";
-
-        static Helper()
-        {
-            switch (Program.m_ROM.m_Version)
-            {
-                case NitroROM.Version.EUR:
-                    ACT_SELECTOR_ID_TABLE = 0x75298;
-                    break;
-                case NitroROM.Version.USA_v1:
-                    ACT_SELECTOR_ID_TABLE = 0x731F0;
-                    break;
-                case NitroROM.Version.USA_v2:
-                    ACT_SELECTOR_ID_TABLE = 0x73F10;
-                    break;
-                case NitroROM.Version.JAP:
-                    ACT_SELECTOR_ID_TABLE = 0x73744;
-                    break;
-            }
-        }
 
         public static ushort ColorToBGR15(Color color)
         {
@@ -472,7 +454,18 @@ namespace SM64DSe
 
         public static uint GetActSelectorIDTableAddress()
         {
-            return ACT_SELECTOR_ID_TABLE;
+            switch (Program.m_ROM.m_Version)
+            {
+                default:
+                case NitroROM.Version.EUR:
+                    return 0x75298;
+                case NitroROM.Version.USA_v1:
+                    return 0x731F0;
+                case NitroROM.Version.USA_v2:
+                    return 0x73F10;
+                case NitroROM.Version.JAP:
+                    return 0x73744;
+            }
         }
 
         public static void DecompressOverlaysWithinGame()
@@ -563,6 +556,25 @@ namespace SM64DSe
             foreach (byte b in crap)
                 ret += b.ToString("X2");
             return ret;
+        }
+
+        public static bool TryParseFloat(TextBox textBox, ref float result)
+        {
+            if (!TryParseFloat(textBox.Text, ref result))
+            {
+                textBox.BackColor = LIGHT_RED;
+                return false;
+            }
+            else
+            {
+                textBox.BackColor = Color.White;
+                return true;
+            }
+        }
+
+        public static bool TryParseFloat(String value, ref float result)
+        {
+            return (float.TryParse(value, NumberStyles.Float, USA, out result) || float.TryParse(value, out result));
         }
     }
 
