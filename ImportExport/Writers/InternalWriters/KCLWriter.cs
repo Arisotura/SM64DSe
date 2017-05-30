@@ -18,6 +18,8 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
         public float m_FaceSizeThreshold;
         public Dictionary<string, int> m_MatColTypes;
 
+        public const int MAX_BASE_OCTREE_COUNT = 1 << 7;
+
         public KCLWriter(ModelBase model, NitroFile modelFile, float scale, float faceSizeThreshold,
             Dictionary<string, int> matColTypes) :
             base(model, modelFile.m_Name)
@@ -32,16 +34,16 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
 
         public override void WriteModel(bool save = true)
         {
-            ConvertToKCL(m_Model, ref m_ModelFile, m_Scale, m_FaceSizeThreshold, m_MatColTypes);
+            ConvertToKCL(m_Model, ref m_ModelFile, m_Scale, m_FaceSizeThreshold, m_MatColTypes, save);
         }
 
         public static void ConvertToKCL(ModelBase model, ref NitroFile kclOut, float scale, float faceSizeThreshold,
-            Dictionary<string, int> matColTypes)
+            Dictionary<string, int> matColTypes, bool save = true)
         {
             // faceSizeThreshold is used for getting rid of very small faces below a given size, originally 0.001
             List<Triangle> triangles = readLoadedModel(model, faceSizeThreshold, matColTypes);
             scale *= 1000; //Scale of collision file is 1000 times larger than model file
-            write_kcl(kclOut, triangles, 15, 1, scale);
+            write_kcl(kclOut, triangles, 15, 1, scale, save);
         }
 
         private static List<Triangle> readLoadedModel(ModelBase model, float faceSizeThreshold, Dictionary<string, int> matColTypes)
@@ -82,9 +84,7 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
             return triangles;
         }
 
-        static CultureInfo usahax = new CultureInfo("en-US");
-
-        private static void write_kcl(NitroFile kcl, List<Triangle> triangles, int max_triangles, int min_width, float scale)
+        private static void write_kcl(NitroFile kcl, List<Triangle> triangles, int max_triangles, int min_width, float scale, bool save = true)
         {
             kcl.Clear();
 
@@ -183,9 +183,8 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
             kcl.Write32(0x30, (uint)(Math.Log(octree.nx, 2)));
             kcl.Write32(0x34, (uint)(Math.Log(octree.nx, 2)) + (uint)(Math.Log(octree.ny, 2)));
 
-            kcl.SaveChanges();
-
-        }//End writeKCL
+            if (save) { kcl.SaveChanges(); }
+        }
 
         public static float dot(Vector a, Vector b)
         {
@@ -740,6 +739,16 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
             this.width_z = (float)Math.Pow(2, (int)(Math.Ceiling(Math.Log(KCLWriter.max(max_z - min_z, min_width), 2))));
             this.base_width = KCLWriter.min(width_x, width_y, width_z);
             this.bas = new Vertex(min_x, min_y, min_z);
+            
+            // Cap the number of boxes at 128.
+            while(this.width_x * this.width_y * this.width_z / (this.base_width * this.base_width * this.base_width) >
+                KCLWriter.MAX_BASE_OCTREE_COUNT)
+            {
+                if (this.width_x == this.base_width) this.width_x *= 2;
+                if (this.width_y == this.base_width) this.width_y *= 2;
+                if (this.width_z == this.base_width) this.width_z *= 2;
+                this.base_width *= 2;
+            }
 
             this.nx = (int)Math.Floor(this.width_x / this.base_width);
             this.ny = (int)Math.Floor(this.width_y / this.base_width);

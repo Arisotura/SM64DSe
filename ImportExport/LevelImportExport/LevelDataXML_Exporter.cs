@@ -19,8 +19,6 @@ namespace SM64DSe.ImportExport.LevelImportExport
         private static string m_FileName;
         private static string m_Path;
 
-        private static CultureInfo usa = new CultureInfo("en-US");
-
         public static void ExportLevelDataToXML(NitroOverlay overlay, int levelID, LevelSettings levelSettings, 
             Dictionary<uint, LevelObject> levelObjects, List<LevelTexAnim>[] texAnims, string filename = "level.xml")
         {
@@ -241,12 +239,12 @@ namespace SM64DSe.ImportExport.LevelImportExport
             writer.WriteElementString("ObjectID", obj.ID.ToString());
 
             writer.WriteStartElement("Position");
-            writer.WriteElementString("X", obj.Position.X.ToString(usa));
-            writer.WriteElementString("Y", obj.Position.Y.ToString(usa));
-            writer.WriteElementString("Z", obj.Position.Z.ToString(usa));
+            writer.WriteElementString("X", Helper.ToString(obj.Position.X));
+            writer.WriteElementString("Y", Helper.ToString(obj.Position.Y));
+            writer.WriteElementString("Z", Helper.ToString(obj.Position.Z));
             writer.WriteEndElement();
 
-            writer.WriteElementString("YRotation", obj.YRotation.ToString(usa));
+            writer.WriteElementString("YRotation", Helper.ToString(obj.YRotation));
 
             writer.WriteStartElement("Parameters");
             writer.WriteAttributeString("count", "3");
@@ -268,12 +266,12 @@ namespace SM64DSe.ImportExport.LevelImportExport
             writer.WriteAttributeString("entranceID", obj.m_EntranceID.ToString());
 
             writer.WriteStartElement("Position");
-            writer.WriteElementString("X", obj.Position.X.ToString(usa));
-            writer.WriteElementString("Y", obj.Position.Y.ToString(usa));
-            writer.WriteElementString("Z", obj.Position.Z.ToString(usa));
+            writer.WriteElementString("X", Helper.ToString(obj.Position.X));
+            writer.WriteElementString("Y", Helper.ToString(obj.Position.Y));
+            writer.WriteElementString("Z", Helper.ToString(obj.Position.Z));
             writer.WriteEndElement();
 
-            writer.WriteElementString("YRotation", obj.YRotation.ToString(usa));
+            writer.WriteElementString("YRotation", Helper.ToString(obj.YRotation));
 
             writer.WriteStartElement("Parameters");
             writer.WriteAttributeString("count", "4");
@@ -296,9 +294,9 @@ namespace SM64DSe.ImportExport.LevelImportExport
                 writer.WriteAttributeString("index", index.ToString());
 
             writer.WriteStartElement("Position");
-            writer.WriteElementString("X", obj.Position.X.ToString(usa));
-            writer.WriteElementString("Y", obj.Position.Y.ToString(usa));
-            writer.WriteElementString("Z", obj.Position.Z.ToString(usa));
+            writer.WriteElementString("X", Helper.ToString(obj.Position.X));
+            writer.WriteElementString("Y", Helper.ToString(obj.Position.Y));
+            writer.WriteElementString("Z", Helper.ToString(obj.Position.Z));
             writer.WriteEndElement();
 
             writer.WriteEndElement();
@@ -341,12 +339,12 @@ namespace SM64DSe.ImportExport.LevelImportExport
             //writer.WriteAttributeString("star", obj.m_Layer.ToString());// Need?
 
             writer.WriteStartElement("Position");
-            writer.WriteElementString("X", obj.Position.X.ToString(usa));
-            writer.WriteElementString("Y", obj.Position.Y.ToString(usa));
-            writer.WriteElementString("Z", obj.Position.Z.ToString(usa));
+            writer.WriteElementString("X", Helper.ToString(obj.Position.X));
+            writer.WriteElementString("Y", Helper.ToString(obj.Position.Y));
+            writer.WriteElementString("Z", Helper.ToString(obj.Position.Z));
             writer.WriteEndElement();
 
-            writer.WriteElementString("YRotation", obj.YRotation.ToString(usa));
+            writer.WriteElementString("YRotation", Helper.ToString(obj.YRotation));
 
             writer.WriteStartElement("Parameters");
             writer.WriteAttributeString("count", "3");
@@ -373,9 +371,9 @@ namespace SM64DSe.ImportExport.LevelImportExport
             writer.WriteElementString("ObjectID", obj.ID.ToString());
 
             writer.WriteStartElement("Position");
-            writer.WriteElementString("X", obj.Position.X.ToString(usa));
-            writer.WriteElementString("Y", obj.Position.Y.ToString(usa));
-            writer.WriteElementString("Z", obj.Position.Z.ToString(usa));
+            writer.WriteElementString("X", Helper.ToString(obj.Position.X));
+            writer.WriteElementString("Y", Helper.ToString(obj.Position.Y));
+            writer.WriteElementString("Z", Helper.ToString(obj.Position.Z));
             writer.WriteEndElement();
 
             writer.WriteStartElement("Parameters");
@@ -397,9 +395,9 @@ namespace SM64DSe.ImportExport.LevelImportExport
             writer.WriteStartElement("TpSrcObject");
 
             writer.WriteStartElement("Position");
-            writer.WriteElementString("X", obj.Position.X.ToString(usa));
-            writer.WriteElementString("Y", obj.Position.Y.ToString(usa));
-            writer.WriteElementString("Z", obj.Position.Z.ToString(usa));
+            writer.WriteElementString("X", Helper.ToString(obj.Position.X));
+            writer.WriteElementString("Y", Helper.ToString(obj.Position.Y));
+            writer.WriteElementString("Z", Helper.ToString(obj.Position.Z));
             writer.WriteEndElement();
 
             writer.WriteStartElement("Parameters");
@@ -421,9 +419,9 @@ namespace SM64DSe.ImportExport.LevelImportExport
             writer.WriteStartElement("TpDstObject");
 
             writer.WriteStartElement("Position");
-            writer.WriteElementString("X", obj.Position.X.ToString(usa));
-            writer.WriteElementString("Y", obj.Position.Y.ToString(usa));
-            writer.WriteElementString("Z", obj.Position.Z.ToString(usa));
+            writer.WriteElementString("X", Helper.ToString(obj.Position.X));
+            writer.WriteElementString("Y", Helper.ToString(obj.Position.Y));
+            writer.WriteElementString("Z", Helper.ToString(obj.Position.Z));
             writer.WriteEndElement();
 
             writer.WriteStartElement("Parameters");
@@ -460,12 +458,12 @@ namespace SM64DSe.ImportExport.LevelImportExport
             writer.WriteAttributeString("star", obj.m_Layer.ToString());
 
             writer.WriteStartElement("Position");
-            writer.WriteElementString("X", obj.Position.X.ToString(usa));
-            writer.WriteElementString("Y", obj.Position.Y.ToString(usa));
-            writer.WriteElementString("Z", obj.Position.Z.ToString(usa));
+            writer.WriteElementString("X", Helper.ToString(obj.Position.X));
+            writer.WriteElementString("Y", Helper.ToString(obj.Position.Y));
+            writer.WriteElementString("Z", Helper.ToString(obj.Position.Z));
             writer.WriteEndElement();
 
-            writer.WriteElementString("YRotation", obj.YRotation.ToString(usa));
+            writer.WriteElementString("YRotation", Helper.ToString(obj.YRotation));
 
             writer.WriteElementString("DoorType", obj.DoorType.ToString());
             writer.WriteElementString("OutAreaID", obj.OutAreaID.ToString());
@@ -482,12 +480,12 @@ namespace SM64DSe.ImportExport.LevelImportExport
             writer.WriteAttributeString("star", obj.m_Layer.ToString());
 
             writer.WriteStartElement("Position");
-            writer.WriteElementString("X", obj.Position.X.ToString(usa));
-            writer.WriteElementString("Y", obj.Position.Y.ToString(usa));
-            writer.WriteElementString("Z", obj.Position.Z.ToString(usa));
+            writer.WriteElementString("X", Helper.ToString(obj.Position.X));
+            writer.WriteElementString("Y", Helper.ToString(obj.Position.Y));
+            writer.WriteElementString("Z", Helper.ToString(obj.Position.Z));
             writer.WriteEndElement();
 
-            writer.WriteElementString("YRotation", obj.YRotation.ToString(usa));
+            writer.WriteElementString("YRotation", Helper.ToString(obj.YRotation));
 
             writer.WriteElementString("DestinationLevel", obj.LevelID.ToString());
             writer.WriteElementString("EntranceID", obj.EntranceID.ToString());

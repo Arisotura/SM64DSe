@@ -23,7 +23,7 @@ namespace SM64DSe.ImportExport.Loaders.InternalLoaders
             m_Model = model;
         }
 
-        public override ModelBase LoadModel(OpenTK.Vector3 scale)
+        public override ModelBase LoadModel(float scale)
         {
             List<ModelBase.BoneDef> flatBoneList = m_Model.m_BoneTree.GetAsList();
             for (int i = 0; i < m_BCA.m_AnimationData.Length; i++)

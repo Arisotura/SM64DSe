@@ -67,6 +67,22 @@ namespace SM64DSe
             this.btnScreenshot = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.btnOrthView = new System.Windows.Forms.ToolStripButton();
+            this.menuGridSettings = new System.Windows.Forms.ToolStripDropDownButton();
+            this.txtGridSizeX = new System.Windows.Forms.ToolStripTextBox();
+            this.txtGridSizeY = new System.Windows.Forms.ToolStripTextBox();
+            this.txtGridSizeZ = new System.Windows.Forms.ToolStripTextBox();
+            this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
+            this.txtGridOffsetX = new System.Windows.Forms.ToolStripTextBox();
+            this.txtGridOffsetY = new System.Windows.Forms.ToolStripTextBox();
+            this.txtGridOffsetZ = new System.Windows.Forms.ToolStripTextBox();
+            this.menuRestrictionPlane = new System.Windows.Forms.ToolStripDropDownButton();
+            this.txtRstPlaneX = new System.Windows.Forms.ToolStripTextBox();
+            this.txtRstPlaneY = new System.Windows.Forms.ToolStripTextBox();
+            this.txtRstPlaneZ = new System.Windows.Forms.ToolStripTextBox();
+            this.toolStripSeparator6 = new System.Windows.Forms.ToolStripSeparator();
+            this.txtRstPlaneOffX = new System.Windows.Forms.ToolStripTextBox();
+            this.txtRstPlaneOffY = new System.Windows.Forms.ToolStripTextBox();
+            this.txtRstPlaneOffZ = new System.Windows.Forms.ToolStripTextBox();
             this.tsToolBar = new System.Windows.Forms.ToolStrip();
             this.btnSave = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
@@ -147,7 +163,7 @@ namespace SM64DSe
             // 
             this.spcLeftPanel.Panel2.Controls.Add(this.pgObjectProperties);
             this.spcLeftPanel.Size = new System.Drawing.Size(264, 332);
-            this.spcLeftPanel.SplitterDistance = 73;
+            this.spcLeftPanel.SplitterDistance = 54;
             this.spcLeftPanel.TabIndex = 1;
             // 
             // tvObjectList
@@ -157,7 +173,7 @@ namespace SM64DSe
             this.tvObjectList.HideSelection = false;
             this.tvObjectList.Location = new System.Drawing.Point(0, 0);
             this.tvObjectList.Name = "tvObjectList";
-            this.tvObjectList.Size = new System.Drawing.Size(264, 73);
+            this.tvObjectList.Size = new System.Drawing.Size(264, 54);
             this.tvObjectList.TabIndex = 0;
             this.tvObjectList.TabStop = false;
             this.tvObjectList.DrawNode += new System.Windows.Forms.DrawTreeNodeEventHandler(this.tvObjectList_DrawNode);
@@ -169,7 +185,7 @@ namespace SM64DSe
             this.pgObjectProperties.Location = new System.Drawing.Point(0, 0);
             this.pgObjectProperties.Name = "pgObjectProperties";
             this.pgObjectProperties.PropertySort = System.Windows.Forms.PropertySort.Categorized;
-            this.pgObjectProperties.Size = new System.Drawing.Size(264, 255);
+            this.pgObjectProperties.Size = new System.Drawing.Size(264, 274);
             this.pgObjectProperties.TabIndex = 0;
             this.pgObjectProperties.ToolbarVisible = false;
             this.pgObjectProperties.PropertyValueChanged += new System.Windows.Forms.PropertyValueChangedEventHandler(this.pgObjectProperties_PropertyValueChanged);
@@ -427,7 +443,7 @@ namespace SM64DSe
             this.btnOffsetAllCoords.Text = "Offset All Co-ords";
             this.btnOffsetAllCoords.Click += new System.EventHandler(this.btnOffsetAllCoords_Click);
             // 
-            // glTextureView
+            // glLevelView
             // 
             this.glLevelView.BackColor = System.Drawing.Color.Black;
             this.glLevelView.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -454,7 +470,9 @@ namespace SM64DSe
             this.btnExportXML,
             this.btnScreenshot,
             this.toolStripSeparator4,
-            this.btnOrthView});
+            this.btnOrthView,
+            this.menuGridSettings,
+            this.menuRestrictionPlane});
             this.tsViewActions.Location = new System.Drawing.Point(0, 0);
             this.tsViewActions.Name = "tsViewActions";
             this.tsViewActions.Size = new System.Drawing.Size(689, 25);
@@ -517,6 +535,134 @@ namespace SM64DSe
             this.btnOrthView.Size = new System.Drawing.Size(100, 22);
             this.btnOrthView.Text = "Orthogonal View";
             this.btnOrthView.Click += new System.EventHandler(this.btnOrthView_Click);
+            // 
+            // menuGridSettings
+            // 
+            this.menuGridSettings.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.menuGridSettings.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.txtGridSizeX,
+            this.txtGridSizeY,
+            this.txtGridSizeZ,
+            this.toolStripSeparator5,
+            this.txtGridOffsetX,
+            this.txtGridOffsetY,
+            this.txtGridOffsetZ});
+            this.menuGridSettings.Image = ((System.Drawing.Image)(resources.GetObject("menuGridSettings.Image")));
+            this.menuGridSettings.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.menuGridSettings.Name = "menuGridSettings";
+            this.menuGridSettings.Size = new System.Drawing.Size(42, 22);
+            this.menuGridSettings.Text = "Grid";
+            this.menuGridSettings.DropDownClosed += new System.EventHandler(this.menuGridSettings_DropDownClosed);
+            // 
+            // txtGridSizeX
+            // 
+            this.txtGridSizeX.Name = "txtGridSizeX";
+            this.txtGridSizeX.Size = new System.Drawing.Size(100, 23);
+            this.txtGridSizeX.Text = "0.0";
+            this.txtGridSizeX.ToolTipText = "Size X";
+            // 
+            // txtGridSizeY
+            // 
+            this.txtGridSizeY.Name = "txtGridSizeY";
+            this.txtGridSizeY.Size = new System.Drawing.Size(100, 23);
+            this.txtGridSizeY.Text = "0.0";
+            this.txtGridSizeY.ToolTipText = "Size Y";
+            // 
+            // txtGridSizeZ
+            // 
+            this.txtGridSizeZ.Name = "txtGridSizeZ";
+            this.txtGridSizeZ.Size = new System.Drawing.Size(100, 23);
+            this.txtGridSizeZ.Text = "0.0";
+            this.txtGridSizeZ.ToolTipText = "Size Z";
+            // 
+            // toolStripSeparator5
+            // 
+            this.toolStripSeparator5.Name = "toolStripSeparator5";
+            this.toolStripSeparator5.Size = new System.Drawing.Size(157, 6);
+            // 
+            // txtGridOffsetX
+            // 
+            this.txtGridOffsetX.Name = "txtGridOffsetX";
+            this.txtGridOffsetX.Size = new System.Drawing.Size(100, 23);
+            this.txtGridOffsetX.Text = "0.0";
+            this.txtGridOffsetX.ToolTipText = "Offset X";
+            // 
+            // txtGridOffsetY
+            // 
+            this.txtGridOffsetY.Name = "txtGridOffsetY";
+            this.txtGridOffsetY.Size = new System.Drawing.Size(100, 23);
+            this.txtGridOffsetY.Text = "0.0";
+            this.txtGridOffsetY.ToolTipText = "Offset Y";
+            // 
+            // txtGridOffsetZ
+            // 
+            this.txtGridOffsetZ.Name = "txtGridOffsetZ";
+            this.txtGridOffsetZ.Size = new System.Drawing.Size(100, 23);
+            this.txtGridOffsetZ.Text = "0.0";
+            this.txtGridOffsetZ.ToolTipText = "Offset Z";
+            // 
+            // menuRestrictionPlane
+            // 
+            this.menuRestrictionPlane.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.menuRestrictionPlane.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.txtRstPlaneX,
+            this.txtRstPlaneY,
+            this.txtRstPlaneZ,
+            this.toolStripSeparator6,
+            this.txtRstPlaneOffX,
+            this.txtRstPlaneOffY,
+            this.txtRstPlaneOffZ});
+            this.menuRestrictionPlane.Image = ((System.Drawing.Image)(resources.GetObject("menuRestrictionPlane.Image")));
+            this.menuRestrictionPlane.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.menuRestrictionPlane.Name = "menuRestrictionPlane";
+            this.menuRestrictionPlane.Size = new System.Drawing.Size(108, 22);
+            this.menuRestrictionPlane.Text = "Restriction Plane";
+            this.menuRestrictionPlane.DropDownClosed += new System.EventHandler(this.menuRestrictionPlane_DropDownClosed);
+            // 
+            // txtRstPlaneX
+            // 
+            this.txtRstPlaneX.Name = "txtRstPlaneX";
+            this.txtRstPlaneX.Size = new System.Drawing.Size(100, 23);
+            this.txtRstPlaneX.Text = "0.0";
+            this.txtRstPlaneX.ToolTipText = "Normal X";
+            // 
+            // txtRstPlaneY
+            // 
+            this.txtRstPlaneY.Name = "txtRstPlaneY";
+            this.txtRstPlaneY.Size = new System.Drawing.Size(100, 23);
+            this.txtRstPlaneY.Text = "0.0";
+            this.txtRstPlaneY.ToolTipText = "Normal Y";
+            // 
+            // txtRstPlaneZ
+            // 
+            this.txtRstPlaneZ.Name = "txtRstPlaneZ";
+            this.txtRstPlaneZ.Size = new System.Drawing.Size(100, 23);
+            this.txtRstPlaneZ.Text = "0.0";
+            this.txtRstPlaneZ.ToolTipText = "Normal Z";
+            // 
+            // toolStripSeparator6
+            // 
+            this.toolStripSeparator6.Name = "toolStripSeparator6";
+            this.toolStripSeparator6.Size = new System.Drawing.Size(157, 6);
+            // 
+            // txtRstPlaneOffX
+            // 
+            this.txtRstPlaneOffX.Name = "txtRstPlaneOffX";
+            this.txtRstPlaneOffX.Size = new System.Drawing.Size(100, 23);
+            this.txtRstPlaneOffX.Text = "0.0";
+            // 
+            // txtRstPlaneOffY
+            // 
+            this.txtRstPlaneOffY.Name = "txtRstPlaneOffY";
+            this.txtRstPlaneOffY.Size = new System.Drawing.Size(100, 23);
+            this.txtRstPlaneOffY.Text = "0.0";
+            // 
+            // txtRstPlaneOffZ
+            // 
+            this.txtRstPlaneOffZ.Name = "txtRstPlaneOffZ";
+            this.txtRstPlaneOffZ.Size = new System.Drawing.Size(100, 23);
+            this.txtRstPlaneOffZ.Text = "0.0";
+            this.txtRstPlaneOffZ.ToolTipText = "Distance from Origin";
             // 
             // tsToolBar
             // 
@@ -806,7 +952,7 @@ namespace SM64DSe
             // slStatusLabel
             // 
             this.slStatusLabel.Name = "slStatusLabel";
-            this.slStatusLabel.Size = new System.Drawing.Size(911, 17);
+            this.slStatusLabel.Size = new System.Drawing.Size(942, 17);
             this.slStatusLabel.Spring = true;
             this.slStatusLabel.Text = "status!";
             this.slStatusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -914,7 +1060,21 @@ namespace SM64DSe
         private System.Windows.Forms.ToolStripButton btnOrthView;
         private System.Windows.Forms.ToolStripButton btnScreenshot;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
-
-
+        private System.Windows.Forms.ToolStripDropDownButton menuGridSettings;
+        private System.Windows.Forms.ToolStripTextBox txtGridSizeX;
+        private System.Windows.Forms.ToolStripTextBox txtGridSizeY;
+        private System.Windows.Forms.ToolStripTextBox txtGridSizeZ;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
+        private System.Windows.Forms.ToolStripTextBox txtGridOffsetX;
+        private System.Windows.Forms.ToolStripTextBox txtGridOffsetY;
+        private System.Windows.Forms.ToolStripTextBox txtGridOffsetZ;
+        private System.Windows.Forms.ToolStripDropDownButton menuRestrictionPlane;
+        private System.Windows.Forms.ToolStripTextBox txtRstPlaneX;
+        private System.Windows.Forms.ToolStripTextBox txtRstPlaneY;
+        private System.Windows.Forms.ToolStripTextBox txtRstPlaneZ;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator6;
+        private System.Windows.Forms.ToolStripTextBox txtRstPlaneOffZ;
+        private System.Windows.Forms.ToolStripTextBox txtRstPlaneOffX;
+        private System.Windows.Forms.ToolStripTextBox txtRstPlaneOffY;
     }
 }

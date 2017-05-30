@@ -28,13 +28,13 @@ namespace SM64DSe
 {
     static class ModelCache
     {
-        public static void Init()
-        {
-            m_Models = new Dictionary<string, CachedModel>();
-        }
-
         public static BMD GetModel(string name)
         {
+            if (Program.m_ROM == null)
+            {
+                return null;
+            }
+
             if (m_Models.ContainsKey(name))
             {
                 CachedModel found = m_Models[name];
@@ -60,7 +60,7 @@ namespace SM64DSe
 
         public static int[] GetDisplayLists(BMD model)
         {
-            if (!m_Models.ContainsKey(model.m_FileName))
+            if (model == null || !m_Models.ContainsKey(model.m_FileName))
                 return null;
 
             CachedModel cmdl = m_Models[model.m_FileName];
@@ -132,7 +132,6 @@ namespace SM64DSe
             public int m_References;
         }
 
-
-        private static Dictionary<string, CachedModel> m_Models;
+        private static Dictionary<string, CachedModel> m_Models = new Dictionary<string, CachedModel>();
     }
 }

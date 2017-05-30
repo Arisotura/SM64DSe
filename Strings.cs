@@ -103,5 +103,25 @@ namespace SM64DSe
             "Locked door (castle entrance)", 
             "Silent room door"
         };
+
+        public static readonly string MODEL_FORMATS_FILTER = "All Supported Models|*.dae;*.imd;*.obj|" +
+                "COLLADA DAE|*.dae|NITRO Intermediate Model Data|*.imd|Wavefront OBJ|*.obj";
+        public static readonly string MODEL_ANIMATION_FORMATS_FILTER = "All Supported Animation Formats|*.dae;*.ica|" +
+                "COLLADA DAE|*.dae|NITRO Intermediate Character Animation|*.ica";
+
+        public static readonly string MODEL_EXPORT_FORMATS_FILTER = 
+            "COLLADA DAE (.dae)|*.dae|Wavefront OBJ (.obj)|*.obj";
+
+        public static string[] WHITESPACE = new string[] { " ", "\n", "\r\n", "\t" };
+
+        public static bool IsBlank(string value)
+        {
+            return (value == null || value.Trim().Length < 1);
+        }
+
+        public static bool IsNotBlank(string value)
+        {
+            return !IsBlank(value);
+        }
     }
 }

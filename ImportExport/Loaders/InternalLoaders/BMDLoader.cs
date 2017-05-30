@@ -24,7 +24,7 @@ namespace SM64DSe.ImportExport.Loaders.InternalLoaders
             m_BMD = bmd;
         }
 
-        public override ModelBase LoadModel(OpenTK.Vector3 scale)
+        public override ModelBase LoadModel(float scale)
         {
             foreach (BMD.ModelChunk mdchunk in m_BMD.m_ModelChunks)
             {
@@ -54,14 +54,15 @@ namespace SM64DSe.ImportExport.Loaders.InternalLoaders
 
                 foreach (BMD.MaterialGroup matgroup in mdchunk.m_MatGroups)
                 {
-                    if (!geomDef.m_PolyLists.ContainsKey(matgroup.m_Name))
+                    string polyListKey = "polylist-" + matgroup.m_Name;
+                    ModelBase.PolyListDef polyListDef;
+                    if (!geomDef.m_PolyLists.TryGetValue(polyListKey, out polyListDef))
                     {
-                        ModelBase.PolyListDef pld = new ModelBase.PolyListDef("polylist-" + matgroup.m_Name, matgroup.m_Name);
-                        geomDef.m_PolyLists.Add(pld.m_MaterialName, pld);
+                        polyListDef = new ModelBase.PolyListDef(polyListKey, matgroup.m_Name);
+                        geomDef.m_PolyLists.Add(polyListDef.m_ID, polyListDef);
                     }
-                    ModelBase.PolyListDef polyListDef = geomDef.m_PolyLists[matgroup.m_Name];
 
-                    ModelBase.MaterialDef material = new ModelBase.MaterialDef(matgroup.m_Name, m_Model.m_Materials.Count);
+                    ModelBase.MaterialDef material = new ModelBase.MaterialDef(matgroup.m_Name);
                     material.m_Diffuse = matgroup.m_DiffuseColor;
                     material.m_Ambient = matgroup.m_AmbientColor;
                     material.m_Specular = matgroup.m_SpecularColor;
@@ -71,8 +72,7 @@ namespace SM64DSe.ImportExport.Loaders.InternalLoaders
                     {
                         if (!m_Model.m_Textures.ContainsKey(matgroup.m_Texture.m_TextureName))
                         {
-                            ModelBase.TextureDefBase texture = new ModelBase.TextureDefInMemoryBitmap(
-                                matgroup.m_Texture.m_TextureName, matgroup.m_Texture.ToBitmap());
+                            ModelBase.TextureDefBase texture = new ModelBase.TextureDefNitro(matgroup.m_Texture);
                             m_Model.m_Textures.Add(texture.m_ID, texture);
                         }
 

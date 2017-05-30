@@ -290,17 +290,43 @@ namespace SM64DSe.SM64DSFormats
             var tx = obj as NitroTexture;
             if (tx == null) return false;
             if (m_TextureID != tx.m_TextureID || m_PaletteID != tx.m_PaletteID) return false;
-            if (m_TextureName != tx.m_TextureName || m_PaletteName != tx.m_PaletteName) return false;
+            if ((m_TextureName == null) != (tx.m_TextureName == null)) return false;
+            if (m_TextureName != null && !m_TextureName.Equals(tx.m_TextureName)) return false;
+            if ((m_PaletteName == null) != (tx.m_PaletteName == null)) return false;
+            if (m_PaletteName != null && !m_PaletteName.Equals(tx.m_PaletteName)) return false;
             if (m_Width != tx.m_Width || m_Height != tx.m_Height) return false;
             if (m_TexType != tx.m_TexType || m_Colour0Mode != tx.m_Colour0Mode || m_DSTexParam != tx.m_DSTexParam) return false;
-            if (m_RawTextureData != tx.m_RawTextureData) return false;
-            if (m_RawTextureData != null) return m_RawTextureData.SequenceEqual(tx.m_RawTextureData);
-            if (m_RawPaletteData != tx.m_RawPaletteData) return false;
-            if (m_RawPaletteData != null) return m_RawPaletteData.SequenceEqual(tx.m_RawPaletteData);
+            if ((m_RawTextureData == null) != (tx.m_RawTextureData == null)) return false;
+            if (m_RawTextureData != null && !m_RawTextureData.SequenceEqual(tx.m_RawTextureData)) return false;
+            if ((m_RawPaletteData == null) != (tx.m_RawPaletteData == null)) return false;
+            if (m_RawPaletteData != null && !m_RawPaletteData.SequenceEqual(tx.m_RawPaletteData)) return false;
             if (m_TextureDataLength != tx.m_TextureDataLength || m_PaletteDataLength != tx.m_PaletteDataLength) return false;
-            if (m_ARGB != tx.m_ARGB) return false;
-            if (m_ARGB != null) return m_ARGB.SequenceEqual(tx.m_ARGB);
+            if ((m_ARGB == null) != (tx.m_ARGB == null)) return false;
+            if (m_ARGB != null && !m_ARGB.SequenceEqual(tx.m_ARGB)) return false;
             return true;
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 13;
+                hash = hash * 7 + m_TextureID.GetHashCode();
+                hash = hash * 7 + m_PaletteID.GetHashCode();
+                hash = hash * 7 + ((m_TextureName != null) ? m_TextureName.GetHashCode() : -1);
+                hash = hash * 7 + ((m_PaletteName != null) ? m_PaletteName.GetHashCode() : -1);
+                hash = hash * 7 + m_Width.GetHashCode();
+                hash = hash * 7 + m_Height.GetHashCode();
+                hash = hash * 7 + m_TexType.GetHashCode();
+                hash = hash * 7 + m_Colour0Mode.GetHashCode();
+                hash = hash * 7 + m_DSTexParam.GetHashCode();
+                hash = hash * 7 + ((m_RawTextureData != null) ? m_RawTextureData.GetHashCode() : -1);
+                hash = hash * 7 + ((m_RawPaletteData != null) ? m_RawPaletteData.GetHashCode() : -1);
+                hash = hash * 7 + m_TextureDataLength.GetHashCode();
+                hash = hash * 7 + m_PaletteDataLength.GetHashCode();
+                hash = hash * 7 + ((m_ARGB != null) ? m_ARGB.GetHashCode() : -1);
+                return hash;
+            }
         }
 
         protected class Palette

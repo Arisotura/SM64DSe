@@ -38,7 +38,7 @@ namespace SM64DSe
             this.btnEditTextures = new System.Windows.Forms.ToolStripButton();
             this.ssStatusBar = new System.Windows.Forms.StatusStrip();
             this.slStatus = new System.Windows.Forms.ToolStripStatusLabel();
-            this.glModelView = new OpenTK.GLControl();
+            this.glModelView = new FormControls.ModelGLControlWithMarioSizeReference();
             this.spcMainContainer = new System.Windows.Forms.SplitContainer();
             this.txtInGameSizePreview = new System.Windows.Forms.TextBox();
             this.chkInGamePreview = new System.Windows.Forms.CheckBox();
@@ -155,21 +155,13 @@ namespace SM64DSe
             // glModelView
             // 
             this.glModelView.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.glModelView.Margin = new System.Windows.Forms.Padding(0);
+            this.glModelView.Name = "glModelView";
+            this.glModelView.TabIndex = 2;
             this.glModelView.BackColor = System.Drawing.Color.Black;
             this.glModelView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.glModelView.Location = new System.Drawing.Point(0, 0);
-            this.glModelView.Margin = new System.Windows.Forms.Padding(0);
-            this.glModelView.Name = "glModelView";
-            this.glModelView.Size = new System.Drawing.Size(523, 510);
-            this.glModelView.TabIndex = 2;
             this.glModelView.VSync = false;
-            this.glModelView.Load += new System.EventHandler(this.glModelView_Load);
-            this.glModelView.Paint += new System.Windows.Forms.PaintEventHandler(this.glModelView_Paint);
-            this.glModelView.MouseDown += new System.Windows.Forms.MouseEventHandler(this.glModelView_MouseDown);
-            this.glModelView.MouseMove += new System.Windows.Forms.MouseEventHandler(this.glModelView_MouseMove);
-            this.glModelView.MouseUp += new System.Windows.Forms.MouseEventHandler(this.glModelView_MouseUp);
-            this.glModelView.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.glModelView_MouseWheel);
-            this.glModelView.Resize += new System.EventHandler(this.glModelView_Resize);
             // 
             // spcMainContainer
             // 
@@ -434,8 +426,7 @@ namespace SM64DSe
             // 
             // ofdLoadModel
             // 
-            this.ofdLoadModel.Filter = "All Supported Models|*.dae;*.imd;*.obj|COLLADA DAE|*.dae|NITRO Intermediate Model" +
-                " Data|*.imd|Wavefront OBJ|*.obj";
+            this.ofdLoadModel.Filter = Strings.MODEL_FORMATS_FILTER;
             this.ofdLoadModel.Title = "Load model file...";
             // 
             // btnClearTypes
@@ -484,7 +475,7 @@ namespace SM64DSe
 
         private System.Windows.Forms.ToolStrip tsToolBar;
         private System.Windows.Forms.StatusStrip ssStatusBar;
-        private OpenTK.GLControl glModelView;
+        private FormControls.ModelGLControlWithMarioSizeReference glModelView;
         private System.Windows.Forms.ToolStripLabel toolStripLabel1;
         private System.Windows.Forms.ToolStripButton btnOpenModel;
         private System.Windows.Forms.SplitContainer spcMainContainer;

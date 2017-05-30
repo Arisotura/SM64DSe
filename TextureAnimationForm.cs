@@ -18,7 +18,6 @@ namespace SM64DSe
         // When removing space, round down to multiples of 4 eg. 9 > 8
 
         public LevelEditorForm _owner;
-        CultureInfo usa = new CultureInfo("en-US");
         public uint numAreas;
 
         public TextureAnimationForm(LevelEditorForm _owner)
@@ -296,19 +295,19 @@ namespace SM64DSe
         private void lbxScale_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (lbxArea.SelectedIndex != -1 && lbxTexAnim.SelectedIndex != -1 && lbxScale.SelectedIndex != -1)
-                txtScale.Text = readScaleValue(lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex, lbxScale.SelectedIndex).ToString(usa);
+                txtScale.Text = Helper.ToString(readScaleValue(lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex, lbxScale.SelectedIndex));
         }
 
         private void lbxRotation_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (lbxArea.SelectedIndex != -1 && lbxTexAnim.SelectedIndex != -1 && lbxRotation.SelectedIndex != -1)
-                txtRotation.Text = readRotationValue(lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex, lbxRotation.SelectedIndex).ToString(usa);
+                txtRotation.Text = Helper.ToString(readRotationValue(lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex, lbxRotation.SelectedIndex));
         }
 
         private void lbxTranslation_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (lbxArea.SelectedIndex != -1 && lbxTexAnim.SelectedIndex != -1 && lbxTranslation.SelectedIndex != -1)
-                txtTranslation.Text = readTranslationValue(lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex, lbxTranslation.SelectedIndex).ToString(usa);
+                txtTranslation.Text = Helper.ToString(readTranslationValue(lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex, lbxTranslation.SelectedIndex));
         }
 
         private void btnRemoveAll_Click(object sender, EventArgs e)
@@ -837,8 +836,8 @@ namespace SM64DSe
 
             try
             {
-                float startValue = float.Parse(txtGenerateScaleStartValue.Text, usa);
-                float endValue = float.Parse(txtGenerateScaleEndValue.Text, usa);
+                float startValue = Helper.ParseFloat(txtGenerateScaleStartValue.Text);
+                float endValue = Helper.ParseFloat(txtGenerateScaleEndValue.Text);
                 int amount = int.Parse(txtGenerateScaleAmount.Text);
                 float increment = (float)((endValue - startValue) / (float)amount);
 
@@ -860,8 +859,8 @@ namespace SM64DSe
 
             try
             {
-                float startValue = float.Parse(txtGenerateRotationStartValue.Text, usa);
-                float endValue = float.Parse(txtGenerateRotationEndValue.Text, usa);
+                float startValue = Helper.ParseFloat(txtGenerateRotationStartValue.Text);
+                float endValue = Helper.ParseFloat(txtGenerateRotationEndValue.Text);
                 int amount = int.Parse(txtGenerateRotationAmount.Text);
                 float increment = (float)((endValue - startValue) / (float)amount);
 
@@ -883,8 +882,8 @@ namespace SM64DSe
 
             try
             {
-                float startValue = float.Parse(txtGenerateTranslationStartValue.Text, usa);
-                float endValue = float.Parse(txtGenerateTranslationEndValue.Text, usa);
+                float startValue = Helper.ParseFloat(txtGenerateTranslationStartValue.Text);
+                float endValue = Helper.ParseFloat(txtGenerateTranslationEndValue.Text);
                 int amount = int.Parse(txtGenerateTranslationAmount.Text);
                 float increment = (float)((endValue - startValue) / (float)amount);
 

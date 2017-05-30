@@ -36,11 +36,6 @@ namespace SM64DSe
         public static readonly MD5CryptoServiceProvider m_MD5 = new MD5CryptoServiceProvider();
         public static readonly Color LIGHT_RED = Color.FromArgb(230, 100, 100);
 
-        public static readonly string MODEL_FORMATS_FILTER = "All Supported Models|*.dae;*.imd;*.obj|" + 
-                "COLLADA DAE|*.dae|NITRO Intermediate Model Data|*.imd|Wavefront OBJ|*.obj";
-        public static readonly string MODEL_ANIMATION_FORMATS_FILTER = "All Supported Animation Formats|*.dae;*.ica|" +
-                "COLLADA DAE|*.dae|NITRO Intermediate Character Animation|*.ica";
-
         public static ushort ColorToBGR15(Color color)
         {
             uint r = (uint)((color.R & 0xF8) >> 3);
@@ -91,6 +86,11 @@ namespace SM64DSe
             int gf = ((g1 * w1) + (g2 * w2)) / (w1 + w2);
             int bf = ((b1 * w1) + (b2 * w2)) / (w1 + w2);
             return (ushort)(rf | (gf << 5) | (bf << 10));
+        }
+
+        public static string GetHexColourString(Color colour)
+        {
+            return String.Format("#{0:X2}{1:X2}{2:X2}", colour.R, colour.G, colour.B);
         }
 
         public static bool VectorsEqual(Vector3 a, Vector3 b)
@@ -558,9 +558,9 @@ namespace SM64DSe
             return ret;
         }
 
-        public static bool TryParseFloat(TextBox textBox, ref float result)
+        public static bool TryParseFloat(TextBox textBox, out float result)
         {
-            if (!TryParseFloat(textBox.Text, ref result))
+            if (!TryParseFloat(textBox.Text, out result))
             {
                 textBox.BackColor = LIGHT_RED;
                 return false;
@@ -572,9 +572,54 @@ namespace SM64DSe
             }
         }
 
-        public static bool TryParseFloat(String value, ref float result)
+        public static bool TryParseFloat(string value, out float result)
         {
             return (float.TryParse(value, NumberStyles.Float, USA, out result) || float.TryParse(value, out result));
+        }
+
+        public static float ParseFloat(string value)
+        {
+            return float.Parse(value, USA);
+        }
+
+        public static string ToString(float value)
+        {
+            return value.ToString(USA);
+        }
+
+        public static string ToString(float value, byte nDecimalPlaces)
+        {
+            return value.ToString("N" + nDecimalPlaces, USA);
+        }
+
+        public static string ToString4DP(float value)
+        {
+            return value.ToString("N4", USA);
+        }
+
+        public static string ToString(Vector3 value)
+        {
+            if (value == null) return "null";
+            return '(' + ToString(value.X) + ", " + ToString(value.Y) + ", " + ToString(value.Z) + ')';
+        }
+
+        public static bool TryParseInt(TextBox textBox, ref int result)
+        {
+            if (!TryParseInt(textBox.Text, ref result))
+            {
+                textBox.BackColor = LIGHT_RED;
+                return false;
+            }
+            else
+            {
+                textBox.BackColor = Color.White;
+                return true;
+            }
+        }
+
+        public static bool TryParseInt(string value, ref int result)
+        {
+            return (int.TryParse(value, out result));
         }
     }
 

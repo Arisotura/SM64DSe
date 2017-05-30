@@ -96,6 +96,22 @@
     </Compile>
     <Compile Include="BasicBigFloat.cs" />
     <Compile Include="BiDictionaryOneToOne.cs" />
+    <Compile Include="DataHelper.cs" />
+    <Compile Include="ExceptionMessageBox.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ExceptionMessageBox.Designer.cs">
+      <DependentUpon>ExceptionMessageBox.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormControls\BackgroundImageDataGridView.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="FormControls\MenuButton.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="FormControls\ModelGLControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="ImportExport\BMD_BCA_KCLExporter.cs" />
     <Compile Include="ImportExport\BMDImporter.cs" />
     <Compile Include="ImportExport\KCLImporter.cs" />
@@ -122,6 +138,16 @@
     </Compile>
     <Compile Include="ImportImage4BPP.Designer.cs">
       <DependentUpon>ImportImage4BPP.cs</DependentUpon>
+    </Compile>
+    <Compile Include="KCLCache.cs" />
+    <Compile Include="ModelAndCollisionMapEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ModelAndCollisionMapEditor.Designer.cs">
+      <DependentUpon>ModelAndCollisionMapEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormControls\PaletteColourGrid.cs">
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="SM64DSFormats\BMD.cs" />
     <Compile Include="CLPS_Form.cs">
@@ -236,6 +262,9 @@
     <EmbeddedResource Include="CLPS_Form.resx">
       <DependentUpon>CLPS_Form.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="ExceptionMessageBox.resx">
+      <DependentUpon>ExceptionMessageBox.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="ImportImage4BPP.resx">
       <DependentUpon>ImportImage4BPP.cs</DependentUpon>
     </EmbeddedResource>
@@ -258,6 +287,9 @@
     <EmbeddedResource Include="MinimapEditor.resx">
       <DependentUpon>MinimapEditor.cs</DependentUpon>
       <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ModelAndCollisionMapEditor.resx">
+      <DependentUpon>ModelAndCollisionMapEditor.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ModelImporter.resx">
       <DependentUpon>ModelImporter.cs</DependentUpon>

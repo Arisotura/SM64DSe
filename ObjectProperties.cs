@@ -222,7 +222,7 @@ namespace SM64DSe
             _val = _val.Trim();
 
             if (!float.TryParse(_val, NumberStyles.Float, culture, out ret))
-                if (!float.TryParse(_val, NumberStyles.Float, new CultureInfo("en-US"), out ret))
+                if (!float.TryParse(_val, NumberStyles.Float, Helper.USA, out ret))
                     throw new ArgumentException("Invalid value.");
 
             return ret;

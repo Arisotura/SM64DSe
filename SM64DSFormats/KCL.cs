@@ -148,8 +148,12 @@ namespace SM64DSe
                 v2 = v0 + cross(n,a)*t.length/dot(cross(n,a),c)
                 v1 = v0 + cross(n,b)*t.length/dot(cross(n,b),c)
                 */
-                point2 = point1 + Vector3.Cross(normal, dir2) * length / Vector3.Dot(Vector3.Cross(normal, dir2), dir3);
-                point3 = point1 + Vector3.Cross(normal, dir1) * length / Vector3.Dot(Vector3.Cross(normal, dir1), dir3);
+                Vector3 crossB = Vector3.Cross(normal, dir2);
+                Vector3 crossA = Vector3.Cross(normal, dir1);
+                float dotB = Vector3.Dot(crossB, dir3);
+                float dotA = Vector3.Dot(crossA, dir3);
+                point2 = point1 + crossB * (dotB != 0f ? length / dotB : 0f);
+                point3 = point1 + crossA * (dotA != 0f ? length / dotA : 0f);
 
                 type = typeIn;
                 this.dir1 = dir1;
@@ -215,6 +219,107 @@ namespace SM64DSe
                             { new OctreeNode(file, child0offset, parentoffset, pos + new Vector3(size.X * x, size.Y * y, size.Z * z), size); parentoffset += 4; }
                 }
             }
+
+            public bool ContainsPoint(Vector3 point)
+            {
+                return point.X >= m_Pos.X && point.X <= m_Pos.X + m_Size.X &&
+                       point.Y >= m_Pos.Y && point.Y <= m_Pos.Y + m_Size.Y &&
+                       point.Z >= m_Pos.Z && point.Z <= m_Pos.Z + m_Size.Z;
+            }
+
+            public bool IntersectsRay(ref Vector3 start, ref Vector3 dir)
+            {
+                //Add padding to separate edge cases from no-intersect cases
+                float tMin = -0.1f, tMax = 1.1f;
+
+                //Algorithm borrowed and modified from tavianator.com/fast-branchless-raybounding-box-intersections/
+                //Divisions by 0 should be handled by IEEE-754 floating-point standards.
+                //NaNs are assumed to be rays scraping the edge of a box and therefore count as intersections.
+                //Besides, a false positive is better than a false negative.
+                float t0 = (m_Pos.X            - start.X) / dir.X;
+                float t1 = (m_Pos.X + m_Size.X - start.X) / dir.X;
+                tMin = Math.Max(tMin, Math.Min(t0, t1));
+                tMax = Math.Min(tMax, Math.Max(t0, t1));
+
+                t0 = (m_Pos.Y            - start.Y) / dir.Y;
+                t1 = (m_Pos.Y + m_Size.Y - start.Y) / dir.Y;
+                tMin = Math.Max(tMin, Math.Min(t0, t1));
+                tMax = Math.Min(tMax, Math.Max(t0, t1));
+
+                t0 = (m_Pos.Z            - start.Z) / dir.Z;
+                t1 = (m_Pos.Z + m_Size.Z - start.Z) / dir.Z;
+                tMin = Math.Max(tMin, Math.Min(t0, t1));
+                tMax = Math.Min(tMax, Math.Max(t0, t1));
+
+                return double.IsNaN(tMin) || double.IsNaN(tMax) ||
+                    (tMin <= 1 && tMax >= 0 && tMax >= tMin);
+            }
+        }
+
+        public struct RaycastResult
+        {
+            public Vector3 m_Point;
+            public Vector3 m_Normal;
+            public float m_T;
+
+            public RaycastResult(Vector3 point, Vector3 normal, float t)
+            {
+                m_Point = point;
+                m_Normal = normal;
+                m_T = t;
+            }
+        }
+
+        public RaycastResult? Raycast(Vector3 start, Vector3 dir)
+        {
+            float tFirst = (float)double.PositiveInfinity;
+            Vector3? currPoint = null;
+            Vector3? currNorm = null;
+
+            foreach(OctreeNode octbox in OctreeNode.m_List)
+            {
+                //The condition glitches at times and since a stage model has less than
+                //about 2500 polygons, it's not worth fixing right now.
+                if (true /*octbox.IntersectsRay(ref start, ref dir)*/)
+                {
+                    for (int i = 0; i < octbox.m_PlaneList.Count; ++i)
+                    {
+                        if (octbox.m_PlaneList[i] >= m_Planes.Count) continue;
+                        ColFace tri = m_Planes[octbox.m_PlaneList[i]];
+
+                        //Find point of intersection
+                        float dot = Vector3.Dot(tri.normal, dir);
+                        if (dot >= 0) continue; //Either they don't intersect or they graze. No grazes allowed here!
+
+                        float t = Vector3.Dot(tri.normal, tri.point1 - start) / dot;
+                        if (t < 0 || t > 1 || t >= tFirst) continue; //Nope! Gotta hit the plane! (or too far back)
+
+                        //Find out if the intersection point is inside the triangle.
+                        Vector3 intersection = dir * t + start;
+                        Vector3 basisX = tri.point2 - tri.point1,
+                                basisY = tri.point3 - tri.point1,
+                                intFromPoint1 = intersection - tri.point1;
+
+                        //OpenTK got rid of a function that multiplies a matrix3 by a vector3
+                        Matrix3 planeBasis = new Matrix3(basisX.X, basisY.X, tri.normal.X,
+                                                         basisX.Y, basisY.Y, tri.normal.Y,
+                                                         basisX.Z, basisY.Z, tri.normal.Z).Inverted();
+                        Vector3 resultant = planeBasis.Column0 * intFromPoint1.X +
+                                            planeBasis.Column1 * intFromPoint1.Y +
+                                            planeBasis.Column2 * intFromPoint1.Z;
+
+                        if (resultant.X >= 0 && resultant.Y >= 0 && (resultant.X + resultant.Y) <= 1)
+                        {
+                            currPoint = intersection;
+                            currNorm = tri.normal;
+                            tFirst = t;
+                        }
+                            
+                    }
+                }
+            }
+
+            return currPoint != null ? (RaycastResult?)new RaycastResult((Vector3)currPoint, (Vector3)currNorm, tFirst) : null;
         }
 
         public NitroFile m_File;

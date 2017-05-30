@@ -1,4 +1,5 @@
-﻿namespace SM64DSe
+﻿using SM64DSe.FormControls;
+namespace SM64DSe
 {
     partial class ImportImage4BPP
     {
@@ -47,7 +48,7 @@
             this.rbRow03 = new System.Windows.Forms.RadioButton();
             this.rbRow02 = new System.Windows.Forms.RadioButton();
             this.rbRow01 = new System.Windows.Forms.RadioButton();
-            this.gridImage = new SM64DSe.BackgroundImageDataGridView();
+            this.gridImage = new SM64DSe.FormControls.BackgroundImageDataGridView();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.btnImport = new System.Windows.Forms.ToolStripButton();
             this.gpbRowRadioButtons.SuspendLayout();

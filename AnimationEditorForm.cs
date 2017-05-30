@@ -23,247 +23,28 @@ namespace SM64DSe
         private bool m_LoopAnimation = true;
         private bool m_Running = false;
 
+        private int[] m_DisplayLists = new int[1];
+
+        private BMDImporter.BCAImportationOptions m_BCAImportationOptions;
+
+        private ROMFileSelect m_ROMFileSelect = new ROMFileSelect();
+
         public AnimationEditorForm()
         {
             InitializeComponent();
             InitTimer();
-        }
-
-        private void glModelView_Load(object sender, EventArgs e)
-        {
-            m_PickingFrameBuffer = new uint[9];
-            m_GLLoaded = true;
-
-            GL.Viewport(glModelView.ClientRectangle);
-
-            float ratio = (float)glModelView.Width / (float)glModelView.Height;
-            GL.MatrixMode(MatrixMode.Projection);
-            GL.LoadIdentity();
-            Matrix4 projmtx = Matrix4.CreatePerspectiveFieldOfView((float)((70.0f * Math.PI) / 180.0f), ratio, 0.01f, 1000.0f);
-            GL.MultMatrix(ref projmtx);
-
-            m_PixelFactorX = ((2f * (float)Math.Tan((35f * Math.PI) / 180f) * ratio) / (float)(glModelView.Width));
-            m_PixelFactorY = ((2f * (float)Math.Tan((35f * Math.PI) / 180f)) / (float)(glModelView.Height));
-
-            GL.Enable(EnableCap.AlphaTest);
-            GL.AlphaFunc(AlphaFunction.Greater, 0f);
-            GL.Enable(EnableCap.Blend);
-            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-
-            GL.Enable(EnableCap.DepthTest);
-            GL.Enable(EnableCap.CullFace);
-            GL.CullFace(CullFaceMode.Back);
-            GL.Enable(EnableCap.Texture2D);
-
-            GL.LineWidth(2.0f);
-
-            m_CamRotation = new Vector2(0.0f, (float)Math.PI / 8.0f);
-            m_CamTarget = new Vector3(0.0f, 0.0f, 0.0f);
-            m_CamDistance = 1.0f;
-            UpdateCamera();
-
-            GL.ClearColor(Color.FromArgb(0, 0, 32));
-
-            //LoadModel(true);
-        }
-
-        private void glModelView_MouseDown(object sender, MouseEventArgs e)
-        {
-            if (m_MouseDown != MouseButtons.None) return;
-            m_MouseDown = e.Button;
-            m_LastMouseClick = e.Location;
-            m_LastMouseMove = e.Location;
-        }
-
-        private void glModelView_MouseMove(object sender, MouseEventArgs e)
-        {
-            float xdelta = (float)(e.X - m_LastMouseMove.X);
-            float ydelta = (float)(e.Y - m_LastMouseMove.Y);
-
-            m_MouseCoords = e.Location;
-            m_LastMouseMove = e.Location;
-
-            if (m_MouseDown != MouseButtons.None)
-            {
-                if (m_MouseDown == MouseButtons.Right)
-                {
-                    if (m_UpsideDown)
-                        xdelta = -xdelta;
-
-                    m_CamRotation.X -= xdelta * 0.002f;
-                    m_CamRotation.Y -= ydelta * 0.002f;
-
-                    ClampRotation(ref m_CamRotation.X, (float)Math.PI * 2.0f);
-                    ClampRotation(ref m_CamRotation.Y, (float)Math.PI * 2.0f);
-                }
-                else if (m_MouseDown == MouseButtons.Left)
-                {
-                    xdelta *= 0.005f;
-                    ydelta *= 0.005f;
-
-                    m_CamTarget.X -= xdelta * (float)Math.Sin(m_CamRotation.X);
-                    m_CamTarget.X -= ydelta * (float)Math.Cos(m_CamRotation.X) * (float)Math.Sin(m_CamRotation.Y);
-                    m_CamTarget.Y += ydelta * (float)Math.Cos(m_CamRotation.Y);
-                    m_CamTarget.Z += xdelta * (float)Math.Cos(m_CamRotation.X);
-                    m_CamTarget.Z -= ydelta * (float)Math.Sin(m_CamRotation.X) * (float)Math.Sin(m_CamRotation.Y);
-                }
-
-                UpdateCamera();
-            }
-
-            glModelView.Refresh();
-        }
-
-        private void glModelView_MouseUp(object sender, MouseEventArgs e)
-        {
-            if (e.Button != m_MouseDown) return;
-            m_MouseDown = MouseButtons.None;
-        }
-
-        private void glModelView_MouseWheel(object sender, MouseEventArgs e)
-        {
-            float delta = -((e.Delta / 120.0f) * 0.1f);
-            m_CamTarget.X += delta * (float)Math.Cos(m_CamRotation.X) * (float)Math.Cos(m_CamRotation.Y);
-            m_CamTarget.Y += delta * (float)Math.Sin(m_CamRotation.Y);
-            m_CamTarget.Z += delta * (float)Math.Sin(m_CamRotation.X) * (float)Math.Cos(m_CamRotation.Y);
-
-            UpdateCamera();
-
-            glModelView.Refresh();
-        }
-
-        private void glModelView_Resize(object sender, EventArgs e)
-        {
-            if (!m_GLLoaded) return;
-            glModelView.Context.MakeCurrent(glModelView.WindowInfo);
-
-            GL.Viewport(glModelView.ClientRectangle);
-
-            m_AspectRatio = (float)glModelView.Width / (float)glModelView.Height;
-            GL.MatrixMode(MatrixMode.Projection);
-            Matrix4 projmtx = Matrix4.CreatePerspectiveFieldOfView((float)(70f * Math.PI / 180f), m_AspectRatio, 0.01f, 1000f);
-            GL.LoadMatrix(ref projmtx);
-        }
-
-        private void glModelView_Paint(object sender, PaintEventArgs e)
-        {
-            if (!m_GLLoaded) return;
-            glModelView.Context.MakeCurrent(glModelView.WindowInfo);
-
-            GL.ClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
-            GL.MatrixMode(MatrixMode.Modelview);
-            GL.LoadMatrix(ref m_CamMatrix);
-
-            GL.Flush();
-            GL.ReadPixels(m_MouseCoords.X - 1, glModelView.Height - m_MouseCoords.Y + 1, 3, 3, PixelFormat.Bgra, PixelType.UnsignedByte, m_PickingFrameBuffer);
-
-            GL.ClearColor(0.0f, 0.0f, 0.125f, 1.0f);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
-            GL.MatrixMode(MatrixMode.Modelview);
-            GL.LoadMatrix(ref m_CamMatrix);
-
-            GL.Enable(EnableCap.AlphaTest);
-            GL.Enable(EnableCap.Blend);
-            GL.Enable(EnableCap.Dither);
-            GL.Enable(EnableCap.LineSmooth);
-            GL.Enable(EnableCap.PolygonSmooth);
-            GL.DepthMask(true);
-
-            GL.CallList(m_DisplayList);
-
-            glModelView.SwapBuffers();
-        }
-
-        private void glLevelView_KeyDown(object sender, KeyEventArgs e)
-        {
-            float zoomMultiplier = e.Shift ? 4.0f : 1.0f;
-            if (e.KeyCode == Keys.Home)
-            {
-                ZoomCamera(-0.5f * zoomMultiplier);
-                glModelView.Refresh();
-            }
-            if (e.KeyCode == Keys.End)
-            {
-                ZoomCamera(0.5f * zoomMultiplier);
-                glModelView.Refresh();
-            }
-        }
-
-        private void ZoomCamera(float delta)
-        {
-            m_CamTarget.X += delta * (float)Math.Cos(m_CamRotation.X) * (float)Math.Cos(m_CamRotation.Y);
-            m_CamTarget.Y += delta * (float)Math.Sin(m_CamRotation.Y);
-            m_CamTarget.Z += delta * (float)Math.Sin(m_CamRotation.X) * (float)Math.Cos(m_CamRotation.Y);
-
-            UpdateCamera();
-        }
-
-        private bool m_GLLoaded;
-        private float m_AspectRatio;
-
-        private int m_DisplayList;
-        private uint[] m_PickingFrameBuffer;
-
-        // camera
-        private Vector2 m_CamRotation;
-        private Vector3 m_CamTarget;
-        private float m_CamDistance;
-        private Vector3 m_CamPosition;
-        private bool m_UpsideDown;
-        private Matrix4 m_CamMatrix;
-        private float m_PixelFactorX, m_PixelFactorY;
-
-        // mouse
-        private MouseButtons m_MouseDown;
-        private Point m_LastMouseClick, m_LastMouseMove;
-        private Point m_MouseCoords;
-
-        private void UpdateCamera()
-        {
-            Vector3 up;
-
-            if (Math.Cos(m_CamRotation.Y) < 0)
-            {
-                m_UpsideDown = true;
-                up = new Vector3(0.0f, -1.0f, 0.0f);
-            }
-            else
-            {
-                m_UpsideDown = false;
-                up = new Vector3(0.0f, 1.0f, 0.0f);
-            }
-
-            m_CamPosition.X = m_CamDistance * (float)Math.Cos(m_CamRotation.X) * (float)Math.Cos(m_CamRotation.Y);
-            m_CamPosition.Y = m_CamDistance * (float)Math.Sin(m_CamRotation.Y);
-            m_CamPosition.Z = m_CamDistance * (float)Math.Sin(m_CamRotation.X) * (float)Math.Cos(m_CamRotation.Y);
-
-            Vector3.Add(ref m_CamPosition, ref m_CamTarget, out m_CamPosition);
-
-            m_CamMatrix = Matrix4.LookAt(m_CamPosition, m_CamTarget, up);
-        }
-
-        private static void ClampRotation(ref float val, float twopi)
-        {
-            if (val > twopi)
-            {
-                while (val > twopi)
-                    val -= twopi;
-            }
-            else if (val < -twopi)
-            {
-                while (val < -twopi)
-                    val += twopi;
-            }
+            glModelView.Initialise();
+            glModelView.ProvideDisplayLists(m_DisplayLists);
+            m_BCAImportationOptions = BMDImporter.BCAImportationOptions.DEFAULT;
         }
 
         private void PrerenderModel()
         {
-            if (m_DisplayList == 0)
-                m_DisplayList = GL.GenLists(1);
-            GL.NewList(m_DisplayList, ListMode.Compile);
+            if (m_DisplayLists[0] == 0)
+            {
+                m_DisplayLists[0] = GL.GenLists(1);
+            }
+            GL.NewList(m_DisplayLists[0], ListMode.Compile);
 
             GL.FrontFace(FrontFaceDirection.Ccw);
 
@@ -351,41 +132,40 @@ namespace SM64DSe
 
         private void btnOpenBMD_Click(object sender, EventArgs e)
         {
-            using (var form = new ROMFileSelect("Please select a model (BMD) file to open."))
+            m_ROMFileSelect.Text = "Please select a model (BMD) file to open.";
+            var result = m_ROMFileSelect.ShowDialog();
+            if (result == DialogResult.OK)
             {
-                var result = form.ShowDialog();
-                if (result == DialogResult.OK)
-                {
-                    StopTimer();
+                StopTimer();
 
-                    m_BMD = new BMD(Program.m_ROM.GetFileFromName(form.m_SelectedFile));
-                    txtBMDName.Text = m_BMD.m_FileName;
-                    
-                    PrerenderModel();
-                }
+                m_BMD = new BMD(Program.m_ROM.GetFileFromName(m_ROMFileSelect.m_SelectedFile));
+                txtBMDName.Text = m_BMD.m_FileName;
+
+                PrerenderModel();
             }
         }
 
         private void btnOpenBCA_Click(object sender, EventArgs e)
         {
             bool wasRunning = m_Running;
-            using (var form = new ROMFileSelect("Please select an animation (BCA) file to open."))
+
+            m_ROMFileSelect.Text = "Please select an animation (BCA) file to open.";
+            var result = m_ROMFileSelect.ShowDialog();
+            if (result == DialogResult.OK)
             {
-                var result = form.ShowDialog();
-                if (result == DialogResult.OK)
+                StopTimer();
+
+                m_BCA = new BCA(Program.m_ROM.GetFileFromName(m_ROMFileSelect.m_SelectedFile));
+                txtBCAName.Text = m_BCA.m_FileName;
+
+                m_AnimationFrameNumber = 0;
+                m_AnimationNumFrames = m_BCA.m_NumFrames;
+                txtCurrentFrameNum.Text = "" + m_AnimationFrameNumber;
+                txtNumFrames.Text = "" + (m_BCA.m_NumFrames - 1);
+
+                if (wasRunning)
                 {
-                    StopTimer();
-
-                    m_BCA = new BCA(Program.m_ROM.GetFileFromName(form.m_SelectedFile));
-                    txtBCAName.Text = m_BCA.m_FileName;
-                    
-                    m_AnimationFrameNumber = 0;
-                    m_AnimationNumFrames = m_BCA.m_NumFrames;
-                    txtCurrentFrameNum.Text = "" + m_AnimationFrameNumber;
-                    txtNumFrames.Text = "" + (m_BCA.m_NumFrames - 1);
-
-                    if (wasRunning)
-                        StartTimer();
+                    StartTimer();
                 }
             }
         }
@@ -472,7 +252,7 @@ namespace SM64DSe
         private void btnSelectInputAnimation_Click(object sender, EventArgs e)
         {
             OpenFileDialog ofd = new OpenFileDialog();
-            ofd.Filter = Helper.MODEL_ANIMATION_FORMATS_FILTER;
+            ofd.Filter = Strings.MODEL_ANIMATION_FORMATS_FILTER;
 
             if (ofd.ShowDialog() == DialogResult.OK)
             {
@@ -486,12 +266,17 @@ namespace SM64DSe
         private void btnSelectInputModel_Click(object sender, EventArgs e)
         {
             OpenFileDialog ofd = new OpenFileDialog();
-            ofd.Filter = Helper.MODEL_FORMATS_FILTER;
+            ofd.Filter = Strings.MODEL_FORMATS_FILTER;
 
             if (ofd.ShowDialog() == DialogResult.OK)
             {
                 txtInputModel.Text = ofd.FileName;
             }
+        }
+
+        private void chkOptimise_CheckedChanged(object sender, EventArgs e)
+        {
+            m_BCAImportationOptions.m_Optimise = chkOptimise.Checked;
         }
 
         private void btnImportAnimation_Click(object sender, EventArgs e)
@@ -507,13 +292,8 @@ namespace SM64DSe
                 return;
             }
 
-            Vector3 scale;
-            try
-            {
-                float val = float.Parse(txtScale.Text, Helper.USA);
-                scale = new Vector3(val, val, val);
-            }
-            catch 
+            float scale;
+            if (!Helper.TryParseFloat(txtScale.Text, out scale))
             {
                 MessageBox.Show("Please enter a valid Scale value as a decimal value, eg. 1.234");
                 return;
@@ -524,34 +304,39 @@ namespace SM64DSe
             bool wasRunning = m_Running;
             StopTimer();
 
-            BMDImporter importer = new BMDImporter();
-
             try
             {
+                ModelBase loadedModel = null;
                 switch (animationFormat)
                 {
                     case "dae":
                         {
                             if (txtInputModel.Text != null && !txtInputModel.Text.Equals(""))
-                                m_BMD = importer.ConvertDAEToBMD(ref m_BMD.m_File, txtInputAnimation.Text, scale, 
+                            {
+                                loadedModel = BMDImporter.LoadModel(txtInputAnimation.Text, scale);
+                                m_BMD = BMDImporter.CallBMDWriter(ref m_BMD.m_File, loadedModel, 
                                     BMDImporter.BMDExtraImportOptions.DEFAULT, true);
+                            }
                             // >>> TODO <<<
                             // Below line in necessary to an obscure bug with NARC files, if you have two file from the same 
                             // NARC open and modify and save the first, when you then go to save the second, it won't have 
                             // picked up the changes from the first file and when saved will write the original first file and 
                             // the modified second file.
                             NitroFile animationFile = Program.m_ROM.GetFileFromName(m_BCA.m_FileName);
-                            m_BCA = importer.ConvertAnimatedDAEToBCA(ref animationFile, txtInputAnimation.Text, true);
+                            m_BCA = BMDImporter.ConvertAnimatedDAEToBCA(ref animationFile, txtInputAnimation.Text, m_BCAImportationOptions, true);
                         }
                         break;
                     case "ica":
                         {
                             if (txtInputModel.Text != null && !txtInputModel.Text.Equals(""))
-                                m_BMD = importer.ConvertIMDToBMD(ref m_BMD.m_File, txtInputModel.Text, scale,
+                            {
+                                loadedModel = BMDImporter.LoadModel(txtInputModel.Text, scale);
+                                m_BMD = BMDImporter.CallBMDWriter(ref m_BMD.m_File, loadedModel, 
                                     BMDImporter.BMDExtraImportOptions.DEFAULT, true);
+                            }
                             NitroFile animationFile = Program.m_ROM.GetFileFromName(m_BCA.m_FileName);
-                            m_BCA = importer.ConvertICAToBCA(ref animationFile, txtInputAnimation.Text, scale,
-                                    BMDImporter.BMDExtraImportOptions.DEFAULT, true);
+                            m_BCA = BMDImporter.ConvertICAToBCA(ref animationFile, txtInputAnimation.Text, loadedModel,
+                                scale, BMDImporter.BMDExtraImportOptions.DEFAULT, m_BCAImportationOptions, true);
                         }
                         break;
                 }

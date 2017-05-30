@@ -22,10 +22,12 @@ namespace SM64DSe.ImportExport.Loaders.InternalLoaders
             m_KCL = kcl;
         }
 
-        public override ModelBase LoadModel(OpenTK.Vector3 scale)
+        public override ModelBase LoadModel(float scale)
         {
             ModelBase.BoneDef rootBone = new ModelBase.BoneDef("CollisionMap");
             m_Model.m_BoneTree.AddRootBone(rootBone);
+            rootBone.CalculateBranchTransformations();
+            m_Model.m_BoneTransformsMap.Add(rootBone.m_ID, m_Model.m_BoneTransformsMap.Count);
 
             ModelBase.GeometryDef geometry = new ModelBase.GeometryDef("geometry-0");
             rootBone.m_Geometries.Add(geometry.m_ID, geometry);
@@ -42,13 +44,13 @@ namespace SM64DSe.ImportExport.Loaders.InternalLoaders
 
             foreach (int type in uniqueCollisionTypes)
             {
-                ModelBase.MaterialDef material = new ModelBase.MaterialDef("material-" + type, m_Model.m_Materials.Count);
+                ModelBase.MaterialDef material = new ModelBase.MaterialDef("material-" + type);
                 material.m_Diffuse = uniqueColours[type];
                 m_Model.m_Materials.Add(material.m_ID, material);
 
                 rootBone.m_MaterialsInBranch.Add(material.m_ID);
                 ModelBase.PolyListDef tmp = new ModelBase.PolyListDef("polylist-" + type, material.m_ID);
-                tmp.m_FaceLists.Add(new ModelBase.FaceListDef());
+                tmp.m_FaceLists.Add(new ModelBase.FaceListDef(ModelBase.PolyListType.Triangles));
                 rootBone.m_Geometries[geometry.m_ID].m_PolyLists.Add("polylist-" + type, tmp);
             }
 
@@ -62,10 +64,10 @@ namespace SM64DSe.ImportExport.Loaders.InternalLoaders
 
                 for (int vert = 0; vert < face.m_Vertices.Length; vert++)
                 {
-                    face.m_Vertices[vert].m_TextureCoordinate = Vector2.Zero;
+                    face.m_Vertices[vert].m_TextureCoordinate = null;
                     face.m_Vertices[vert].m_Normal = null;
                     face.m_Vertices[vert].m_VertexColour = Color.White;
-                    face.m_Vertices[vert].m_VertexBoneID = 0;
+                    face.m_Vertices[vert].m_VertexBoneIndex = 0;
                 }
 
                 geometry.m_PolyLists["polylist-" + plane.type].m_FaceLists[0].m_Faces.Add(face);
@@ -84,7 +86,7 @@ namespace SM64DSe.ImportExport.Loaders.InternalLoaders
                 {
                     for (int k = 255; k > 0; k = k - 40)
                     {
-                        Color newColour = Color.FromArgb(180, k, i, j);
+                        Color newColour = Color.FromArgb(255, k, i, j);
                         theColours.Add(newColour);
 
                         if (theColours.Count >= amount)

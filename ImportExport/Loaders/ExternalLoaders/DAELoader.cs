@@ -55,7 +55,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
             m_COLLADAModel = COLLADA.Load(modelFileName);
         }
 
-        public override ModelBase LoadModel(Vector3 scale)
+        public override ModelBase LoadModel(float scale)
         {
             foreach (var item in m_COLLADAModel.Items)
             {
@@ -91,9 +91,9 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
             foreach (material mat in this.library_materials.material)
             {
                 string id = mat.id;
-                string effectID = mat.instance_effect.url.Replace("#", "");
+                string effectID = mat.instance_effect.url.Substring(1);
 
-                ModelBase.MaterialDef matDef = new ModelBase.MaterialDef(id, m_Model.m_Materials.Count);
+                ModelBase.MaterialDef matDef = new ModelBase.MaterialDef(id);
 
                 ReadMaterialEffect(matDef, effectID);
 
@@ -235,7 +235,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                 if (transparency != null && transparency.Item != null)
                 {
                     var value = (transparency.Item as common_float_or_param_typeFloat).Value;
-                    matDef.m_Alpha = (int)(value * 255f);
+                    matDef.m_Alpha = (byte)(value * 31f);
                 }
 
                 if (profileCommon.extra != null)
@@ -305,7 +305,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                         }
                         else if (elem.LocalName.ToLowerInvariant().Equals("tex_rotation"))
                         {
-                            matDef.m_TextureRotation = float.Parse(elem.InnerText, Helper.USA);
+                            matDef.m_TextureRotation = Helper.ParseFloat(elem.InnerText);
                         }
                         else if (elem.LocalName.ToLowerInvariant().Equals("tex_translation"))
                         {
@@ -387,18 +387,6 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                 string controllerID = instanceController.url.Replace("#", "");
                 if (instanceController.skeleton != null && instanceController.skeleton.Length > 0)
                 {
-
-                    /*string skeletonRoot = null;
-                    foreach (string skel in instanceController.skeleton)
-                    {
-                        string skeleton = skel.Replace("#", "");
-                        if (skeletonRoot == null) skeletonRoot = skeleton;
-                        if (m_Model.m_BoneTree.GetBoneByID(skeleton) != null) continue;
-
-                        ReadSkeleton(skeletonRoot);
-                    }
-                    // WRONG */
-
                     string skeletonRoot = instanceController.skeleton[0].Replace("#", "");
                     ReadSkeleton(skeletonRoot);
 
@@ -442,7 +430,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                             {
                                 if (!bindMaterials.ContainsKey(instanceMaterial.symbol))
                                 {
-                                    bindMaterials.Add(instanceMaterial.symbol, instanceMaterial.target.Replace("#", ""));
+                                    bindMaterials.Add(instanceMaterial.symbol, instanceMaterial.target.Substring(1));
                                 }
                             }
                         }
@@ -545,7 +533,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                     else if (jointNamesSource.Item as IDREF_array != null)
                     {
                         jointNames = (jointNamesSource.Item as IDREF_array).Value.
-                            Split(new string[] { " ", "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+                            Split(Strings.WHITESPACE, StringSplitOptions.RemoveEmptyEntries);
                     }
                 }
                 else if (input.semantic.Equals("INV_BIND_MATRIX"))
@@ -638,11 +626,11 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
             }
 
             vcount = Array.ConvertAll<string, int>(
-                skin.vertex_weights.vcount.Split(new string[] { " ", "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries),
+                skin.vertex_weights.vcount.Split(Strings.WHITESPACE, StringSplitOptions.RemoveEmptyEntries),
                 Convert.ToInt32);
 
             v = Array.ConvertAll<string, int>(
-                skin.vertex_weights.v.Split(new string[] { " ", "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries),
+                skin.vertex_weights.v.Split(Strings.WHITESPACE, StringSplitOptions.RemoveEmptyEntries),
                 Convert.ToInt32);
             int currentVertexIndex = 0;
 
@@ -655,6 +643,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
             // and the second index is an index into the weights source > 0.5, 0.25, 0.15, 0.1
             // In this case, the first pair, (0,0) has the highest weighting so this vertex will be assigned to bone0
 
+            List<string> boneIDList = m_Model.m_BoneTree.GetBoneIDList();
             for (int i = 0; i < v.Length; )
             {
                 int numInfluences = vcount[currentVertexIndex];
@@ -665,7 +654,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                     int indexJoint = v[i + (j * 2) + offsetJoint];
                     int indexWeight = v[i + (j * 2) + offsetWeight];
 
-                    int mappedBoneID = m_Model.m_BoneTree.GetBoneIndex(jointNames[indexJoint]);
+                    int mappedBoneID = boneIDList.IndexOf(jointNames[indexJoint]);
                     float weight = weights[indexWeight];
 
                     influences.Add(new Tuple<int, float>(mappedBoneID, weight));
@@ -893,7 +882,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                                 inputs = tris.input;
                                 vcount = new int[] { 3 };
                                 p.Add(Array.ConvertAll<string, int>
-                                    (tris.p.Split(new string[] { " ", "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries), Convert.ToInt32));
+                                    (tris.p.Split(Strings.WHITESPACE, StringSplitOptions.RemoveEmptyEntries), Convert.ToInt32));
                             }
                         }
                         else if (item as polylist != null)
@@ -908,9 +897,9 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                             {
                                 inputs = plist.input;
                                 vcount = Array.ConvertAll<string, int>
-                                    (plist.vcount.Split(new string[] { " ", "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries), Convert.ToInt32);
+                                    (plist.vcount.Split(Strings.WHITESPACE, StringSplitOptions.RemoveEmptyEntries), Convert.ToInt32);
                                 p.Add(Array.ConvertAll<string, int>
-                                    (plist.p.Split(new string[] { " ", "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries), Convert.ToInt32));
+                                    (plist.p.Split(Strings.WHITESPACE, StringSplitOptions.RemoveEmptyEntries), Convert.ToInt32));
                             }
                         }
                         else if (item as polygons != null)
@@ -933,7 +922,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                                     if (element as string != null)
                                     {
                                         int[] tmp = Array.ConvertAll<string, int>
-                                            ((element as string).Split(new string[] { " ", "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries),
+                                            ((element as string).Split(Strings.WHITESPACE, StringSplitOptions.RemoveEmptyEntries),
                                             Convert.ToInt32);
                                         vcount[i] = tmp.Length / inputs.Length;
                                         Array.Resize(ref pTmp, pTmp.Length + (vcount[i] * inputs.Length));
@@ -966,7 +955,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                                     if (element as string != null)
                                     {
                                         int[] tmp = Array.ConvertAll<string, int>
-                                            ((element as string).Split(new string[] { " ", "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries),
+                                            ((element as string).Split(Strings.WHITESPACE, StringSplitOptions.RemoveEmptyEntries),
                                             Convert.ToInt32);
                                         int numTris = ((tmp.Length / inputs.Length) - 3) + 1;
                                         int numVertsToTris = numTris * 3;
@@ -1088,7 +1077,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                                         vert.m_VertexColour = Color.White;
                                     }
 
-                                    vert.m_VertexBoneID = (vertexBoneIDs != null) ? vertexBoneIDs[vertexIndex] : boneIndex;
+                                    vert.m_VertexBoneIndex = (vertexBoneIDs != null) ? vertexBoneIDs[vertexIndex] : boneIndex;
 
                                     vertices.Add(vert);
 

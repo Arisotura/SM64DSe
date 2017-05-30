@@ -47,140 +47,116 @@ using SM64DSe.ImportExport.Loaders;
 using SM64DSe.ImportExport.Writers.InternalWriters;
 using SM64DSe.ImportExport.Writers;
 using SM64DSe.ImportExport.Loaders.ExternalLoaders;
+using SM64DSe.ImportExport.Loaders.InternalLoaders;
 
 namespace SM64DSe.ImportExport
 {
     public class BMDImporter
     {
-        public ModelBase m_LoadedModel;
-
-        public BMD ConvertModelToBMD(ref NitroFile modelFile, string fileName, bool save = true)
+        public static ModelBase LoadModel(string fileName, float scale)
         {
-            return ConvertModelToBMD(ref modelFile, fileName, Vector3.One, BMDExtraImportOptions.DEFAULT, save);
+            return GetModelLoader(fileName).LoadModel(scale);
         }
 
-        public BMD ConvertModelToBMD(ref NitroFile modelFile, string fileName, Vector3 scale, BMDExtraImportOptions extraOptions, 
+        public static ModelBase LoadModel(string fileName)
+        {
+            return LoadModel(fileName, 1f);
+        }
+
+        public static BMD ConvertModelToBMD(ref NitroFile modelFile, string fileName, bool save = true)
+        {
+            return ConvertModelToBMD(ref modelFile, fileName, 1f, BMDExtraImportOptions.DEFAULT, save);
+        }
+
+        public static BMD ConvertModelToBMD(ref NitroFile modelFile, string fileName, float scale, BMDExtraImportOptions extraOptions, 
             bool save = true)
         {
             BMD importedModel = null;
 
-            string modelFormat = fileName.Substring(fileName.Length - 3, 3).ToLower();
-            switch (modelFormat)
-            {
-                case "obj":
-                    importedModel = ConvertOBJToBMD(ref modelFile, fileName, scale, extraOptions, save);
-                    break;
-                case "dae":
-                    importedModel = ConvertDAEToBMD(ref modelFile, fileName, scale, extraOptions, save);
-                    break;
-                case "imd":
-                    importedModel = ConvertIMDToBMD(ref modelFile, fileName, scale, extraOptions, save);
-                    break;
-                default:
-                    importedModel = ConvertOBJToBMD(ref modelFile, fileName, scale, extraOptions, save);
-                    break;
-            }
+            ModelBase loadedModel = GetModelLoader(fileName).LoadModel(scale);
+
+            importedModel = CallBMDWriter(ref modelFile, loadedModel, extraOptions, save);
 
             return importedModel;
         }
 
-        public BMD ConvertIMDToBMD(ref NitroFile modelFile, string fileName, bool save = true)
+        public static BMD ConvertIMDToBMD(ref NitroFile modelFile, string fileName, bool save = true)
         {
-            return ConvertIMDToBMD(ref modelFile, fileName, Vector3.One, BMDExtraImportOptions.DEFAULT, save);
+            return ConvertIMDToBMD(ref modelFile, fileName, 1f, BMDExtraImportOptions.DEFAULT, save);
         }
 
-        public BMD ConvertIMDToBMD(ref NitroFile modelFile, string fileName, Vector3 scale, BMDExtraImportOptions extraOptions,
+        public static BMD ConvertIMDToBMD(ref NitroFile modelFile, string fileName, float scale, BMDExtraImportOptions extraOptions,
             bool save = true)
         {
             BMD importedModel = new BMD(modelFile);
 
-            if (m_LoadedModel == null)
-                m_LoadedModel = new NITROIntermediateModelDataLoader(fileName).LoadModel(scale);
+            ModelBase loadedModel = new NITROIntermediateModelDataLoader(fileName).LoadModel(scale);
 
-            importedModel = CallBMDWriter(ref modelFile, m_LoadedModel, extraOptions, save);
+            importedModel = CallBMDWriter(ref modelFile, loadedModel, extraOptions, save);
 
             return importedModel;
         }
 
-        public BMD ConvertDAEToBMD(ref NitroFile modelFile, string fileName, bool save = true)
+        public static BMD ConvertDAEToBMD(ref NitroFile modelFile, string fileName, bool save = true)
         {
-            return ConvertDAEToBMD(ref modelFile, fileName, Vector3.One, BMDExtraImportOptions.DEFAULT, save);
+            return ConvertDAEToBMD(ref modelFile, fileName, 1f, BMDExtraImportOptions.DEFAULT, save);
         }
 
-        public BMD ConvertDAEToBMD(ref NitroFile modelFile, string fileName, Vector3 scale, BMDExtraImportOptions extraOptions, 
+        public static BMD ConvertDAEToBMD(ref NitroFile modelFile, string fileName, float scale, BMDExtraImportOptions extraOptions, 
             bool save = true)
         {
             BMD importedModel = new BMD(modelFile);
 
-            if (m_LoadedModel == null)
-                m_LoadedModel = new DAELoader(fileName).LoadModel(scale);
+            ModelBase loadedModel = new DAELoader(fileName).LoadModel(scale);
 
-            importedModel = CallBMDWriter(ref modelFile, m_LoadedModel, extraOptions, save);
+            importedModel = CallBMDWriter(ref modelFile, loadedModel, extraOptions, save);
 
             return importedModel;
         }
 
-        public BMD ConvertOBJToBMD(ref NitroFile modelFile, string fileName, bool save = true)
+        public static BMD ConvertOBJToBMD(ref NitroFile modelFile, string fileName, bool save = true)
         {
-            return ConvertOBJToBMD(ref modelFile, fileName, Vector3.One, BMDExtraImportOptions.DEFAULT, save);
+            return ConvertOBJToBMD(ref modelFile, fileName, 1f, BMDExtraImportOptions.DEFAULT, save);
         }
 
-        public BMD ConvertOBJToBMD(ref NitroFile modelFile, string fileName, Vector3 scale, BMDExtraImportOptions extraOptions,
+        public static BMD ConvertOBJToBMD(ref NitroFile modelFile, string fileName, float scale, BMDExtraImportOptions extraOptions,
             bool save = true)
         {
             BMD importedModel = new BMD(modelFile);
 
-            if (m_LoadedModel == null)
-                m_LoadedModel = new OBJLoader(fileName).LoadModel(scale);
+            ModelBase loadedModel = new OBJLoader(fileName).LoadModel(scale);
 
-            importedModel = CallBMDWriter(ref modelFile, m_LoadedModel, extraOptions, save);
+            importedModel = CallBMDWriter(ref modelFile, loadedModel, extraOptions, save);
 
             return importedModel;
         }
 
-        public Dictionary<string, ModelBase.MaterialDef> GetModelMaterials(string fileName)
+        public static BCA ConvertAnimatedDAEToBCA(ref NitroFile animationFile, string fileName, BMDImporter.BCAImportationOptions bcaImportationOptions, bool save = true)
         {
-            string modelFormat = fileName.Substring(fileName.Length - 3, 3).ToLower();
-            switch (modelFormat)
-            {
-                case "obj":
-                    return (m_LoadedModel != null) ? m_LoadedModel.m_Materials : new OBJLoader(fileName).GetModelMaterials();
-                case "dae":
-                    return (m_LoadedModel != null) ? m_LoadedModel.m_Materials : new DAELoader(fileName).GetModelMaterials();
-                case "imd":
-                    return (m_LoadedModel != null) ? m_LoadedModel.m_Materials :
-                        new NITROIntermediateModelDataLoader(fileName).GetModelMaterials();
-                default:
-                    return (m_LoadedModel != null) ? m_LoadedModel.m_Materials : new OBJLoader(fileName).GetModelMaterials();
-            }
-        }
+            ModelBase loadedModel = new DAELoader(fileName).LoadModel();
 
-        public BCA ConvertAnimatedDAEToBCA(ref NitroFile animationFile, string fileName, bool save = true)
-        {
-            if (m_LoadedModel == null)
-                m_LoadedModel = new DAELoader(fileName).LoadModel();
-
-            BCA importedAnimation = CallBCAWriter(ref animationFile, m_LoadedModel, save);
+            BCA importedAnimation = CallBCAWriter(ref animationFile, loadedModel, bcaImportationOptions, save);
 
             return importedAnimation;
         }
 
-        public BCA ConvertICAToBCA(ref NitroFile animationFile, string fileName, bool save = true)
+        public static BCA ConvertICAToBCA(ref NitroFile animationFile, string fileName, ModelBase loadedModel, bool save = true)
         {
-            return ConvertICAToBCA(ref animationFile, fileName, Vector3.One, BMDExtraImportOptions.DEFAULT, save);
+            return ConvertICAToBCA(ref animationFile, fileName, loadedModel, 1f, 
+                BMDExtraImportOptions.DEFAULT, BCAImportationOptions.DEFAULT, save);
         }
 
-        public BCA ConvertICAToBCA(ref NitroFile animationFile, string fileName, Vector3 scale,
-            BMDExtraImportOptions extraOptions, bool save = true)
+        public static BCA ConvertICAToBCA(ref NitroFile animationFile, string fileName, ModelBase loadedModel, float scale,
+            BMDExtraImportOptions extraOptions, BMDImporter.BCAImportationOptions bcaImportationOptions, bool save = true)
         {
-            m_LoadedModel = new NITROIntermediateCharacterAnimationLoader(m_LoadedModel, fileName).LoadModel(scale);
+            ModelBase animatedModel = new NITROIntermediateCharacterAnimationLoader(loadedModel, fileName).LoadModel(scale);
 
-            BCA importedAnimation = CallBCAWriter(ref animationFile, m_LoadedModel, save);
+            BCA importedAnimation = CallBCAWriter(ref animationFile, animatedModel, bcaImportationOptions, save);
 
             return importedAnimation;
         }
 
-        protected BMD CallBMDWriter(ref NitroFile modelFile, ModelBase model, BMDExtraImportOptions extraOptions, bool save = true)
+        public static BMD CallBMDWriter(ref NitroFile modelFile, ModelBase model, BMDExtraImportOptions extraOptions, bool save = true)
         {
             AbstractModelWriter bmdWriter = new BMDWriter(model, ref modelFile, extraOptions);
 
@@ -189,13 +165,32 @@ namespace SM64DSe.ImportExport
             return new BMD(modelFile);
         }
 
-        protected BCA CallBCAWriter(ref NitroFile animationFile, ModelBase model, bool save = true)
+        public static BCA CallBCAWriter(ref NitroFile animationFile, ModelBase model, BMDImporter.BCAImportationOptions bcaImportationOptions, bool save = true)
         {
-            AbstractModelWriter bcaWriter = new BCAWriter(model, ref animationFile);
+            AbstractModelWriter bcaWriter = new BCAWriter(model, ref animationFile, bcaImportationOptions);
 
             bcaWriter.WriteModel(save);
 
             return new BCA(animationFile);
+        }
+
+        public static AbstractModelLoader GetModelLoader(string fileName)
+        {
+            string modelFormat = fileName.Substring(fileName.Length - 3, 3).ToLower();
+            switch (modelFormat)
+            {
+                default:
+                case "obj":
+                    return new OBJLoader(fileName);
+                case "dae":
+                    return new DAELoader(fileName);
+                case "imd":
+                    return new NITROIntermediateModelDataLoader(fileName);
+                case "bmd":
+                    return new BMDLoader(fileName, new BMD(Program.m_ROM.GetFileFromName(fileName)));
+                case "kcl":
+                    return new KCLLoader(fileName, new KCL(Program.m_ROM.GetFileFromName(fileName)));
+            }
         }
 
         public struct BMDExtraImportOptions
@@ -205,8 +200,6 @@ namespace SM64DSe.ImportExport
             public bool m_AlwaysWriteFullVertexCmd23h;
             public bool m_VerticallyFlipAllTextures;
             public TextureQualitySetting m_TextureQualitySetting;
-            //public bool m_SwapYZ;
-            //public bool m_ZMirror;
 
             public BMDExtraImportOptions(bool convertToTriangleStrips, 
                                          bool keepVertexOrderDuringStripping,
@@ -232,5 +225,17 @@ namespace SM64DSe.ImportExport
             };
         }
 
+        public struct BCAImportationOptions
+        {
+            public bool m_Optimise;
+
+            public BCAImportationOptions(bool optimise)
+            {
+                m_Optimise = optimise;
+            }
+
+            public static BCAImportationOptions DEFAULT =
+                new BCAImportationOptions(true);
+        }
     }
 }

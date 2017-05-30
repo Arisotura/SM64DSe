@@ -57,9 +57,10 @@
             this.btnOpenBMD = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.txtBMDName = new System.Windows.Forms.TextBox();
-            this.glModelView = new OpenTK.GLControl();
+            this.glModelView = new SM64DSe.FormControls.ModelGLControl();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.btnExportDAE = new System.Windows.Forms.ToolStripButton();
+            this.chkOptimise = new System.Windows.Forms.CheckBox();
             //((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -108,6 +109,7 @@
             // 
             // gbImportAnimation
             // 
+            this.gbImportAnimation.Controls.Add(this.chkOptimise);
             this.gbImportAnimation.Controls.Add(this.txtScale);
             this.gbImportAnimation.Controls.Add(this.label5);
             this.gbImportAnimation.Controls.Add(this.btnImportAnimation);
@@ -117,16 +119,16 @@
             this.gbImportAnimation.Controls.Add(this.btnSelectInputAnimation);
             this.gbImportAnimation.Controls.Add(this.txtInputAnimation);
             this.gbImportAnimation.Controls.Add(this.label3);
-            this.gbImportAnimation.Location = new System.Drawing.Point(3, 265);
+            this.gbImportAnimation.Location = new System.Drawing.Point(3, 249);
             this.gbImportAnimation.Name = "gbImportAnimation";
-            this.gbImportAnimation.Size = new System.Drawing.Size(225, 163);
+            this.gbImportAnimation.Size = new System.Drawing.Size(225, 179);
             this.gbImportAnimation.TabIndex = 19;
             this.gbImportAnimation.TabStop = false;
             this.gbImportAnimation.Text = "Import Animation";
             // 
             // txtScale
             // 
-            this.txtScale.Location = new System.Drawing.Point(84, 106);
+            this.txtScale.Location = new System.Drawing.Point(84, 125);
             this.txtScale.Name = "txtScale";
             this.txtScale.Size = new System.Drawing.Size(102, 20);
             this.txtScale.TabIndex = 10;
@@ -136,7 +138,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(6, 109);
+            this.label5.Location = new System.Drawing.Point(0, 128);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(37, 13);
             this.label5.TabIndex = 9;
@@ -144,7 +146,7 @@
             // 
             // btnImportAnimation
             // 
-            this.btnImportAnimation.Location = new System.Drawing.Point(3, 132);
+            this.btnImportAnimation.Location = new System.Drawing.Point(3, 151);
             this.btnImportAnimation.Name = "btnImportAnimation";
             this.btnImportAnimation.Size = new System.Drawing.Size(107, 23);
             this.btnImportAnimation.TabIndex = 8;
@@ -374,14 +376,6 @@
             this.glModelView.Size = new System.Drawing.Size(560, 431);
             this.glModelView.TabIndex = 0;
             this.glModelView.VSync = false;
-            this.glModelView.Load += new System.EventHandler(this.glModelView_Load);
-            this.glModelView.Paint += new System.Windows.Forms.PaintEventHandler(this.glModelView_Paint);
-            this.glModelView.MouseDown += new System.Windows.Forms.MouseEventHandler(this.glModelView_MouseDown);
-            this.glModelView.MouseMove += new System.Windows.Forms.MouseEventHandler(this.glModelView_MouseMove);
-            this.glModelView.MouseUp += new System.Windows.Forms.MouseEventHandler(this.glModelView_MouseUp);
-            this.glModelView.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.glModelView_MouseWheel);
-            this.glModelView.KeyDown += new System.Windows.Forms.KeyEventHandler(this.glLevelView_KeyDown);
-            this.glModelView.Resize += new System.EventHandler(this.glModelView_Resize);
             // 
             // toolStrip1
             // 
@@ -404,6 +398,17 @@
             this.btnExportDAE.ToolTipText = "Export model and animation to COLLADA DAE";
             this.btnExportDAE.Click += new System.EventHandler(this.btnExportToDAE_Click);
             // 
+            // chkOptimise
+            // 
+            this.chkOptimise.AutoSize = true;
+            this.chkOptimise.Location = new System.Drawing.Point(3, 106);
+            this.chkOptimise.Name = "chkOptimise";
+            this.chkOptimise.Size = new System.Drawing.Size(66, 17);
+            this.chkOptimise.TabIndex = 11;
+            this.chkOptimise.Text = "Optimise";
+            this.chkOptimise.UseVisualStyleBackColor = true;
+            this.chkOptimise.CheckedChanged += new System.EventHandler(this.chkOptimise_CheckedChanged);
+            // 
             // AnimationEditorForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -413,7 +418,7 @@
             this.Controls.Add(this.splitContainer1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "AnimationEditorForm";
-            this.Text = "GO GO ANIMATION EDITOR GO!";
+            this.Text = "Model Animation Editor";
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel1.PerformLayout();
             this.splitContainer1.Panel2.ResumeLayout(false);
@@ -431,7 +436,7 @@
         #endregion
 
         private System.Windows.Forms.SplitContainer splitContainer1;
-        private OpenTK.GLControl glModelView;
+        private FormControls.ModelGLControl glModelView;
         private System.Windows.Forms.ToolStrip toolStrip1;
         private System.Windows.Forms.ToolStripButton btnExportDAE;
         private System.Windows.Forms.Label label1;
@@ -461,5 +466,6 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TextBox txtScale;
         private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.CheckBox chkOptimise;
     }
 }

@@ -33,12 +33,13 @@
             this.btnCancel = new System.Windows.Forms.Button();
             this.btnOk = new System.Windows.Forms.Button();
             this.grpGeneralSettings = new System.Windows.Forms.GroupBox();
-            this.grpModelImportationSettings = new System.Windows.Forms.GroupBox();
+            this.grpModelAndCollisionMapImportationSettings = new System.Windows.Forms.GroupBox();
+            this.chkRememberLastUsedCollisionTypeAssignments = new System.Windows.Forms.CheckBox();
             this.chkDisableTextureSizeWarning = new System.Windows.Forms.CheckBox();
             this.chkRememberLastUsedModelImportationSettings = new System.Windows.Forms.CheckBox();
-            this.chkRememberLastUsedCollisionTypeAssignments = new System.Windows.Forms.CheckBox();
+            this.chkUseSimpleModelAndCollisionMapImporters = new System.Windows.Forms.CheckBox();
             this.grpGeneralSettings.SuspendLayout();
-            this.grpModelImportationSettings.SuspendLayout();
+            this.grpModelAndCollisionMapImportationSettings.SuspendLayout();
             this.SuspendLayout();
             // 
             // cbAutoUpdateODB
@@ -54,7 +55,7 @@
             // btnCancel
             // 
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(199, 163);
+            this.btnCancel.Location = new System.Drawing.Point(199, 187);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(75, 23);
             this.btnCancel.TabIndex = 1;
@@ -64,7 +65,7 @@
             // btnOk
             // 
             this.btnOk.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.btnOk.Location = new System.Drawing.Point(118, 163);
+            this.btnOk.Location = new System.Drawing.Point(118, 187);
             this.btnOk.Name = "btnOk";
             this.btnOk.Size = new System.Drawing.Size(75, 23);
             this.btnOk.TabIndex = 2;
@@ -84,22 +85,33 @@
             this.grpGeneralSettings.TabStop = false;
             this.grpGeneralSettings.Text = "General Settings";
             // 
-            // grpModelImportationSettings
+            // grpModelAndCollisionMapImportationSettings
             // 
-            this.grpModelImportationSettings.Controls.Add(this.chkRememberLastUsedCollisionTypeAssignments);
-            this.grpModelImportationSettings.Controls.Add(this.chkDisableTextureSizeWarning);
-            this.grpModelImportationSettings.Controls.Add(this.chkRememberLastUsedModelImportationSettings);
-            this.grpModelImportationSettings.Location = new System.Drawing.Point(13, 65);
-            this.grpModelImportationSettings.Name = "grpModelImportationSettings";
-            this.grpModelImportationSettings.Size = new System.Drawing.Size(261, 92);
-            this.grpModelImportationSettings.TabIndex = 4;
-            this.grpModelImportationSettings.TabStop = false;
-            this.grpModelImportationSettings.Text = "Model Importation Settings";
+            this.grpModelAndCollisionMapImportationSettings.Controls.Add(this.chkUseSimpleModelAndCollisionMapImporters);
+            this.grpModelAndCollisionMapImportationSettings.Controls.Add(this.chkRememberLastUsedCollisionTypeAssignments);
+            this.grpModelAndCollisionMapImportationSettings.Controls.Add(this.chkDisableTextureSizeWarning);
+            this.grpModelAndCollisionMapImportationSettings.Controls.Add(this.chkRememberLastUsedModelImportationSettings);
+            this.grpModelAndCollisionMapImportationSettings.Location = new System.Drawing.Point(13, 65);
+            this.grpModelAndCollisionMapImportationSettings.Name = "grpModelAndCollisionMapImportationSettings";
+            this.grpModelAndCollisionMapImportationSettings.Size = new System.Drawing.Size(261, 114);
+            this.grpModelAndCollisionMapImportationSettings.TabIndex = 4;
+            this.grpModelAndCollisionMapImportationSettings.TabStop = false;
+            this.grpModelAndCollisionMapImportationSettings.Text = "Model and Collision Map Importation Settings";
+            // 
+            // chkRememberLastUsedCollisionTypeAssignments
+            // 
+            this.chkRememberLastUsedCollisionTypeAssignments.AutoSize = true;
+            this.chkRememberLastUsedCollisionTypeAssignments.Location = new System.Drawing.Point(7, 67);
+            this.chkRememberLastUsedCollisionTypeAssignments.Name = "chkRememberLastUsedCollisionTypeAssignments";
+            this.chkRememberLastUsedCollisionTypeAssignments.Size = new System.Drawing.Size(246, 17);
+            this.chkRememberLastUsedCollisionTypeAssignments.TabIndex = 2;
+            this.chkRememberLastUsedCollisionTypeAssignments.Text = "Remember last used collision type assignments";
+            this.chkRememberLastUsedCollisionTypeAssignments.UseVisualStyleBackColor = true;
             // 
             // chkDisableTextureSizeWarning
             // 
             this.chkDisableTextureSizeWarning.AutoSize = true;
-            this.chkDisableTextureSizeWarning.Location = new System.Drawing.Point(7, 67);
+            this.chkDisableTextureSizeWarning.Location = new System.Drawing.Point(7, 90);
             this.chkDisableTextureSizeWarning.Name = "chkDisableTextureSizeWarning";
             this.chkDisableTextureSizeWarning.Size = new System.Drawing.Size(157, 17);
             this.chkDisableTextureSizeWarning.TabIndex = 1;
@@ -109,29 +121,29 @@
             // chkRememberLastUsedModelImportationSettings
             // 
             this.chkRememberLastUsedModelImportationSettings.AutoSize = true;
-            this.chkRememberLastUsedModelImportationSettings.Location = new System.Drawing.Point(7, 20);
+            this.chkRememberLastUsedModelImportationSettings.Location = new System.Drawing.Point(7, 43);
             this.chkRememberLastUsedModelImportationSettings.Name = "chkRememberLastUsedModelImportationSettings";
             this.chkRememberLastUsedModelImportationSettings.Size = new System.Drawing.Size(246, 17);
             this.chkRememberLastUsedModelImportationSettings.TabIndex = 0;
             this.chkRememberLastUsedModelImportationSettings.Text = "Remember last used model importation settings";
             this.chkRememberLastUsedModelImportationSettings.UseVisualStyleBackColor = true;
             // 
-            // chkRememberLastUsedCollisionTypeAssignments
+            // chkUseSimpleModelAndCollisionMapImporters
             // 
-            this.chkRememberLastUsedCollisionTypeAssignments.AutoSize = true;
-            this.chkRememberLastUsedCollisionTypeAssignments.Location = new System.Drawing.Point(7, 44);
-            this.chkRememberLastUsedCollisionTypeAssignments.Name = "chkRememberLastUsedCollisionTypeAssignments";
-            this.chkRememberLastUsedCollisionTypeAssignments.Size = new System.Drawing.Size(246, 17);
-            this.chkRememberLastUsedCollisionTypeAssignments.TabIndex = 2;
-            this.chkRememberLastUsedCollisionTypeAssignments.Text = "Remember last used collision type assignments";
-            this.chkRememberLastUsedCollisionTypeAssignments.UseVisualStyleBackColor = true;
+            this.chkUseSimpleModelAndCollisionMapImporters.AutoSize = true;
+            this.chkUseSimpleModelAndCollisionMapImporters.Location = new System.Drawing.Point(7, 20);
+            this.chkUseSimpleModelAndCollisionMapImporters.Name = "chkUseSimpleModelAndCollisionMapImporters";
+            this.chkUseSimpleModelAndCollisionMapImporters.Size = new System.Drawing.Size(237, 17);
+            this.chkUseSimpleModelAndCollisionMapImporters.TabIndex = 3;
+            this.chkUseSimpleModelAndCollisionMapImporters.Text = "Use simple model and collision map importers";
+            this.chkUseSimpleModelAndCollisionMapImporters.UseVisualStyleBackColor = true;
             // 
             // SettingsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(286, 198);
-            this.Controls.Add(this.grpModelImportationSettings);
+            this.ClientSize = new System.Drawing.Size(286, 222);
+            this.Controls.Add(this.grpModelAndCollisionMapImportationSettings);
             this.Controls.Add(this.grpGeneralSettings);
             this.Controls.Add(this.btnOk);
             this.Controls.Add(this.btnCancel);
@@ -145,8 +157,8 @@
             this.Load += new System.EventHandler(this.SettingsForm_Load);
             this.grpGeneralSettings.ResumeLayout(false);
             this.grpGeneralSettings.PerformLayout();
-            this.grpModelImportationSettings.ResumeLayout(false);
-            this.grpModelImportationSettings.PerformLayout();
+            this.grpModelAndCollisionMapImportationSettings.ResumeLayout(false);
+            this.grpModelAndCollisionMapImportationSettings.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -157,9 +169,10 @@
         private System.Windows.Forms.Button btnCancel;
         private System.Windows.Forms.Button btnOk;
         private System.Windows.Forms.GroupBox grpGeneralSettings;
-        private System.Windows.Forms.GroupBox grpModelImportationSettings;
+        private System.Windows.Forms.GroupBox grpModelAndCollisionMapImportationSettings;
         private System.Windows.Forms.CheckBox chkRememberLastUsedModelImportationSettings;
         private System.Windows.Forms.CheckBox chkDisableTextureSizeWarning;
         private System.Windows.Forms.CheckBox chkRememberLastUsedCollisionTypeAssignments;
+        private System.Windows.Forms.CheckBox chkUseSimpleModelAndCollisionMapImporters;
     }
 }

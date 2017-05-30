@@ -484,6 +484,14 @@ namespace SM64DSe
 
             Vector3.Add(ref m_CamPosition, ref m_CamTarget, out m_CamPosition);
 
+            // Make sure top and bottom views don't produce NaN-poisoned matrices
+            // Do this after adding target to position to simulate catastrophic cancellation of subtraction
+            Vector3 noNaNs = Vector3.Normalize(Vector3.Cross(m_CamPosition - m_CamTarget, up));
+            if (double.IsNaN(noNaNs.X) || double.IsNaN(noNaNs.Y) || double.IsNaN(noNaNs.Z))
+            {
+                up = new Vector3(0.0f, 0.0f, m_CamRotation.Y > 0 ? -1.0f : 1.0f);
+            }
+
             m_CamMatrix = Matrix4.LookAt(m_CamPosition, m_CamTarget, up);
             m_SkyboxMatrix = Matrix4.LookAt(Vector3.Zero, skybox_target, up);
         }
@@ -553,25 +561,6 @@ namespace SM64DSe
             GL.DepthFunc(DepthFunction.Always);
             GL.Color4(color);
             obj.Render(RenderMode.Picking);
-
-            // would be faster, but doesn't quite work right
-            // (highlights overlapping glitch)
-            /*GL.Enable(EnableCap.StencilTest);
-            GL.Enable(EnableCap.PolygonOffsetFill);
-            GL.PolygonOffset(-1f, 1f);
-            GL.StencilFunc(StencilFunction.Always, 0x1, 0x1);
-            GL.StencilOp(StencilOp.Replace, StencilOp.Replace, StencilOp.Replace);
-            GL.Color4(Color.FromArgb(100, color));
-            obj.Render(RenderMode.Picking);
-
-            GL.Disable(EnableCap.PolygonOffsetFill);
-            GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
-            GL.LineWidth(3.0f);
-            GL.StencilFunc(StencilFunction.Equal, 0x0, 0x1);
-            GL.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Keep);
-            GL.DepthFunc(DepthFunction.Always);
-            GL.Color4(color);
-            obj.Render(RenderMode.Picking);*/
 
             GL.PopAttrib();
             GL.EndList();
@@ -696,8 +685,8 @@ namespace SM64DSe
                         btnExportLevelModel.Visible = true;
                         //btnAddTexAnim.Visible = true;
                         //btnRemoveSel.Visible = true;
-                        btnImportOtherModel.Visible = true;
-                        btnExportOtherModel.Visible = true;
+                        btnImportOtherModel.Visible = Properties.Settings.Default.UseSimpleModelAndCollisionMapImporters;
+                        btnExportOtherModel.Visible = Properties.Settings.Default.UseSimpleModelAndCollisionMapImporters;
 
                         /*TreeNode node0 = tvObjectList.Nodes.Add("Texture animations");
                         for (int a = 0; a < m_TexAnims.Length; a++)
@@ -1261,6 +1250,7 @@ namespace SM64DSe
 
         private uint[] m_PickingFrameBuffer;
         private float m_PickingDepth;
+        private float m_PickingModelDepth;
 
         private bool m_ShowCommonLayer;
         private int m_AuxLayerNum;
@@ -1289,7 +1279,26 @@ namespace SM64DSe
         private int m_SelectHiliteDL;
         private int m_HoverHiliteDL;
 
-        CultureInfo usa = new CultureInfo("en-US");
+        private ROMFileSelect m_ROMFileSelect = new ROMFileSelect();
+
+        private Vector3 m_GridSize;
+        private Vector3 m_GridOffset;
+
+        private Vector3 m_RestrPlaneNormal;
+        private Vector3 m_RestrPlaneOffset;
+
+        private Vector3 m_SelObjPrevPos;
+        private Vector3 m_SelObjTotalMov;
+
+        private void SnapToGrid(ref Vector3 pos)
+        {
+            if (m_GridSize.X != 0)
+                pos.X = (float)Math.Round((pos.X - m_GridOffset.X) / m_GridSize.X) * m_GridSize.X + m_GridOffset.X;
+            if (m_GridSize.Y != 0)
+                pos.Y = (float)Math.Round((pos.Y - m_GridOffset.Y) / m_GridSize.Y) * m_GridSize.Y + m_GridOffset.Y;
+            if (m_GridSize.Z != 0)
+                pos.Z = (float)Math.Round((pos.Z - m_GridOffset.Z) / m_GridSize.Z) * m_GridSize.Z + m_GridOffset.Z;
+        }
 
         private void glLevelView_Load(object sender, EventArgs e)
         {
@@ -1303,6 +1312,7 @@ namespace SM64DSe
 
             m_PickingFrameBuffer = new uint[9];
             m_PickingDepth = 0f;
+            m_PickingModelDepth = 0f;
 
             GL.Viewport(glLevelView.ClientRectangle);
 
@@ -1381,6 +1391,9 @@ namespace SM64DSe
             m_HoverHiliteDL = GL.GenLists(1);
 
             m_GLLoaded = true;
+
+            m_GridSize = Vector3.Zero;
+            m_GridOffset = Vector3.Zero;
         }
 
         private void glLevelView_Resize(object sender, EventArgs e)
@@ -1407,7 +1420,6 @@ namespace SM64DSe
             if (!m_GLLoaded) return;
             glLevelView.Context.MakeCurrent(glLevelView.WindowInfo);
 
-            // lol temporary
             GL.MatrixMode(MatrixMode.Projection);
             Matrix4 projmtx = (!m_OrthView) ? Matrix4.CreatePerspectiveFieldOfView(k_FOV, m_AspectRatio, k_zNear, k_zFar) : 
                 Matrix4.CreateOrthographic(m_OrthZoom, m_OrthZoom / m_AspectRatio, k_zNear, k_zFar);
@@ -1434,6 +1446,10 @@ namespace SM64DSe
                 GL.Color4(Color.FromArgb(a));
                 GL.CallList(m_LevelModelDLs[a, 2]);
             }
+
+            GL.Flush();
+            GL.ReadPixels(m_MouseCoords.X, glLevelView.Height - m_MouseCoords.Y, 1, 1, PixelFormat.DepthComponent, PixelType.Float, ref m_PickingModelDepth);
+            m_PickingModelDepth = -(k_zFar * k_zNear / (m_PickingModelDepth * (k_zFar - k_zNear) - k_zFar));
 
             if (m_ShowCommonLayer) GL.CallList(m_ObjectDLs[0, 2]);
             if (m_AuxLayerNum > 0) GL.CallList(m_ObjectDLs[m_AuxLayerNum, 2]);
@@ -1484,190 +1500,25 @@ namespace SM64DSe
 
             //GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
 
-            // axes (temp)
-            /*GL.BindTexture(TextureTarget.Texture2D, 0);
-            GL.LineWidth(2.0f);
-            GL.Begin(BeginMode.Lines);
-            GL.Color3(1f, 0f, 0f);
-            GL.Vertex3(0f, 0f, 0f);
-            GL.Vertex3(500f, 0f, 0f);
-            GL.Color3(0f, 1f, 0f);
-            GL.Vertex3(0f, 0f, 0f);
-            GL.Vertex3(0f, 500f, 0f);
-            GL.Color3(0f, 0f, 1f);
-            GL.Vertex3(0f, 0f, 0f);
-            GL.Vertex3(0f, 0f, 500f);
-            GL.End();*/
-
-#if false
-            GL.BindTexture(TextureTarget.Texture2D, 0);
-            GL.LineWidth(1f);
-           // GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
-
-            // enable this to view the level's collision map (slow)
-            int n = 0;
-            foreach (KCL.Plane plane in m_LevelCollMap.m_Planes)
-	        {
-                Color[] colors = { Color.Red, Color.Green, Color.Blue, Color.Cyan, Color.Magenta, Color.Yellow, Color.White, Color.OrangeRed };
-                GL.Color3(colors[n & 7]); 
-                //GL.Color3(colors[(n >> 12) & 7]);
-                n++;
-                //if (n != 37) continue;
-
-                GL.Begin(BeginMode.Triangles);
-		        Vector3 lol1 = Vector3.Cross(plane.m_Dir1, plane.m_Normal);
-                float lol1len = plane.m_Length / (float)Math.Cos(Math.Acos(Math.Min(1f,Vector3.Dot(lol1, plane.m_Dir3))));
-                Vector3 pta = Vector3.Add(plane.m_Position, Vector3.Multiply(lol1, lol1len));
-
-		        Vector3 lol2 = Vector3.Cross(plane.m_Normal, plane.m_Dir2);
-		        float lol2len = plane.m_Length / (float)Math.Cos(Math.Acos(Math.Min(1f,Vector3.Dot(lol2, plane.m_Dir3))));
-                Vector3 ptb = Vector3.Add(plane.m_Position, Vector3.Multiply(lol2, lol2len));
-		        //GL.Vertex3(plane.m_Position);
-
-                //if (pta.Length > 100f || ptb.Length > 100f || plane.m_Position.Length > 100f)
-                //    MessageBox.Show(string.Format("degenerated plane {0}: {1} {2} {3}\n\n{4}\n{5}\n{6}\n{7}\n{8}\n{9}", 
-                //        n, pta, plane.m_Position, ptb, plane.m_Position, plane.m_Normal, plane.m_Dir1, plane.m_Dir2, plane.m_Dir3, plane.m_Length));
-
-               /* if (n == 32)
-                    MessageBox.Show(String.Format("1: {0} {1}\n2: {2} {3}\n\n{4}", 
-                        lol1, lol1len, lol2, lol2len,
-                        Vector3.Dot(lol2, plane.m_Dir3)));*/
-
-                GL.Vertex3(pta);
-                GL.Vertex3(plane.m_Position);
-		        GL.Vertex3(ptb);
-
-		        GL.End();
-            }
-
-            // enable this to view the octree cubes (slow as well)
-            //foreach (KCL.OctreeNode node in KCL.OctreeNode.m_List)
-            /*KCL.OctreeNode node = KCL.OctreeNode.m_List[lol];
-            {
-                Vector3 s0 = node.m_Pos;
-                Vector3 s1 = node.m_Pos + node.m_Size;
-
-                //if (node.m_LOL)
-                //    GL.Color3(Color.LimeGreen);
-               // else
-              //  if (node.m_NumPlanes > 8)
-                {
-                    if (node.m_NumPlanes > 22)
-                        GL.Color3(Color.Red);
-                    else
-                        GL.Color3(Color.Blue);
-                }
-               // else
-                //    continue;
-                    //GL.Color3(Color.Green);
-
-                GL.Begin(BeginMode.LineStrip);
-                GL.Vertex3(s1.X, s1.Y, s1.Z);
-                GL.Vertex3(s0.X, s1.Y, s1.Z);
-                GL.Vertex3(s0.X, s1.Y, s0.Z);
-                GL.Vertex3(s1.X, s1.Y, s0.Z);
-                GL.Vertex3(s1.X, s1.Y, s1.Z);
-                GL.Vertex3(s1.X, s0.Y, s1.Z);
-                GL.Vertex3(s0.X, s0.Y, s1.Z);
-                GL.Vertex3(s0.X, s0.Y, s0.Z);
-                GL.Vertex3(s1.X, s0.Y, s0.Z);
-                GL.Vertex3(s1.X, s0.Y, s1.Z);
-                GL.End();
-
-                GL.Begin(BeginMode.Lines);
-                GL.Vertex3(s0.X, s1.Y, s1.Z);
-                GL.Vertex3(s0.X, s0.Y, s1.Z);
-                GL.Vertex3(s0.X, s1.Y, s0.Z);
-                GL.Vertex3(s0.X, s0.Y, s0.Z);
-                GL.Vertex3(s1.X, s1.Y, s0.Z);
-                GL.Vertex3(s1.X, s0.Y, s0.Z);
-                GL.End();
-
-                foreach (int plol in node.m_PlaneList)
-                {
-                    KCL.Plane plane = m_LevelCollMap.m_Planes[plol];
-
-                    GL.Color3(Color.LimeGreen);
-                    GL.Begin(BeginMode.Triangles);
-                    Vector3 lol1 = Vector3.Cross(plane.m_Dir1, plane.m_Normal);
-                    float lol1len = plane.m_Length / (float)Math.Cos(Math.Acos(Math.Min(1f, Vector3.Dot(lol1, plane.m_Dir3))));
-                    GL.Vertex3(Vector3.Add(plane.m_Position, Vector3.Multiply(lol1, lol1len)));
-
-                    GL.Vertex3(plane.m_Position);
-
-                    Vector3 lol2 = Vector3.Cross(plane.m_Normal, plane.m_Dir2);
-                    float lol2len = plane.m_Length / (float)Math.Cos(Math.Acos(Math.Min(1f, Vector3.Dot(lol2, plane.m_Dir3))));
-                    //GL.Vertex3(plane.m_Position);
-                    GL.Vertex3(Vector3.Add(plane.m_Position, Vector3.Multiply(lol2, lol2len)));
-
-                    GL.End();
-                }
-            }*/
-#endif
-
-#if false
-            /*Bitmap test = new Bitmap(glLevelView.Width, glLevelView.Height);
-            Graphics g = Graphics.FromImage(test);
-            g.Clear(Color.FromArgb(0, 0, 0, 0));
-            Pen plol = new Pen(Color.FromArgb(255, 255, 0, 0));
-            Brush rofl = new SolidBrush(Color.FromArgb(128, 0, 0, 255));
-            g.DrawRectangle(plol, 20, 30, 50, 50);
-            g.FillRectangle(rofl, 21, 31, 48, 48);*/
-
-            GL.MatrixMode(MatrixMode.Projection);
-            GL.LoadIdentity();
-            GL.Ortho(0, glLevelView.Width, glLevelView.Height, 0, 0, 1);
-            GL.MatrixMode(MatrixMode.Modelview);
-            GL.LoadIdentity();
-            GL.Disable(EnableCap.DepthTest);
-
-            /*byte[] loldata = new byte[glLevelView.Width * glLevelView.Height * 4];
-            for (int y = 0; y < glLevelView.Height; y++)
-            {
-                for (int x = 0; x < glLevelView.Width; x++)
-                {
-                    Color c = test.GetPixel(x, y);
-                    loldata[(y * glLevelView.Width + x) * 4    ] = c.B;
-                    loldata[(y * glLevelView.Width + x) * 4 + 1] = c.G;
-                    loldata[(y * glLevelView.Width + x) * 4 + 2] = c.R;
-                    loldata[(y * glLevelView.Width + x) * 4 + 3] = c.A;
-                }
-            }*/
-
-           // System.Drawing.Imaging.BitmapData lolbmp = test.LockBits(glLevelView.ClientRectangle, System.Drawing.Imaging.ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppPArgb);
-          //  GL.BindTexture(TextureTarget.Texture2D, warp);
-           // GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Four, glLevelView.Width, glLevelView.Height, 0, PixelFormat.Bgra, PixelType.UnsignedByte, loldata);
-           // test.UnlockBits(lolbmp);
-
-          /*  GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Clamp);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Clamp);*/
-
-           // GL.Enable(EnableCap.Texture2D);
-           // GL.Color4(Color.FromArgb(255, 255, 0, 255));
-            GL.Color4(Color.FromArgb(128, 0, 0, 255));
-
-            GL.Begin(BeginMode.Quads);
-           /* GL.TexCoord2(0, 0);
-            GL.Vertex2(0, 0);
-            GL.TexCoord2(0, 1);
-            GL.Vertex2(0, glLevelView.Height);
-            GL.TexCoord2(1, 1);
-            GL.Vertex2(glLevelView.Width, glLevelView.Height);
-            GL.TexCoord2(1, 0);
-            GL.Vertex2(glLevelView.Width, 0);*/
-            GL.Vertex2(20, 30);
-            GL.Vertex2(20, 30 + 50);
-            GL.Vertex2(20 + 50, 30 + 50);
-            GL.Vertex2(20 + 50, 30);
-            GL.End();
-
-            GL.Enable(EnableCap.DepthTest);
-#endif
-
             glLevelView.SwapBuffers();
         }
+
+        private KCL.RaycastResult? TotalKCLRaycast(Vector3 start, Vector3 dir)
+        {
+            KCL.RaycastResult? currRes = m_LevelCollMap.Raycast(start, dir);
+
+            /*foreach(KeyValuePair<uint, LevelObject> objPair in m_LevelObjects)
+            {
+                KCL.RaycastResult? res = objPair.Value.Raycast(start, dir);
+                if (res != null && (currRes == null ||
+                    ((KCL.RaycastResult)currRes).m_T > ((KCL.RaycastResult)res).m_T))
+                    currRes = res;
+            }*/
+
+            return currRes;
+        }
+
+        private bool m_RestrPlaneEnabled { get { return m_RestrPlaneNormal != Vector3.Zero; } }
 
         private void glLevelView_MouseDown(object sender, MouseEventArgs e)
         {
@@ -1681,7 +1532,34 @@ namespace SM64DSe
                     type = 5;
 
                 LevelObject obj = AddObject(type, id, 0, 0);
-                obj.Position = Get3DCoords(e.Location, 2f);
+
+                
+                if (m_RestrPlaneEnabled)
+                {
+                    Vector3 start = Get3DCoords(e.Location, k_zNear);
+                    Vector3 dir = Get3DCoords(e.Location, k_zFar) - Get3DCoords(e.Location, k_zNear);
+                    Vector3? hit = null;
+
+                    //Snap to restriction plane
+                    float dot = Vector3.Dot(m_RestrPlaneNormal, dir);
+                    if (dot != 0)
+                    {
+                        float t = Vector3.Dot(m_RestrPlaneNormal, m_RestrPlaneOffset - start) / dot;
+                        hit = dir * t + start;
+                    }
+
+                    obj.Position = (hit != null) ? (Vector3)hit : Get3DCoords(e.Location, 2.0f);
+
+                }
+                else
+                {
+                    //Try to snap the object to the ground
+                    KCL.RaycastResult? hit = TotalKCLRaycast(Get3DCoords(e.Location, k_zNear),
+                    Get3DCoords(e.Location, k_zFar) - Get3DCoords(e.Location, k_zNear));
+                    obj.Position = (hit != null) ? ((KCL.RaycastResult)hit).m_Point : Get3DCoords(e.Location, 2.0f);
+                }
+                
+                SnapToGrid(ref obj.Position);
                 obj.GenerateProperties();
                 pgObjectProperties.SelectedObject = obj.m_Properties;
 
@@ -1730,6 +1608,13 @@ namespace SM64DSe
             m_MouseDown = e.Button;
             m_LastMouseClick = e.Location;
             m_LastMouseMove = e.Location;
+
+            if(m_LastSelected != 0xFFFFFFFF && m_LastSelected == m_LastClicked)
+                m_SelObjPrevPos = m_SelectedObject.Position;
+
+            if(e.Button == MouseButtons.Left)
+                m_SelObjTotalMov = Vector3.Zero;
+
         }
 
         private void glLevelView_MouseUp(object sender, MouseEventArgs e)
@@ -1772,12 +1657,16 @@ namespace SM64DSe
             }
 
             m_MouseDown = MouseButtons.None;
+
+            if (e.Button == MouseButtons.Left)
+                m_SelObjTotalMov = Vector3.Zero;
         }
 
         private void glLevelView_MouseMove(object sender, MouseEventArgs e)
         {
             float xdelta = (float)(e.X - m_LastMouseMove.X);
             float ydelta = (float)(e.Y - m_LastMouseMove.Y);
+            float orthPixelFactor = m_OrthZoom / glLevelView.Width;
 
             m_MouseCoords = e.Location;
             m_LastMouseMove = e.Location;
@@ -1812,8 +1701,16 @@ namespace SM64DSe
                     {
                         //xdelta *= 0.005f;
                         //ydelta *= 0.005f;
-                        xdelta *= Math.Min(0.005f, m_PixelFactorX * m_PickingDepth);
-                        ydelta *= Math.Min(0.005f, m_PixelFactorY * m_PickingDepth);
+                        if (m_OrthView)
+                        {
+                            xdelta *= orthPixelFactor;
+                            ydelta *= orthPixelFactor;
+                        }
+                        else
+                        {
+                            xdelta *= Math.Min(0.005f, m_PixelFactorX * m_PickingDepth);
+                            ydelta *= Math.Min(0.005f, m_PixelFactorY * m_PickingDepth);
+                        }
 
                         m_CamTarget.X -= xdelta * (float)Math.Sin(m_CamRotation.X);
                         m_CamTarget.X -= ydelta * (float)Math.Cos(m_CamRotation.X) * (float)Math.Sin(m_CamRotation.Y);
@@ -1853,16 +1750,46 @@ namespace SM64DSe
 
                         float objz = (((between.X * (float)Math.Cos(m_CamRotation.X)) + (between.Z * (float)Math.Sin(m_CamRotation.X))) * (float)Math.Cos(m_CamRotation.Y)) + (between.Y * (float)Math.Sin(m_CamRotation.Y));
                         //float objz = m_PickingDepth;
-                        xdelta *= m_PixelFactorX * objz;
-                        ydelta *= -m_PixelFactorY * objz;
+                        if (m_OrthView)
+                        {
+                            xdelta *= orthPixelFactor;
+                            ydelta *= -orthPixelFactor;
+                        }
+                        else
+                        {
+                            xdelta *= m_PixelFactorX * objz;
+                            ydelta *= -m_PixelFactorY * objz;
+                        }
 
                         float _xdelta = (xdelta * (float)Math.Sin(m_CamRotation.X)) - (ydelta * (float)Math.Sin(m_CamRotation.Y) * (float)Math.Cos(m_CamRotation.X));
                         float _ydelta = ydelta * (float)Math.Cos(m_CamRotation.Y);
                         float _zdelta = (xdelta * (float)Math.Cos(m_CamRotation.X)) + (ydelta * (float)Math.Sin(m_CamRotation.Y) * (float)Math.Sin(m_CamRotation.X));
 
-                        m_SelectedObject.Position.X += _xdelta;
-                        m_SelectedObject.Position.Y += _ydelta;
-                        m_SelectedObject.Position.Z -= _zdelta;
+                        m_SelObjTotalMov.X += _xdelta;
+                        m_SelObjTotalMov.Y += _ydelta;
+                        m_SelObjTotalMov.Z -= _zdelta;
+
+                        if (m_RestrPlaneEnabled)
+                        {
+                            Vector3 start = Get3DCoords(e.Location, k_zNear);
+                            Vector3 dir = Get3DCoords(e.Location, k_zFar) - Get3DCoords(e.Location, k_zNear);
+                            Vector3? hit = null;
+
+                            //Snap to restriction plane
+                            float dot = Vector3.Dot(m_RestrPlaneNormal, dir);
+                            if (dot != 0)
+                            {
+                                float t = Vector3.Dot(m_RestrPlaneNormal, m_SelObjPrevPos - start) / dot;
+                                hit = dir * t + start;
+                            }
+
+                            m_SelectedObject.Position = (hit != null) ? (Vector3)hit : m_SelObjPrevPos + m_SelObjTotalMov;
+                        }
+                        else
+                        {
+                            m_SelectedObject.Position = m_SelObjPrevPos + m_SelObjTotalMov;
+                        }
+                        SnapToGrid(ref m_SelectedObject.Position);
                     }
 
                     UpdateSelection();
@@ -1948,12 +1875,14 @@ namespace SM64DSe
         {
             Vector3 ret = m_CamPosition;
 
+            float orthPixelFactor = m_OrthZoom / glLevelView.Width;
+
             ret.X -= (depth * (float)Math.Cos(m_CamRotation.X) * (float)Math.Cos(m_CamRotation.Y));
             ret.Y -= (depth * (float)Math.Sin(m_CamRotation.Y));
             ret.Z -= (depth * (float)Math.Sin(m_CamRotation.X) * (float)Math.Cos(m_CamRotation.Y));
 
-            float x = (coords2d.X - (glLevelView.Width / 2f)) * m_PixelFactorX * depth;
-            float y = -(coords2d.Y - (glLevelView.Height / 2f)) * m_PixelFactorY * depth;
+            float x = (coords2d.X - (glLevelView.Width / 2f)) * (m_OrthView ? orthPixelFactor : m_PixelFactorX * depth);
+            float y = -(coords2d.Y - (glLevelView.Height / 2f)) * (m_OrthView ? orthPixelFactor : m_PixelFactorY * depth);
 
             ret.X += (x * (float)Math.Sin(m_CamRotation.X)) - (y * (float)Math.Sin(m_CamRotation.Y) * (float)Math.Cos(m_CamRotation.X));
             ret.Y += y * (float)Math.Cos(m_CamRotation.Y);
@@ -2094,8 +2023,19 @@ namespace SM64DSe
 
         private void btnImportModel_Click(object sender, EventArgs e)
         {
-            ModelImporter form = new ModelImporter(Program.m_ROM.GetFileFromInternalID(m_LevelSettings.BMDFileID).m_Name, Program.m_ROM.GetFileFromInternalID(m_LevelSettings.KCLFileID).m_Name);
-            form.Show(this);
+            string bmdName = Program.m_ROM.GetFileFromInternalID(m_LevelSettings.BMDFileID).m_Name;
+            string kclName = Program.m_ROM.GetFileFromInternalID(m_LevelSettings.KCLFileID).m_Name;
+            if (!Properties.Settings.Default.UseSimpleModelAndCollisionMapImporters)
+            {
+                ModelAndCollisionMapEditor form =
+                    new ModelAndCollisionMapEditor(bmdName, kclName);
+                form.Show();
+            }
+            else
+            {
+                ModelImporter form = new ModelImporter(bmdName, kclName);
+                form.Show(this);
+            }
         }
 
         private void tvObjectList_DrawNode(object sender, DrawTreeNodeEventArgs e)
@@ -2342,6 +2282,43 @@ namespace SM64DSe
             if (e.KeyCode == Keys.Q)
                 btnLOL.PerformClick();
 
+            // Front, side, top, left, back, and bottom views
+            if (e.Alt)
+            {
+                switch (e.KeyCode)
+                {
+                    case Keys.Up: //Top
+                        m_CamRotation.X = (float)Math.PI / 2;
+                        m_CamRotation.Y = (float)Math.PI / 2;
+                        UpdateCamera(); glLevelView.Refresh(); break;
+
+                    case Keys.Down: //Bottom
+                        m_CamRotation.X = (float)Math.PI / 2;
+                        m_CamRotation.Y = -(float)Math.PI / 2;
+                        UpdateCamera(); glLevelView.Refresh(); break;
+
+                    case Keys.Left: //Left
+                        m_CamRotation.X = (float)Math.PI;
+                        m_CamRotation.Y = 0;
+                        UpdateCamera(); glLevelView.Refresh(); break;
+
+                    case Keys.Right: //Right
+                        m_CamRotation.X = 0;
+                        m_CamRotation.Y = 0;
+                        UpdateCamera(); glLevelView.Refresh(); break;
+
+                    case Keys.F: //Front
+                        m_CamRotation.X = (float)Math.PI / 2;
+                        m_CamRotation.Y = 0;
+                        UpdateCamera(); glLevelView.Refresh(); break;
+
+                    case Keys.B: //Back
+                        m_CamRotation.X = -(float)Math.PI / 2;
+                        m_CamRotation.Y = 0;
+                        UpdateCamera(); glLevelView.Refresh(); break;
+
+                }
+            }
 
             // Orthognal View Zoom
             if (e.KeyCode == Keys.PageUp)
@@ -2430,9 +2407,18 @@ namespace SM64DSe
             //Get the name of the selected object's KCL (collision data) file
             string selObjKCLName = selObjBMDName.Substring(0, selObjBMDName.Length - 4) + ".kcl";
 
-            ModelImporter form = new ModelImporter(selObjBMDName, selObjKCLName, m_SelectedObject.m_Renderer.GetScale().X);
-            if (form != null && !form.m_EarlyClosure)
+            if (!Properties.Settings.Default.UseSimpleModelAndCollisionMapImporters)
+            {
+                ModelAndCollisionMapEditor form =
+                    new ModelAndCollisionMapEditor(selObjBMDName, selObjKCLName, m_SelectedObject.m_Renderer.GetScale().X);
                 form.ShowDialog(this);
+            }
+            else
+            {
+                ModelImporter form = new ModelImporter(selObjBMDName, selObjKCLName, m_SelectedObject.m_Renderer.GetScale().X);
+                if (form != null && !form.m_EarlyClosure)
+                    form.ShowDialog(this);
+            }
 
             ModelCache.RemoveModel(m_SelectedObject.m_Renderer.GetFilename());
         }
@@ -2634,7 +2620,7 @@ namespace SM64DSe
             BMD_BCA_KCLExporter.ExportBMDModel(new BMD(m_ROM.GetFileFromInternalID(m_LevelSettings.BMDFileID)), saveModel.FileName);
 
             slStatusLabel.Text = "Finished exporting level model.";
-        }//End Method
+        }
 
         private void btnExportObjectModel_Click(object sender, EventArgs e)
         {
@@ -2667,40 +2653,64 @@ namespace SM64DSe
 
         private void btnImportOtherModel_Click(object sender, EventArgs e)
         {
-            using (var form = new ROMFileSelect("Please select a model (BMD) file to replace."))
+            m_ROMFileSelect.Text = "Select a model (BMD) file to replace.";
+            var result = m_ROMFileSelect.ShowDialog(this);
+            if (result == DialogResult.OK)
             {
-                var result = form.ShowDialog(this);
-                if (result == DialogResult.OK)
-                {
-                    String modelName = form.m_SelectedFile;
-                    ModelImporter mdlImp = new ModelImporter(modelName, modelName.Substring(0, modelName.Length - 4) + ".kcl");
-                    if (mdlImp != null && !mdlImp.m_EarlyClosure)
-                        mdlImp.ShowDialog(this);
-                }
+                String modelName = m_ROMFileSelect.m_SelectedFile;
+                ModelImporter mdlImp = new ModelImporter(modelName, modelName.Substring(0, modelName.Length - 4) + ".kcl");
+                if (mdlImp != null && !mdlImp.m_EarlyClosure)
+                    mdlImp.ShowDialog(this);
             }
         }
 
         private void btnExportOtherModel_Click(object sender, EventArgs e)
         {
-            using (var form = new ROMFileSelect("Please select a model (BMD) file to export."))
+            m_ROMFileSelect.Text = "Select a model (BMD) file to export.";
+            DialogResult result = m_ROMFileSelect.ShowDialog();
+            if (result == DialogResult.OK)
             {
-                var result = form.ShowDialog();
-                if (result == DialogResult.OK)
-                {
-                    SaveFileDialog saveModel = new SaveFileDialog();
-                    saveModel.FileName = "SM64DS_Model";//Default name
-                    saveModel.DefaultExt = ".dae";//Default file extension
-                    saveModel.Filter = "COLLADA DAE (.dae)|*.dae|Wavefront OBJ (.obj)|*.obj";//Filter by .DAE and .OBJ
-                    if (saveModel.ShowDialog() == DialogResult.Cancel)
-                        return;
+                SaveFileDialog saveModel = new SaveFileDialog();
+                saveModel.FileName = "SM64DS_Model";
+                saveModel.DefaultExt = ".dae";
+                saveModel.Filter = Strings.MODEL_EXPORT_FORMATS_FILTER;
+                if (saveModel.ShowDialog() == DialogResult.Cancel)
+                    return;
 
-                    BMD objectBMD = new BMD(m_ROM.GetFileFromName(form.m_SelectedFile));
+                BMD objectBMD = new BMD(m_ROM.GetFileFromName(m_ROMFileSelect.m_SelectedFile));
 
-                    BMD_BCA_KCLExporter.ExportBMDModel(objectBMD, saveModel.FileName);
+                BMD_BCA_KCLExporter.ExportBMDModel(objectBMD, saveModel.FileName);
 
-                    slStatusLabel.Text = "Finished exporting model.";
-                }
+                slStatusLabel.Text = "Finished exporting model.";
             }
+        }
+
+        private void menuGridSettings_DropDownClosed(object sender, EventArgs e)
+        {
+            ToolStripDropDownButton dropdown = (ToolStripDropDownButton)sender;
+            ToolStripItemCollection items = dropdown.DropDownItems;
+
+            Helper.TryParseFloat(items[items.IndexOfKey("txtGridSizeX")].Text, out m_GridSize.X);
+            Helper.TryParseFloat(items[items.IndexOfKey("txtGridSizeY")].Text, out m_GridSize.Y);
+            Helper.TryParseFloat(items[items.IndexOfKey("txtGridSizeZ")].Text, out m_GridSize.Z);
+
+            Helper.TryParseFloat(items[items.IndexOfKey("txtGridOffsetX")].Text, out m_GridOffset.X);
+            Helper.TryParseFloat(items[items.IndexOfKey("txtGridOffsetY")].Text, out m_GridOffset.Y);
+            Helper.TryParseFloat(items[items.IndexOfKey("txtGridOffsetZ")].Text, out m_GridOffset.Z);
+        }
+
+        private void menuRestrictionPlane_DropDownClosed(object sender, EventArgs e)
+        {
+            ToolStripDropDownButton dropdown = (ToolStripDropDownButton)sender;
+            ToolStripItemCollection items = dropdown.DropDownItems;
+
+            Helper.TryParseFloat(items[items.IndexOfKey("txtRstPlaneX")].Text, out m_RestrPlaneNormal.X);
+            Helper.TryParseFloat(items[items.IndexOfKey("txtRstPlaneY")].Text, out m_RestrPlaneNormal.Y);
+            Helper.TryParseFloat(items[items.IndexOfKey("txtRstPlaneZ")].Text, out m_RestrPlaneNormal.Z);
+
+            Helper.TryParseFloat(items[items.IndexOfKey("txtRstPlaneOffX")].Text, out m_RestrPlaneOffset.X);
+            Helper.TryParseFloat(items[items.IndexOfKey("txtRstPlaneOffY")].Text, out m_RestrPlaneOffset.Y);
+            Helper.TryParseFloat(items[items.IndexOfKey("txtRstPlaneOffZ")].Text, out m_RestrPlaneOffset.Z);
         }
 
         private void btnOffsetAllCoords_Click(object sender, EventArgs e)

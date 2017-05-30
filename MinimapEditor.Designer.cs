@@ -35,7 +35,7 @@
             this.tslBeforeAreaBtns = new System.Windows.Forms.ToolStripLabel();
             this.btnImport = new System.Windows.Forms.ToolStripButton();
             this.btnExport = new System.Windows.Forms.ToolStripButton();
-            this.gridPalette = new System.Windows.Forms.DataGridView();
+            this.gridPalette = new PaletteColourGrid();
             this.lblPaletteTitle = new System.Windows.Forms.Label();
             this.btnSetBackground = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
@@ -131,26 +131,8 @@
             // 
             // gridPalette
             // 
-            this.gridPalette.AllowUserToAddRows = false;
-            this.gridPalette.AllowUserToDeleteRows = false;
-            this.gridPalette.AllowUserToResizeColumns = false;
-            this.gridPalette.AllowUserToResizeRows = false;
-            this.gridPalette.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
-            this.gridPalette.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
-            this.gridPalette.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
-            this.gridPalette.ColumnHeadersVisible = false;
-            this.gridPalette.EnableHeadersVisualStyles = false;
             this.gridPalette.Location = new System.Drawing.Point(6, 17);
-            this.gridPalette.MultiSelect = false;
             this.gridPalette.Name = "gridPalette";
-            this.gridPalette.ReadOnly = true;
-            this.gridPalette.RowHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
-            this.gridPalette.RowHeadersVisible = false;
-            this.gridPalette.RowHeadersWidth = 23;
-            this.gridPalette.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
-            this.gridPalette.RowTemplate.Height = 16;
-            this.gridPalette.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.CellSelect;
-            this.gridPalette.Size = new System.Drawing.Size(260, 260);
             this.gridPalette.TabIndex = 4;
             this.gridPalette.CurrentCellChanged += new System.EventHandler(this.gridPalette_CurrentCellChanged);
             // 
@@ -542,7 +524,7 @@
         private System.Windows.Forms.ToolStrip tsMinimapEditor;
         private System.Windows.Forms.ToolStripLabel tslBeforeAreaBtns;
         private System.Windows.Forms.ToolStripButton btnImport;
-        private System.Windows.Forms.DataGridView gridPalette;
+        private PaletteColourGrid gridPalette;
         private System.Windows.Forms.Label lblPaletteTitle;
         private System.Windows.Forms.Button btnSetBackground;
         private System.Windows.Forms.Label label1;

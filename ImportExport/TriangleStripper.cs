@@ -472,6 +472,16 @@ namespace SM64DSe.ImportExport
 
                 return m_Vertex.Equals(item.m_Vertex);
             }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    int hash = 13;
+                    hash = hash * 7 + m_Vertex.GetHashCode();
+                    return hash;
+                }
+            }
         }
 
         class TriangleLinked
@@ -512,6 +522,16 @@ namespace SM64DSe.ImportExport
                 if (item == null) return false;
 
                 return m_Triangle.Equals(item.m_Triangle);
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    int hash = 13;
+                    hash = hash * 7 + m_Triangle.GetHashCode();
+                    return hash;
+                }
             }
         }
 

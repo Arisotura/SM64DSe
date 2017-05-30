@@ -70,5 +70,17 @@ namespace SM64DSe.Properties {
                 this["RememberMaterialCollisionTypeAssignments"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool UseSimpleModelAndCollisionMapImporters {
+            get {
+                return ((bool)(this["UseSimpleModelAndCollisionMapImporters"]));
+            }
+            set {
+                this["UseSimpleModelAndCollisionMapImporters"] = value;
+            }
+        }
     }
 }

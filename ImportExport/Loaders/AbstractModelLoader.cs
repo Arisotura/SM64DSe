@@ -19,10 +19,8 @@ namespace SM64DSe.ImportExport.Loaders
         protected string m_ModelFileName;
         protected string m_ModelPath;
 
-        protected static CultureInfo USA = Helper.USA;
-
-        public ModelBase LoadModel() { return LoadModel(new Vector3(1f, 1f, 1f)); }
-        public abstract ModelBase LoadModel(Vector3 scale);
+        public ModelBase LoadModel() { return LoadModel(1f); }
+        public abstract ModelBase LoadModel(float scale);
         public abstract Dictionary<string, ModelBase.MaterialDef> GetModelMaterials();
 
         public AbstractModelLoader(string modelFileName)
@@ -37,7 +35,7 @@ namespace SM64DSe.ImportExport.Loaders
         {
             if (m_Model.m_Materials.ContainsKey("default_white"))
                 return;
-            ModelBase.MaterialDef mat = new ModelBase.MaterialDef("default_white", m_Model.m_Materials.Count);
+            ModelBase.MaterialDef mat = new ModelBase.MaterialDef("default_white");
             m_Model.m_Materials.Add("default_white", mat);
         }
 

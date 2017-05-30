@@ -14,10 +14,13 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
     {
         public NitroFile m_ModelFile;
 
-        public BCAWriter(ModelBase model, ref NitroFile modelFile) :
+        private BMDImporter.BCAImportationOptions m_BCAImportationOptions;
+
+        public BCAWriter(ModelBase model, ref NitroFile modelFile, BMDImporter.BCAImportationOptions bcaImportationOptions) :
             base(model, modelFile.m_Name)
         {
             m_ModelFile = modelFile;
+            m_BCAImportationOptions = bcaImportationOptions;
         }
 
         public override void WriteModel(bool save = true)
@@ -331,8 +334,242 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
                 }
             }
 
-            if (save)
-                bca.SaveChanges();
+            if (m_BCAImportationOptions.m_Optimise) Optimise(bca);
+            if (save) bca.SaveChanges();
+        }
+
+        public struct BCAOffsetData
+        {
+            public uint scaleOffset;
+            public uint rotOffset;
+            public uint posOffset;
+            public uint animOffset;
+
+            public void GetDataOffsetAndSize(uint trTypeIndex, out uint offset, out uint size)
+            {
+                switch (trTypeIndex)
+                {
+                    case 0: offset = scaleOffset; size = 4; break;
+                    case 1: offset = rotOffset  ; size = 2; break;
+                    case 2: offset = posOffset  ; size = 4; break;
+                    default: throw new Exception("This wasn't supposed to happen!");
+                }
+            }
+        }
+
+        public void BackSpace(NitroFile bca, uint addr, uint len, ref BCAOffsetData offs, bool forAlignment = false)
+        {
+            bca.AddSpace(addr, (uint)-len);
+            uint oldRotOffset = offs.rotOffset;
+            uint oldPosOffset = offs.posOffset;
+            uint oldAnimOffset = offs.animOffset;
+
+            if (addr <= offs.scaleOffset)
+                offs.scaleOffset -= len;
+            if (addr <= offs.rotOffset)
+                offs.rotOffset -= len;
+            if (addr <= offs.posOffset)
+                offs.posOffset -= len;
+            if (addr <= offs.animOffset)
+                offs.animOffset -= len;
+
+            bca.Write32(0x08, offs.scaleOffset);
+            bca.Write32(0x0c, offs.rotOffset);
+            bca.Write32(0x10, offs.posOffset);
+            bca.Write32(0x14, offs.animOffset);
+
+            if (forAlignment)
+                return;
+
+            uint trTypeIndex;
+            if (addr > offs.scaleOffset && addr <= oldRotOffset)
+                trTypeIndex = 0;
+            else if (addr > offs.rotOffset && addr <= oldPosOffset)
+                trTypeIndex = 1;
+            else if (addr > offs.posOffset && addr <= oldAnimOffset)
+                trTypeIndex = 2;
+            else
+                return;
+
+            uint dataOffset, unitSize;
+            offs.GetDataOffsetAndSize(trTypeIndex, out dataOffset, out unitSize);
+
+            uint startSubAt = (addr - dataOffset) / unitSize;
+            uint valToSub = len / unitSize;
+
+            uint numBones = bca.Read16(0x00);
+            for(uint i = 0; i < numBones; ++i)
+                for(uint j = 0; j < 3; ++j)
+                {
+                    uint offset = offs.animOffset + 0x24 * i + 4 * (3 * trTypeIndex + j) + 2;
+                    uint temp = bca.Read16(offset);
+                    if (temp >= startSubAt)
+                        bca.Write16(offset, (ushort)(temp - valToSub));
+                }
+        }
+
+        private struct BCAEntryToSort
+        {
+            public uint boneID;
+            public uint axisID;
+            public uint[] data;
+        }
+
+        private static bool UintArraysEqual(uint[] a1, uint[] a2)
+        {
+            if (a1.Length != a2.Length)
+                return false;
+
+            for(int i = 0; i < a1.Length; ++i)
+            {
+                if (a1[i] != a2[i])
+                    return false;
+            }
+
+            return true;
+        }
+
+        class UintArrEqualityComparer : IEqualityComparer<uint[]>
+        {
+            public bool Equals(uint[] a1, uint[] a2) { return UintArraysEqual(a1, a2); }
+            public int GetHashCode(uint[] arr) { return (int)(arr.Length + (arr.First() << 10) + (arr.Last() << 20)); }
+        }
+
+        public void Optimise(NitroFile bca)
+        {
+            uint numBones = bca.Read16(0x00);
+            uint numFrames = bca.Read16(0x02);
+
+            BCAOffsetData offs = new BCAOffsetData
+            {
+                scaleOffset = bca.Read32(0x08),
+                rotOffset   = bca.Read32(0x0c),
+                posOffset   = bca.Read32(0x10),
+                animOffset  = bca.Read32(0x14)
+            };
+
+            //Pass 1: The constant value pass
+            if (numFrames > 1)
+                for (uint i = 0; i < numBones; ++i)
+                {
+                    for(uint j = 0; j < 9; ++j)
+                    {
+                        if (bca.Read8(offs.animOffset + 0x24 * i + 4 * j + 1) == 0)
+                            continue;
+
+                        uint dataOffset, unitSize;
+                        offs.GetDataOffsetAndSize(j / 3, out dataOffset, out unitSize);
+
+                        bool interped = bca.Read8(offs.animOffset + 0x24 * i + 4 * j + 0) != 0;
+                        uint firstValID = bca.Read16(offs.animOffset + 0x24 * i + 4 * j + 2);
+                        uint numVals = interped ?
+                            numFrames / 2 + 1 :
+                            numFrames;
+
+                        uint[] vals = new uint[numVals];
+                        for (uint k = 0; k < numVals; ++k)
+                            vals[k] = bca.ReadVar(dataOffset + (firstValID + k) * unitSize, unitSize);
+
+                        if(!Array.Exists(vals, x => x != vals[0])) //They're all the same.
+                        {
+                            uint addr = dataOffset + (firstValID + numVals) * unitSize;
+                            BackSpace(bca, addr, (numVals - 1) * unitSize, ref offs);
+                            bca.Write16(offs.animOffset + 0x24 * i + 4 * j + 0, 0x0000);
+                            continue;
+                        }
+
+                        if (interped)
+                            continue;
+
+                        //Pass 2: The interpolation pass
+                        bool shouldInterp = true;
+                        int[] valInts;
+                        if (unitSize == 2)
+                            valInts = Array.ConvertAll(vals, x => x >= 0x8000 ? (int)(x | 0xffff0000) : (int)x);
+                        else
+                            valInts = Array.ConvertAll(vals, x => (int)x);
+
+                        for (int k = 0; k < numVals - 2; k += 2)
+                            if (Math.Abs(valInts[k] - 2 * valInts[k + 1] + valInts[k + 2]) > 1)
+                                shouldInterp = false;
+
+                        if (!shouldInterp)
+                            continue;
+
+                        for (uint k = 0; k < numVals; k += 2)
+                            bca.WriteVar(dataOffset + (firstValID + k / 2) * unitSize, unitSize,
+                                bca.ReadVar(dataOffset + (firstValID + k) * unitSize, unitSize));
+                        if (numVals % 2 == 0) //can't interpolate on last frame even if that frame is odd
+                            bca.WriteVar(dataOffset + (firstValID + numVals / 2) * unitSize, unitSize,
+                                bca.ReadVar(dataOffset + (firstValID + numVals - 1) * unitSize, unitSize));
+
+                        bca.Write8(offs.animOffset + 0x24 * i + 4 * j + 0, 1);
+                        BackSpace(bca, dataOffset + (firstValID + numVals) * unitSize,
+                            (numVals - 1) / 2 * unitSize, ref offs);
+                    }
+                }
+
+            //Pass 3: The share equal data pass.
+            for (uint trID = 0; trID < 3; ++trID)
+            {
+                uint dataOffset, unitSize;
+                offs.GetDataOffsetAndSize(trID, out dataOffset, out unitSize);
+
+                BCAEntryToSort[] bcaEntries = new BCAEntryToSort[3 * numBones];
+                for (uint i = 0; i < numBones; ++i)
+                    for (uint j = 0; j < 3; ++j)
+                    {
+                        bool constant = bca.Read8(offs.animOffset + 0x24 * i + 4 * (3 * trID + j) + 1) == 0;
+                        bool interped = bca.Read8(offs.animOffset + 0x24 * i + 4 * (3 * trID + j) + 0) != 0;
+                        uint firstValID = bca.Read16(offs.animOffset + 0x24 * i + 4 * (3 * trID + j) + 2);
+                        uint numVals = constant ? 1 : interped ?
+                            numFrames / 2 + 1 :
+                            numFrames;
+
+                        bcaEntries[3 * i + j].boneID = i;
+                        bcaEntries[3 * i + j].axisID = j;
+                        bcaEntries[3 * i + j].data = new uint[numVals];
+                        for (uint k = 0; k < numVals; ++k)
+                            bcaEntries[3 * i + j].data[k] =
+                                bca.ReadVar(dataOffset + (firstValID + k) * unitSize, unitSize);
+                    }
+
+                BCAEntryToSort[][] sortedEnts = bcaEntries.GroupBy(x => x.data, new UintArrEqualityComparer()).
+                                                Select(g => g.ToArray()).
+                                                ToArray();
+
+                foreach(BCAEntryToSort[] entArr in sortedEnts)
+                {
+                    uint boneID = entArr[0].boneID;
+                    uint axisID = entArr[0].axisID;
+
+                    for(int i = 1; i < entArr.Length; ++i) //Using the 1st for reference; skip it
+                    {
+                        bool constant = bca.Read8(offs.animOffset + 0x24 * entArr[i].boneID +
+                            4 * (3 * trID + entArr[i].axisID) + 1) == 0;
+                        bool interped = bca.Read8(offs.animOffset + 0x24 * entArr[i].boneID +
+                            4 * (3 * trID + entArr[i].axisID) + 0) != 0;
+                        uint firstValID = bca.Read16(offs.animOffset + 0x24 * entArr[i].boneID +
+                            4 * (3 * trID + entArr[i].axisID) + 2);
+                        uint numVals = constant ? 1 : interped ?
+                            numFrames / 2 + 1 :
+                            numFrames;
+
+                        uint sameValID = bca.Read16(offs.animOffset + 0x24 * boneID +
+                            4 * (3 * trID + axisID) + 2);
+                        if (firstValID != sameValID) //Avoid deleting entries when they are already shared
+                        {
+                            bca.Write16(offs.animOffset + 0x24 * entArr[i].boneID +
+                                4 * (3 * trID + entArr[i].axisID) + 2, (ushort)sameValID);
+                            BackSpace(bca, dataOffset + (firstValID + numVals) * unitSize,
+                                numVals * unitSize, ref offs);
+                        }
+                    }
+                }
+            }
+
+            if ((offs.posOffset - offs.rotOffset) % 4 != 0)
+                BackSpace(bca, offs.posOffset, 0xfffffffe, ref offs, true);
         }
 
         private static void WriteBCAAnimationDescriptor(NitroFile bca, uint offset, byte interpolation, bool isConstant, int startIndex)

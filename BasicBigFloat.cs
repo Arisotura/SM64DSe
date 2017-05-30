@@ -306,6 +306,19 @@ namespace SM64DSe
             return (obj is BasicBigFloat) ? (this.CompareTo((BasicBigFloat) obj) == 0) : false;
         }
 
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 13;
+                hash = hash * 7 + ((m_Whole != null) ? m_Whole.GetHashCode() : -1);
+                hash = hash * 7 + ((m_Fraction != null) ? m_Fraction.GetHashCode() : -1);
+                hash = hash * 7 + m_Exponent.GetHashCode();
+                hash = hash * 7 + m_IsNegative.GetHashCode();
+                return hash;
+            }
+        }
+
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
@@ -356,7 +369,7 @@ namespace SM64DSe
 
         public float ToFloat()
         {
-            return float.Parse(ToString(), Helper.USA);
+            return Helper.ParseFloat(ToString());
         }
     }
 }

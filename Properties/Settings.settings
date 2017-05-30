@@ -14,5 +14,8 @@
     <Setting Name="RememberMaterialCollisionTypeAssignments" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
+    <Setting Name="UseSimpleModelAndCollisionMapImporters" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

@@ -54,7 +54,7 @@ namespace SM64DSe
         // importation settings
         private class ModelImportSettings
         {
-            public Vector3 m_Scale;
+            public float m_Scale;
             public float m_CustomScale;
             public float m_InGameModelScale;
             public BMDImporter.BMDExtraImportOptions m_ExtraOptions;
@@ -63,7 +63,7 @@ namespace SM64DSe
 
             public ModelImportSettings(float customScale)
             {
-                m_Scale = new Vector3(1f, 1f, 1f);
+                m_Scale = 1f;
                 m_CustomScale = customScale;
                 m_InGameModelScale = customScale;
                 m_ExtraOptions = BMDImporter.BMDExtraImportOptions.DEFAULT;
@@ -74,50 +74,24 @@ namespace SM64DSe
         private static Dictionary<string, ModelImportSettings> m_SavedModelImportSettings = new Dictionary<string, ModelImportSettings>();
         private ModelImportSettings m_ModelImportSettings;
 
-        // camera
-        private Vector2 m_CamRotation;
-        private Vector3 m_CamTarget;
-        private float m_CamDistance;
-        private Vector3 m_CamPosition;
-        private bool m_UpsideDown;
-        private Matrix4 m_CamMatrix;
-        private float m_PixelFactorX, m_PixelFactorY;
-
-        // mouse
-        private MouseButtons m_MouseDown;
-        private Point m_LastMouseClick, m_LastMouseMove;
-        private Point m_MouseCoords;
-        private uint m_UnderCursor;
-
-        // display
-        private BMD m_MarioHeadModel = ModelCache.GetModel("data/player/mario_head_cap.bmd");
-        private BMD m_MarioBodyModel = ModelCache.GetModel("data/player/mario_model.bmd");
-        private int m_PDisplayList;
-        private int m_DisplayList;
-        private uint[] m_PickingFrameBuffer;
-
         private BMD m_ImportedModel;
 
         private Dictionary<string, ModelBase.MaterialDef> m_Materials;
         private Dictionary<string, int> m_MatColTypes = new Dictionary<string, int>();
         private static Dictionary<string, Dictionary<string, int>> m_SavedMaterialCollisionTypes = new Dictionary<string, Dictionary<string, int>>();
 
-        // misc
-        private Vector3 m_MarioPosition;
-        private float m_MarioRotation;
-
         private String m_BMDName, m_KCLName;
 
-        private bool m_GLLoaded;
+        private int[] m_DisplayLists;
+
         private bool m_MdlLoaded;
 
         public ModelImporter(String modelName, String kclName, float customScale = 1f)
         {
             InitializeComponent();
 
-            Text = "Model importer - " + Program.AppTitle + " " + Program.AppVersion;
+            Text = "Model Importer - " + Program.AppTitle + " " + Program.AppVersion;
 
-            m_GLLoaded = false;
             m_MdlLoaded = false;
             tbModelName.Text = "None";
 
@@ -129,7 +103,7 @@ namespace SM64DSe
             m_ModelImportSettings = m_SavedModelImportSettings.ContainsKey(m_BMDName) ? 
                 m_SavedModelImportSettings[m_BMDName] : new ModelImportSettings(customScale);
 
-            tbScale.Text = m_ModelImportSettings.m_Scale.X.ToString(Helper.USA);
+            tbScale.Text = m_ModelImportSettings.m_Scale.ToString(Helper.USA);
             txtInGameSizePreview.Text = m_ModelImportSettings.m_InGameModelScale.ToString(Helper.USA);
             if (m_ModelImportSettings.m_InGameModelScale == 1f)
             {
@@ -157,7 +131,11 @@ namespace SM64DSe
             }
             chkVFlipAllTextures.Checked = m_ModelImportSettings.m_ExtraOptions.m_VerticallyFlipAllTextures;
 
-            m_DisplayList = 0;
+            m_DisplayLists = new int[1];
+
+            glModelView.Initialise();
+            glModelView.ProvideDisplayLists(m_DisplayLists);
+            glModelView.ProvideScaleRef(ref m_ModelImportSettings.m_Scale);
         }
 
         public bool m_EarlyClosure;
@@ -174,14 +152,16 @@ namespace SM64DSe
                 m_ModelPath = m_ModelFileName.Substring(0, m_ModelFileName.LastIndexOf('\\') + 1);
                 m_ModelFormat = ofdLoadModel.FileName.Substring(ofdLoadModel.FileName.Length - 3, 3).ToLower();
 
-                BMDImporter importer = new BMDImporter();
-                m_ImportedModel = importer.ConvertModelToBMD(ref m_ImportedModel.m_File,
-                    m_ModelFileName, Vector3.One, m_ModelImportSettings.m_ExtraOptions, false);
-                m_Materials = importer.GetModelMaterials(m_ModelFileName);
+                ModelBase loadedModel = BMDImporter.LoadModel(m_ModelFileName);
+                m_ImportedModel = BMDImporter.ConvertModelToBMD(ref m_ImportedModel.m_File,
+                    m_ModelFileName, 1f, m_ModelImportSettings.m_ExtraOptions, false);
+                m_Materials = loadedModel.m_Materials;
 
                 m_MdlLoaded = true;
 
                 PrerenderModel();
+
+                glModelView.SetShowMarioReference(true);
                 glModelView.Refresh();
 
                 PopulateColTypes();
@@ -240,82 +220,15 @@ namespace SM64DSe
             }
         }
 
-        private void UpdateCamera()
-        {
-            Vector3 up;
-
-            if (Math.Cos(m_CamRotation.Y) < 0)
-            {
-                m_UpsideDown = true;
-                up = new Vector3(0.0f, -1.0f, 0.0f);
-            }
-            else
-            {
-                m_UpsideDown = false;
-                up = new Vector3(0.0f, 1.0f, 0.0f);
-            }
-
-            m_CamPosition.X = m_CamDistance * (float)Math.Cos(m_CamRotation.X) * (float)Math.Cos(m_CamRotation.Y);
-            m_CamPosition.Y = m_CamDistance * (float)Math.Sin(m_CamRotation.Y);
-            m_CamPosition.Z = m_CamDistance * (float)Math.Sin(m_CamRotation.X) * (float)Math.Cos(m_CamRotation.Y);
-
-            Vector3 skybox_target;
-            skybox_target.X = -(float)Math.Cos(m_CamRotation.X) * (float)Math.Cos(m_CamRotation.Y);
-            skybox_target.Y = -(float)Math.Sin(m_CamRotation.Y);
-            skybox_target.Z = -(float)Math.Sin(m_CamRotation.X) * (float)Math.Cos(m_CamRotation.Y);
-
-            Vector3.Add(ref m_CamPosition, ref m_CamTarget, out m_CamPosition);
-
-            m_CamMatrix = Matrix4.LookAt(m_CamPosition, m_CamTarget, up);
-        }
-
         private void PrerenderModel()
         {
-            int[] mheaddl = ModelCache.GetDisplayLists(m_MarioHeadModel);
-            int[] mbodydl = ModelCache.GetDisplayLists(m_MarioBodyModel);
+            if (m_DisplayLists[0] == 0)
+            {
+                m_DisplayLists[0] = GL.GenLists(1);
+            }
+            GL.NewList(m_DisplayLists[0], ListMode.Compile);
 
-            Vector3 mariopos = Vector3.Multiply(m_MarioPosition, m_ModelImportSettings.m_Scale);
-
-            if (m_DisplayList == 0)
-                m_DisplayList = GL.GenLists(1);
-            GL.NewList(m_DisplayList, ListMode.Compile);
-
-            GL.FrontFace(FrontFaceDirection.Ccw);
-
-            GL.Disable(EnableCap.Lighting);
-            GL.BindTexture(TextureTarget.Texture2D, 0);
-            GL.Begin(BeginMode.Lines);
-            GL.Color3(1f, 0f, 0f);
-            GL.Vertex3(0f, 0f, 0f);
-            GL.Vertex3(500f, 0f, 0f);
-            GL.Color3(0f, 1f, 0f);
-            GL.Vertex3(0f, 0f, 0f);
-            GL.Vertex3(0f, 500f, 0f);
-            GL.Color3(0f, 0f, 1f);
-            GL.Vertex3(0f, 0f, 0f);
-            GL.Vertex3(0f, 0f, 500f);
-            GL.End();
-
-            GL.PushMatrix();
-            GL.Translate(mariopos);
-            GL.Begin(BeginMode.Lines);
-            GL.Color3(1f, 1f, 0f);
-            GL.Vertex3(0f, 0f, 0f);
-            GL.Vertex3(0f, -500f, 0f);
-            GL.End();
-            GL.Rotate(m_MarioRotation, Vector3.UnitY);
-            GL.Scale(0.008f, 0.008f, 0.008f);
-            GL.CallList(mbodydl[0]);
-            GL.CallList(mbodydl[1]);
-            GL.Translate(0f, 11.25f, 0f);
-            GL.Rotate(-90f, Vector3.UnitY);
-            GL.Rotate(180f, Vector3.UnitX);
-            GL.CallList(mheaddl[0]);
-            GL.CallList(mheaddl[1]);
-            GL.PopMatrix();
-
-            Vector3 previewScale = m_ModelImportSettings.m_Scale;
-            previewScale = Vector3.Multiply(m_ModelImportSettings.m_Scale, m_ModelImportSettings.m_InGameModelScale);
+            Vector3 previewScale = new Vector3(m_ModelImportSettings.m_Scale * m_ModelImportSettings.m_InGameModelScale);
 
             if (m_MdlLoaded)
             {
@@ -333,32 +246,18 @@ namespace SM64DSe
             }
             GL.EndList();
 
-            if (m_PDisplayList == 0)
-                m_PDisplayList = GL.GenLists(1);
-            GL.NewList(m_PDisplayList, ListMode.Compile);
-
-            GL.Color4(Color.FromArgb(0x66666666));
-            GL.PushMatrix();
-            GL.Translate(mariopos);
-            GL.Rotate(m_MarioRotation, Vector3.UnitY);
-            GL.Scale(0.008f, 0.008f, 0.008f);
-            GL.CallList(mbodydl[2]);
-            GL.Translate(0f, 11.25f, 0f);
-            GL.Rotate(-90f, Vector3.UnitY);
-            GL.Rotate(180f, Vector3.UnitX);
-            GL.CallList(mheaddl[2]);
-            GL.PopMatrix();
-
-            GL.EndList();
-
             m_EarlyClosure = false;
         }
 
         private bool VectorInList(List<Vector3> l, Vector3 p)
         {
             foreach (Vector3 v in l)
+            {
                 if (Helper.VectorsEqual(v, p))
+                {
                     return true;
+                }
+            }
             return false;
         }
 
@@ -368,113 +267,14 @@ namespace SM64DSe
             foreach (Vector3 v in l)
             {
                 if (Helper.VectorsEqual(v, p))
+                {
                     return i;
+                }
                 i++;
             }
 
             l.Add(p);
             return l.Count - 1;
-        }
-
-        private void glModelView_Load(object sender, EventArgs e)
-        {
-            m_MarioPosition = Vector3.Zero;
-            m_MarioRotation = 0f;
-            m_PickingFrameBuffer = new uint[9];
-            m_GLLoaded = true;
-
-            GL.Viewport(glModelView.ClientRectangle);
-
-            float ratio = (float)glModelView.Width / (float)glModelView.Height;
-            GL.MatrixMode(MatrixMode.Projection);
-            GL.LoadIdentity();
-            Matrix4 projmtx = Matrix4.CreatePerspectiveFieldOfView((float)((70.0f * Math.PI) / 180.0f), ratio, 0.01f, 1000.0f);
-            GL.MultMatrix(ref projmtx);
-
-            m_PixelFactorX = ((2f * (float)Math.Tan((35f * Math.PI) / 180f) * ratio) / (float)(glModelView.Width));
-            m_PixelFactorY = ((2f * (float)Math.Tan((35f * Math.PI) / 180f)) / (float)(glModelView.Height));
-
-            GL.Enable(EnableCap.AlphaTest);
-            GL.AlphaFunc(AlphaFunction.Greater, 0f);
-            GL.Enable(EnableCap.Blend);
-            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-
-            GL.Enable(EnableCap.DepthTest);
-            GL.Enable(EnableCap.CullFace);
-            GL.CullFace(CullFaceMode.Back);
-            GL.Enable(EnableCap.Texture2D);
-
-            GL.LineWidth(2.0f);
-
-            m_CamRotation = new Vector2(0.0f, (float)Math.PI / 8.0f);
-            m_CamTarget = new Vector3(0.0f, 0.0f, 0.0f);
-            m_CamDistance = 1.0f;
-            UpdateCamera();
-
-            GL.ClearColor(Color.FromArgb(0, 0, 32));
-
-            //LoadModel(true);
-            m_EarlyClosure = true;
-        }
-
-        private void glModelView_Paint(object sender, PaintEventArgs e)
-        {
-            if (!m_GLLoaded) return;
-            glModelView.Context.MakeCurrent(glModelView.WindowInfo);
-
-            GL.ClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
-            GL.MatrixMode(MatrixMode.Modelview);
-            GL.LoadMatrix(ref m_CamMatrix);
-
-            GL.Disable(EnableCap.AlphaTest);
-            GL.Disable(EnableCap.Blend);
-            GL.Disable(EnableCap.Dither);
-            GL.Disable(EnableCap.LineSmooth);
-            GL.Disable(EnableCap.PolygonSmooth);
-            GL.BindTexture(TextureTarget.Texture2D, 0);
-            GL.Disable(EnableCap.Lighting);
-
-            GL.CallList(m_PDisplayList);
-
-            GL.Flush();
-            GL.ReadPixels(m_MouseCoords.X - 1, glModelView.Height - m_MouseCoords.Y + 1, 3, 3, PixelFormat.Bgra, PixelType.UnsignedByte, m_PickingFrameBuffer);
-
-            GL.ClearColor(0.0f, 0.0f, 0.125f, 1.0f);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
-            GL.MatrixMode(MatrixMode.Modelview);
-            GL.LoadMatrix(ref m_CamMatrix);
-
-            GL.Enable(EnableCap.AlphaTest);
-            GL.Enable(EnableCap.Blend);
-            GL.Enable(EnableCap.Dither);
-            GL.Enable(EnableCap.LineSmooth);
-            GL.Enable(EnableCap.PolygonSmooth);
-            GL.DepthMask(true);
-            //GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
-            GL.CallList(m_DisplayList);
-            //GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
-
-            glModelView.SwapBuffers();
-        }
-
-        private void glModelView_Resize(object sender, EventArgs e)
-        {
-            if (!m_GLLoaded) return;
-            glModelView.Context.MakeCurrent(glModelView.WindowInfo);
-
-            GL.Viewport(glModelView.ClientRectangle);
-
-            float ratio = (float)glModelView.Width / (float)glModelView.Height;
-            GL.MatrixMode(MatrixMode.Projection);
-            GL.LoadIdentity();
-            Matrix4 projmtx = Matrix4.CreatePerspectiveFieldOfView((float)((70.0f * Math.PI) / 180.0f), ratio, 0.01f, 1000.0f);
-            GL.MultMatrix(ref projmtx);
-
-            m_PixelFactorX = ((2f * (float)Math.Tan((35f * Math.PI) / 180f) * ratio) / (float)(glModelView.Width));
-            m_PixelFactorY = ((2f * (float)Math.Tan((35f * Math.PI) / 180f)) / (float)(glModelView.Height));
         }
 
         private void btnOpenModel_Click(object sender, EventArgs e)
@@ -486,7 +286,8 @@ namespace SM64DSe
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message + "\n\n" + ex.StackTrace);
+                new ExceptionMessageBox("Error loading model", ex).ShowDialog();
+                return;
             }
         }
 
@@ -501,27 +302,31 @@ namespace SM64DSe
             //If it's an object it'll be scaled down - need to get back to original value
             slStatus.Text = "Importing model...";
             glModelView.Refresh();
-            BMDImporter importer = new BMDImporter();
-            m_ImportedModel = importer.ConvertModelToBMD(ref m_ImportedModel.m_File,
+            m_ImportedModel = BMDImporter.ConvertModelToBMD(ref m_ImportedModel.m_File,
                 m_ModelFileName, m_ModelImportSettings.m_Scale, m_ModelImportSettings.m_ExtraOptions, true);
 
             PrerenderModel();
             glModelView.Refresh();
             if (m_ModelImportSettings.m_GenerateKCL)
             {
-                float kclScale = (!chkInGamePreview.Checked) ? m_ModelImportSettings.m_Scale.X : (m_ModelImportSettings.m_Scale.X * m_ModelImportSettings.m_InGameModelScale);
+                float kclScale = (!chkInGamePreview.Checked) ? m_ModelImportSettings.m_Scale : (m_ModelImportSettings.m_Scale * m_ModelImportSettings.m_InGameModelScale);
                 slStatus.Text = "Importing collision map... This may take a few minutes, please be patient.";
                 try
                 {
                     kcl = Program.m_ROM.GetFileFromName(m_KCLName);
-                    new KCLImporter().ConvertModelToKCL(kcl, m_ModelFileName, kclScale, m_ModelImportSettings.m_KCLMinimumFaceSize, m_MatColTypes);
+                    KCLImporter.ConvertModelToKCL(kcl, m_ModelFileName, kclScale, m_ModelImportSettings.m_KCLMinimumFaceSize, m_MatColTypes);
                 }
                 catch (Exception e)
                 {
-                    string errorMessage = e.Message.Contains("NitroROM: cannot find file") ?
-                        "This object has no collision data, however the model will still be imported." :
-                        "An error occurred importing the collision map:\n\n" + e.Message + "\n\n" + e.StackTrace;
-                    MessageBox.Show(errorMessage);
+                    if (e.Message.Contains("NitroROM: cannot find file"))
+                    {
+                        MessageBox.Show("This object has no collision data, however the model will still be imported.");
+                    }
+                    else
+                    {
+                        new ExceptionMessageBox("Error importing collision map", e).ShowDialog();
+                    }
+                    return;
                 }
             }
             slStatus.Text = "Finished importing.";
@@ -545,178 +350,10 @@ namespace SM64DSe
             }
         }
 
-        private static void ClampRotation(ref float val, float twopi)
-        {
-            if (val > twopi)
-            {
-                while (val > twopi)
-                    val -= twopi;
-            }
-            else if (val < -twopi)
-            {
-                while (val < -twopi)
-                    val += twopi;
-            }
-        }
-
-        private void glModelView_MouseDown(object sender, MouseEventArgs e)
-        {
-            if (m_MouseDown != MouseButtons.None) return;
-            m_MouseDown = e.Button;
-            m_LastMouseClick = e.Location;
-            m_LastMouseMove = e.Location;
-
-            if ((m_PickingFrameBuffer[4] == m_PickingFrameBuffer[1]) &&
-                (m_PickingFrameBuffer[4] == m_PickingFrameBuffer[3]) &&
-                (m_PickingFrameBuffer[4] == m_PickingFrameBuffer[5]) &&
-                (m_PickingFrameBuffer[4] == m_PickingFrameBuffer[7]))
-                m_UnderCursor = m_PickingFrameBuffer[4];
-            else
-                m_UnderCursor = 0xFFFFFFFF;
-        }
-
-        private void glModelView_MouseUp(object sender, MouseEventArgs e)
-        {
-            if (e.Button != m_MouseDown) return;
-            m_MouseDown = MouseButtons.None;
-            m_UnderCursor = 0xFFFFFFFF;
-        }
-
-        private void glModelView_MouseMove(object sender, MouseEventArgs e)
-        {
-            float xdelta = (float)(e.X - m_LastMouseMove.X);
-            float ydelta = (float)(e.Y - m_LastMouseMove.Y);
-
-            m_MouseCoords = e.Location;
-            m_LastMouseMove = e.Location;
-
-            if (m_MouseDown != MouseButtons.None)
-            {
-                if (m_UnderCursor == 0x66666666)
-                {
-                    if (m_MouseDown == MouseButtons.Right)
-                    {
-                        if (m_UpsideDown)
-                            xdelta = -xdelta;
-
-                        // TODO take obj/camera rotation into account?
-                        m_MarioRotation += xdelta * 0.5f;
-
-                        if (m_MarioRotation >= 180f)
-                        {
-                            m_MarioRotation = (float)(-360f + m_MarioRotation);
-                        }
-                        else if (m_MarioRotation < -180f)
-                        {
-                            m_MarioRotation = (float)(360f + m_MarioRotation);
-                        }
-                    }
-                    else if (m_MouseDown == MouseButtons.Left)
-                    {
-                        Vector3 between;
-                        Vector3.Subtract(ref m_CamPosition, ref m_MarioPosition, out between);
-
-                        float objz = (((between.X * (float)Math.Cos(m_CamRotation.X)) + (between.Z * (float)Math.Sin(m_CamRotation.X))) * (float)Math.Cos(m_CamRotation.Y)) + (between.Y * (float)Math.Sin(m_CamRotation.Y));
-                        objz /= m_ModelImportSettings.m_Scale.X;
-
-                        xdelta *= m_PixelFactorX * objz;
-                        ydelta *= -m_PixelFactorY * objz;
-
-                        float _xdelta = (xdelta * (float)Math.Sin(m_CamRotation.X)) - (ydelta * (float)Math.Sin(m_CamRotation.Y) * (float)Math.Cos(m_CamRotation.X));
-                        float _ydelta = ydelta * (float)Math.Cos(m_CamRotation.Y);
-                        float _zdelta = (xdelta * (float)Math.Cos(m_CamRotation.X)) + (ydelta * (float)Math.Sin(m_CamRotation.Y) * (float)Math.Sin(m_CamRotation.X));
-
-                        Vector3 offset = new Vector3(_xdelta, _ydelta, -_zdelta);
-                        Vector3.Add(ref m_MarioPosition, ref offset, out m_MarioPosition);
-                    }
-
-                    PrerenderModel();
-                }
-                else
-                {
-                    if (m_MouseDown == MouseButtons.Right)
-                    {
-                        /*if (btnReverseRot.Checked)
-                        {
-                            xdelta = -xdelta;
-                            ydelta = -ydelta;
-                        }*/
-
-                        if (m_UpsideDown)
-                            xdelta = -xdelta;
-
-                        m_CamRotation.X -= xdelta * 0.002f;
-                        m_CamRotation.Y -= ydelta * 0.002f;
-
-                        ClampRotation(ref m_CamRotation.X, (float)Math.PI * 2.0f);
-                        ClampRotation(ref m_CamRotation.Y, (float)Math.PI * 2.0f);
-                    }
-                    else if (m_MouseDown == MouseButtons.Left)
-                    {
-                        xdelta *= 0.005f;
-                        ydelta *= 0.005f;
-
-                        m_CamTarget.X -= xdelta * (float)Math.Sin(m_CamRotation.X);
-                        m_CamTarget.X -= ydelta * (float)Math.Cos(m_CamRotation.X) * (float)Math.Sin(m_CamRotation.Y);
-                        m_CamTarget.Y += ydelta * (float)Math.Cos(m_CamRotation.Y);
-                        m_CamTarget.Z += xdelta * (float)Math.Cos(m_CamRotation.X);
-                        m_CamTarget.Z -= ydelta * (float)Math.Sin(m_CamRotation.X) * (float)Math.Sin(m_CamRotation.Y);
-                    }
-
-                    UpdateCamera();
-                }
-            }
-
-            glModelView.Refresh();
-        }
-
-        private void glModelView_MouseWheel(object sender, MouseEventArgs e)
-        {
-            if ((m_MouseDown == MouseButtons.Left) && (m_UnderCursor == 0x66666666))
-            {
-                float delta = -(e.Delta / 120f);
-                delta = ((delta < 0f) ? -1f : 1f) * (float)Math.Pow(delta, 2f) * 0.05f;
-                delta /= m_ModelImportSettings.m_Scale.X;
-
-                Vector3 offset = Vector3.Zero;
-                offset.X += delta * (float)Math.Cos(m_CamRotation.X) * (float)Math.Cos(m_CamRotation.Y);
-                offset.Y += delta * (float)Math.Sin(m_CamRotation.Y);
-                offset.Z += delta * (float)Math.Sin(m_CamRotation.X) * (float)Math.Cos(m_CamRotation.Y);
-
-                float xdist = delta * (m_MouseCoords.X - (glModelView.Width / 2f)) * m_PixelFactorX;
-                float ydist = delta * (m_MouseCoords.Y - (glModelView.Height / 2f)) * m_PixelFactorY;
-
-                offset.X -= (xdist * (float)Math.Sin(m_CamRotation.X)) + (ydist * (float)Math.Sin(m_CamRotation.Y) * (float)Math.Cos(m_CamRotation.X));
-                offset.Y += ydist * (float)Math.Cos(m_CamRotation.Y);
-                offset.Z += (xdist * (float)Math.Cos(m_CamRotation.X)) - (ydist * (float)Math.Sin(m_CamRotation.Y) * (float)Math.Sin(m_CamRotation.X));
-
-                Vector3.Add(ref m_MarioPosition, ref offset, out m_MarioPosition);
-
-                PrerenderModel();
-            }
-            else
-            {
-                float delta = -((e.Delta / 120.0f) * 0.1f);
-                m_CamTarget.X += delta * (float)Math.Cos(m_CamRotation.X) * (float)Math.Cos(m_CamRotation.Y);
-                m_CamTarget.Y += delta * (float)Math.Sin(m_CamRotation.Y);
-                m_CamTarget.Z += delta * (float)Math.Sin(m_CamRotation.X) * (float)Math.Cos(m_CamRotation.Y);
-
-                UpdateCamera();
-            }
-            glModelView.Refresh();
-        }
-
-        private void cbZMirror_CheckedChanged(object sender, EventArgs e)
-        {
-            //m_ModelImportSettings.m_ExtraOptions.m_ZMirror = cbZMirror.Checked;
-            PrerenderModel();
-            glModelView.Refresh();
-        }
-
         private void tbScale_TextChanged(object sender, EventArgs e)
         {
-            float val = 1f;
-            if (Helper.TryParseFloat(tbScale, ref val))
+            float val;
+            if (Helper.TryParseFloat(tbScale, out val))
             {
                 RefreshScale(val);
             }
@@ -724,7 +361,7 @@ namespace SM64DSe
 
         private void RefreshScale(float val)
         {
-            m_ModelImportSettings.m_Scale = new Vector3(val, val, val);
+            m_ModelImportSettings.m_Scale = val;
             if (m_MdlLoaded)
             {
                 PrerenderModel();
@@ -736,25 +373,14 @@ namespace SM64DSe
         {
             if (m_EarlyClosure) return;
 
-            GL.DeleteLists(m_PDisplayList, 1);
-            GL.DeleteLists(m_DisplayList, 1);
+            glModelView.PrepareForClose();
 
             m_ImportedModel.Release();
-
-            ModelCache.RemoveModel(m_MarioHeadModel);
-            ModelCache.RemoveModel(m_MarioBodyModel);
         }
 
         private void ModelImporter_Load(object sender, EventArgs e)
         {
             m_LevelSettings = ((LevelEditorForm)Owner).m_LevelSettings;
-        }
-
-        private void cbSwapYZ_CheckedChanged(object sender, EventArgs e)
-        {
-            //m_ModelImportSettings.m_ExtraOptions.m_SwapYZ = cbSwapYZ.Checked;
-            PrerenderModel();
-            glModelView.Refresh();
         }
 
         private void cbGenerateCollision_CheckedChanged(object sender, System.EventArgs e)
@@ -764,7 +390,7 @@ namespace SM64DSe
 
         private void txtThreshold_TextChanged(object sender, System.EventArgs e)
         {
-            Helper.TryParseFloat(txtThreshold, ref m_ModelImportSettings.m_KCLMinimumFaceSize);
+            Helper.TryParseFloat(txtThreshold, out m_ModelImportSettings.m_KCLMinimumFaceSize);
         }
 
         private void btnAssignTypes_Click(object sender, EventArgs e)
@@ -784,14 +410,14 @@ namespace SM64DSe
 
         private void btnEditTextures_Click(object sender, EventArgs e)
         {
-            new TextureEditorForm(m_BMDName, this).Show(this);
+            new TextureEditorForm(m_BMDName).Show(this);
         }
 
         private void chkInGamePreview_CheckedChanged(object sender, EventArgs e)
         {
             if (chkInGamePreview.Checked)
             {
-                Helper.TryParseFloat(txtInGameSizePreview.Text, ref m_ModelImportSettings.m_InGameModelScale);
+                Helper.TryParseFloat(txtInGameSizePreview.Text, out m_ModelImportSettings.m_InGameModelScale);
                 txtInGameSizePreview.Enabled = true;
             }
             else if (!chkInGamePreview.Checked)
@@ -812,7 +438,7 @@ namespace SM64DSe
         {
             if (chkInGamePreview.Checked)
             {
-                if (Helper.TryParseFloat(txtInGameSizePreview, ref m_ModelImportSettings.m_InGameModelScale))
+                if (Helper.TryParseFloat(txtInGameSizePreview, out m_ModelImportSettings.m_InGameModelScale))
                 {
                     if (m_MdlLoaded)
                     {

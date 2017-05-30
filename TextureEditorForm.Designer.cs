@@ -677,6 +677,7 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "TextureEditorForm";
             this.Text = "Texture and BTP Editor";
+            this.Load += new System.EventHandler(TextureEditorForm_Load);
             //((System.ComponentModel.ISupportInitialize)(this.pbxTexture)).EndInit();
             this.toolStrip1.ResumeLayout(false);
             this.toolStrip1.PerformLayout();

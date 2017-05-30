@@ -12,8 +12,6 @@ namespace SM64DSe
 {
     public partial class OffsetAllObjectCoordsForm : Form
     {
-
-        CultureInfo usahax = new CultureInfo("en-US");
         LevelEditorForm _owner;
 
         public OffsetAllObjectCoordsForm()
@@ -33,15 +31,15 @@ namespace SM64DSe
                 {
                     if (chkOffsetAll.Checked)
                     {
-                        obj.Position.X += float.Parse(txtOffsetX.Text);
-                        obj.Position.Y += float.Parse(txtOffsetY.Text);
-                        obj.Position.Z += float.Parse(txtOffsetZ.Text);
+                        obj.Position.X += Helper.ParseFloat(txtOffsetX.Text);
+                        obj.Position.Y += Helper.ParseFloat(txtOffsetY.Text);
+                        obj.Position.Z += Helper.ParseFloat(txtOffsetZ.Text);
                     }
                     if (chkScaleAll.Checked)
                     {
-                        obj.Position.X *= float.Parse(txtScaleX.Text);
-                        obj.Position.Y *= float.Parse(txtScaleY.Text);
-                        obj.Position.Z *= float.Parse(txtScaleZ.Text);
+                        obj.Position.X *= Helper.ParseFloat(txtScaleX.Text);
+                        obj.Position.Y *= Helper.ParseFloat(txtScaleY.Text);
+                        obj.Position.Z *= Helper.ParseFloat(txtScaleZ.Text);
                     }
                     obj.GenerateProperties();
                 }

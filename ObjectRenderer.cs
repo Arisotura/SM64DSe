@@ -390,7 +390,7 @@ namespace SM64DSe
                 GL.Disable(EnableCap.Lighting);
             }
 
-            GL.Begin(BeginMode.TriangleStrip);
+            GL.Begin(PrimitiveType.TriangleStrip);
             GL.Vertex3(-s, -s, -s);
             GL.Vertex3(-s, s, -s);
             GL.Vertex3(s, -s, -s);
@@ -403,14 +403,14 @@ namespace SM64DSe
             GL.Vertex3(-s, s, -s);
             GL.End();
 
-            GL.Begin(BeginMode.TriangleStrip);
+            GL.Begin(PrimitiveType.TriangleStrip);
             GL.Vertex3(-s, s, -s);
             GL.Vertex3(-s, s, s);
             GL.Vertex3(s, s, -s);
             GL.Vertex3(s, s, s);
             GL.End();
 
-            GL.Begin(BeginMode.TriangleStrip);
+            GL.Begin(PrimitiveType.TriangleStrip);
             GL.Vertex3(-s, -s, -s);
             GL.Vertex3(s, -s, -s);
             GL.Vertex3(-s, -s, s);
@@ -422,7 +422,7 @@ namespace SM64DSe
                 GL.LineWidth(1.5f);
                 GL.Color4(m_BorderColor);
 
-                GL.Begin(BeginMode.LineStrip);
+                GL.Begin(PrimitiveType.LineStrip);
                 GL.Vertex3(s, s, s);
                 GL.Vertex3(-s, s, s);
                 GL.Vertex3(-s, s, -s);
@@ -435,7 +435,7 @@ namespace SM64DSe
                 GL.Vertex3(s, -s, s);
                 GL.End();
 
-                GL.Begin(BeginMode.Lines);
+                GL.Begin(PrimitiveType.Lines);
                 GL.Vertex3(-s, s, s);
                 GL.Vertex3(-s, -s, s);
                 GL.Vertex3(-s, s, -s);
@@ -446,7 +446,7 @@ namespace SM64DSe
 
                 if (m_ShowAxes)
                 {
-                    GL.Begin(BeginMode.Lines);
+                    GL.Begin(PrimitiveType.Lines);
                     GL.Color3(1.0f, 0.0f, 0.0f);
                     GL.Vertex3(0.0f, 0.0f, 0.0f);
                     GL.Color3(1.0f, 0.0f, 0.0f);
@@ -541,7 +541,7 @@ namespace SM64DSe
                     GL.Disable(EnableCap.Lighting);
                     GL.Color4(0f, 1f, 0f, 1f);
 
-                    GL.Begin(BeginMode.LineLoop);
+                    GL.Begin(PrimitiveType.LineLoop);
                     GL.Vertex3(sx, 0f, 0f);
                     GL.Vertex3(sx, sy * 2f, 0f);
                     GL.Vertex3(-sx, sy * 2f, 0f);
@@ -551,7 +551,7 @@ namespace SM64DSe
                     GL.Color4(0.75f, 1f, 0.75f, 0.75f);
                 }
 
-                GL.Begin(BeginMode.Quads);
+                GL.Begin(PrimitiveType.Quads);
                 GL.Vertex3(sx, 0f, 0f);
                 GL.Vertex3(sx, sy * 2f, 0f);
                 GL.Vertex3(-sx, sy * 2f, 0f);
@@ -561,7 +561,7 @@ namespace SM64DSe
                 if (mode != RenderMode.Picking)
                     GL.Color4(1f, 0.75f, 0.75f, 0.75f);
 
-                GL.Begin(BeginMode.Quads);
+                GL.Begin(PrimitiveType.Quads);
                 GL.Vertex3(-sx, 0f, 0f);
                 GL.Vertex3(-sx, sy * 2f, 0f);
                 GL.Vertex3(sx, sy * 2f, 0f);
@@ -1030,7 +1030,7 @@ namespace SM64DSe
             GL.Rotate(rotY, Vector3d.UnitY);
             GL.Rotate(rotZ, Vector3d.UnitZ);
 
-            GL.Begin(BeginMode.TriangleStrip);
+            GL.Begin(PrimitiveType.TriangleStrip);
             GL.Vertex3(0, -s, -s * 1.5f);
             GL.Vertex3(0, s, -s * 1.5f);
             GL.Vertex3(s, -s, s);
@@ -1041,13 +1041,13 @@ namespace SM64DSe
             GL.Vertex3(0, s, -s * 1.5f);
             GL.End();
 
-            GL.Begin(BeginMode.Triangles);
+            GL.Begin(PrimitiveType.Triangles);
             GL.Vertex3(0, s, -s * 1.5f);
             GL.Vertex3(-s, s, s);
             GL.Vertex3(s, s, s);
             GL.End();
 
-            GL.Begin(BeginMode.Triangles);
+            GL.Begin(PrimitiveType.Triangles);
             GL.Vertex3(s, -s, s);
             GL.Vertex3(-s, -s, s);
             GL.Vertex3(0, -s, -s * 1.5f);
@@ -1058,7 +1058,7 @@ namespace SM64DSe
                 GL.LineWidth(3f);
                 GL.Color4(m_BorderColor);
 
-                GL.Begin(BeginMode.LineStrip);
+                GL.Begin(PrimitiveType.LineStrip);
                 GL.Vertex3(s, s, s);
                 GL.Vertex3(-s, s, s);
                 GL.Color3(0.0f, 1.0f, 0.0f);
@@ -1073,7 +1073,7 @@ namespace SM64DSe
                 GL.Vertex3(s, -s, s);
                 GL.End();
 
-                GL.Begin(BeginMode.Lines);
+                GL.Begin(PrimitiveType.Lines);
                 GL.Vertex3(-s, s, s);
                 GL.Vertex3(-s, -s, s);
                 GL.Color3(0.0f, 1.0f, 0.0f);
@@ -1082,14 +1082,14 @@ namespace SM64DSe
                 GL.Color4(m_BorderColor);
                 GL.End();
 
-                //GL.Begin(BeginMode.Lines);
+                //GL.Begin(PrimitiveType.Lines);
                 //GL.Vertex3(0.0f, 0.0f, 0.0f);
                 //GL.Vertex3(0.0f, 0.0f, -s * 2.0f);
                 //GL.End();
 
                 if (m_ShowAxes)
                 {
-                    GL.Begin(BeginMode.Lines);
+                    GL.Begin(PrimitiveType.Lines);
                     GL.Color3(1.0f, 0.0f, 0.0f);
                     GL.Vertex3(0.0f, 0.0f, 0.0f);
                     GL.Color3(1.0f, 0.0f, 0.0f);

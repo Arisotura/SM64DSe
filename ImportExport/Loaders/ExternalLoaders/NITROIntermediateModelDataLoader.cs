@@ -33,13 +33,12 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
         protected AccurateVertex[] vtx_pos_data;
         protected Color[] vtx_color_data;
         protected Dictionary<int, string> m_OriginalNodeIndices = new Dictionary<int, string>(); // Need this to get Bone ID from matrix
-
-        private static string[] WHITESPACE = new string[] { " ", "\n", "\r\n", "\t" };
+        protected Dictionary<int, string> m_OriginalMaterialIndices = new Dictionary<int, string>();
 
         public NITROIntermediateModelDataLoader(string modelFileName) :
             base(modelFileName) { }
-        
-        public override ModelBase LoadModel(OpenTK.Vector3 scale)
+
+        public override ModelBase LoadModel(float scale)
         {
             XmlDocument doc = new XmlDocument();
             doc.Load(m_ModelFileName);
@@ -78,16 +77,16 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
             this.model_info.pos_scale = int.Parse(model_info.Attributes["pos_scale"].Value);
             this.model_info.scaling_rule = model_info.Attributes["scaling_rule"].Value;
             this.model_info.vertex_style = model_info.Attributes["vertex_style"].Value;
-            this.model_info.magnify = float.Parse(model_info.Attributes["magnify"].Value);
+            this.model_info.magnify = Helper.ParseFloat(model_info.Attributes["magnify"].Value);
             this.model_info.tool_start_frame = int.Parse(model_info.Attributes["tool_start_frame"].Value);
             this.model_info.tex_matrix_mode = model_info.Attributes["tex_matrix_mode"].Value;
             this.model_info.compress_node = model_info.Attributes["compress_node"].Value;
             this.model_info.node_size = Array.ConvertAll(
-                model_info.Attributes["node_size"].Value.Split(WHITESPACE, StringSplitOptions.RemoveEmptyEntries),
+                model_info.Attributes["node_size"].Value.Split(Strings.WHITESPACE, StringSplitOptions.RemoveEmptyEntries),
                 Convert.ToInt32);
             this.model_info.compress_material = model_info.Attributes["compress_material"].Value.Equals("on");
             this.model_info.material_size = Array.ConvertAll(
-                model_info.Attributes["material_size"].Value.Split(WHITESPACE, 
+                model_info.Attributes["material_size"].Value.Split(Strings.WHITESPACE, 
                 StringSplitOptions.RemoveEmptyEntries),
                 Convert.ToInt32);
             this.model_info.output_texture = model_info.Attributes["output_texture"].Value;
@@ -102,7 +101,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                 int pos_size = int.Parse(vtx_pos_data.Attributes["pos_size"].Value);
                 this.vtx_pos_data = new AccurateVertex[pos_size];
                 string[] valuesStr = vtx_pos_data.InnerText.
-                    Split(WHITESPACE, StringSplitOptions.RemoveEmptyEntries);
+                    Split(Strings.WHITESPACE, StringSplitOptions.RemoveEmptyEntries);
                 for (int i = 0; i < pos_size; i++)
                 {
                     string x = valuesStr[(i * 3) + 0];
@@ -116,7 +115,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                 int color_size = int.Parse(vtx_color_data.Attributes["color_size"].Value);
                 this.vtx_color_data = new Color[color_size];
                 string[] valuesStr = vtx_color_data.InnerText.
-                    Split(WHITESPACE, StringSplitOptions.RemoveEmptyEntries);
+                    Split(Strings.WHITESPACE, StringSplitOptions.RemoveEmptyEntries);
                 for (int i = 0; i < color_size; i++)
                 {
                     int r = (int)(((float)int.Parse(valuesStr[(i * 3) + 0], Helper.USA) / 31f) * 255f);
@@ -229,7 +228,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
 
             // AB12 -> [] { 12, AB }
             // AB12CD34 -> [] { 34, CD, 12, AB }
-            string[] words = dataStr.Split(WHITESPACE, StringSplitOptions.RemoveEmptyEntries);
+            string[] words = dataStr.Split(Strings.WHITESPACE, StringSplitOptions.RemoveEmptyEntries);
             for (int i = 0; i < numWords; i++)
             {
                 ushort value = ushort.Parse(words[i], System.Globalization.NumberStyles.HexNumber);
@@ -264,7 +263,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                     case "both": polygonDrawingFace = ModelBase.MaterialDef.PolygonDrawingFace.FrontAndBack; break;
                     default: goto case "front";
                 }
-                int alpha = int.Parse(material.Attributes["alpha"].Value);
+                byte alpha = byte.Parse(material.Attributes["alpha"].Value);
                 bool wire_mode = material.Attributes["wire_mode"].Value.Equals("on");
                 string polygon_mode = material.Attributes["polygon_mode"].Value;
                 ModelBase.MaterialDef.PolygonMode polygonMode;
@@ -313,7 +312,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                 float[] tex_scale = (tex_image_idx >= 0) ? Array.ConvertAll(
                     material.Attributes["tex_scale"].Value.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries),
                     Convert.ToSingle) : null;
-                float tex_rotate = (tex_image_idx >= 0) ? float.Parse(material.Attributes["tex_rotate"].Value, Helper.USA) : 0f;
+                float tex_rotate = (tex_image_idx >= 0) ? Helper.ParseFloat(material.Attributes["tex_rotate"].Value) : 0f;
                 float[] tex_translate = (tex_image_idx >= 0) ? Array.ConvertAll(
                     material.Attributes["tex_translate"].Value.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries),
                     Convert.ToSingle) : null;
@@ -331,11 +330,11 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                 string tex_gen_st_src = (material.Attributes["tex_gen_st_src"] != null) ? material.Attributes["tex_gen_st_src"].Value : null;
                 string tex_effect_mtx = (material.Attributes["tex_effect_mtx"] != null) ? material.Attributes["tex_effect_mtx"].Value : null;
 
-                ModelBase.MaterialDef matDef = new ModelBase.MaterialDef(name, index);
+                ModelBase.MaterialDef matDef = new ModelBase.MaterialDef(name);
                 matDef.m_TextureDefID = (tex_image_idx >= 0) ? m_Model.m_Textures.Values.ElementAt(tex_image_idx).m_ID : null;
                 matDef.m_Lights = lights;
                 matDef.m_PolygonDrawingFace = polygonDrawingFace;
-                matDef.m_Alpha = (int)((alpha / 31f) * 255f);
+                matDef.m_Alpha = alpha;
                 matDef.m_WireMode = wire_mode;
                 matDef.m_PolygonMode = polygonMode;
                 matDef.m_FogFlag = fog_flag;
@@ -358,6 +357,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                 matDef.m_TexGenMode = texGenMode;
 
                 m_Model.m_Materials.Add(matDef.m_ID, matDef);
+                m_OriginalMaterialIndices.Add(index, matDef.m_ID);
             }
         }
 
@@ -435,7 +435,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                 float[] volume_max = (kind.Equals("mesh")) ? Array.ConvertAll(
                     node.Attributes["volume_max"].Value.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries),
                     Convert.ToSingle) : null;
-                float volume_r = (kind.Equals("mesh")) ? float.Parse(node.Attributes["volume_r"].Value) : -1;
+                float volume_r = (kind.Equals("mesh")) ? Helper.ParseFloat(node.Attributes["volume_r"].Value) : -1;
 
                 ModelBase.BoneDef boneDef = new ModelBase.BoneDef(name);
                 boneDef.SetScale(new Vector3(scale[0], scale[1], scale[2]));
@@ -482,7 +482,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                     int display_polygon = int.Parse(display.Attributes["polygon"].Value);
                     int display_priority = int.Parse(display.Attributes["priority"].Value);
 
-                    ReadPolygon(display_polygon, polygon_array, m_Model.m_Materials.ElementAt(display_material).Key, geometryDef);
+                    ReadPolygon(display_polygon, polygon_array, m_OriginalMaterialIndices[display_material], geometryDef);
 
                     boneDef.m_MaterialsInBranch.Add(m_Model.m_Materials.ElementAt(display_material).Key);
                 }
@@ -514,7 +514,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
             float[] volume_max = Array.ConvertAll(
                 polygon.Attributes["volume_max"].Value.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries),
                 Convert.ToSingle);
-            float volume_r = float.Parse(polygon.Attributes["volume_r"].Value);
+            float volume_r = Helper.ParseFloat(polygon.Attributes["volume_r"].Value);
             int mtx_prim_size = int.Parse(polygon.Attributes["mtx_prim_size"].Value);
             bool nrm_flag = polygon.Attributes["nrm_flag"].Value.Equals("on");
             bool clr_flag = polygon.Attributes["clr_flag"].Value.Equals("on");

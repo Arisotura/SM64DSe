@@ -173,16 +173,16 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
                 writer.WriteStartElement("emission");
                 writer.WriteStartElement("color");
                 writer.WriteAttributeString("sid", "emission");
-                writer.WriteString((mat.m_Emission.R / 255.0f).ToString(usa) + " " + (mat.m_Emission.G / 255.0f).ToString(usa) + " " +
-                    (mat.m_Emission.B / 255.0f).ToString(usa) + " " + "1.0");
+                writer.WriteString(Helper.ToString(mat.m_Emission.R / 255.0f) + " " + Helper.ToString(mat.m_Emission.G / 255.0f) + " " +
+                    Helper.ToString(mat.m_Emission.B / 255.0f) + " " + "1.0");
                 writer.WriteEndElement();// color
                 writer.WriteEndElement();// emission
 
                 writer.WriteStartElement("ambient");
                 writer.WriteStartElement("color");
                 writer.WriteAttributeString("sid", "ambient");
-                writer.WriteString((mat.m_Ambient.R / 255.0f).ToString(usa) + " " + (mat.m_Ambient.G / 255.0f).ToString(usa) + " " +
-                    (mat.m_Ambient.B / 255.0f).ToString(usa) + " " + "1.0");
+                writer.WriteString(Helper.ToString(mat.m_Ambient.R / 255.0f) + " " + Helper.ToString(mat.m_Ambient.G / 255.0f) + " " +
+                    Helper.ToString(mat.m_Ambient.B / 255.0f) + " " + "1.0");
                 writer.WriteEndElement();// color
                 writer.WriteEndElement();// ambient
 
@@ -199,8 +199,8 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
                 {
                     writer.WriteStartElement("color");
                     writer.WriteAttributeString("sid", "diffuse");
-                    writer.WriteString((mat.m_Diffuse.R / 255.0f).ToString(usa) + " " + (mat.m_Diffuse.G / 255.0f).ToString(usa) + " " +
-                        (mat.m_Diffuse.B / 255.0f).ToString(usa) + " " + "1.0");
+                    writer.WriteString(Helper.ToString(mat.m_Diffuse.R / 255.0f) + " " + Helper.ToString(mat.m_Diffuse.G / 255.0f) + " " +
+                        Helper.ToString(mat.m_Diffuse.B / 255.0f) + " " + "1.0");
                     writer.WriteEndElement();// color
                 }
                 writer.WriteEndElement();// diffuse
@@ -208,15 +208,15 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
                 writer.WriteStartElement("specular");
                 writer.WriteStartElement("color");
                 writer.WriteAttributeString("sid", "specular");
-                writer.WriteString((mat.m_Specular.R / 255.0f).ToString(usa) + " " + (mat.m_Specular.G / 255.0f).ToString(usa) + " " +
-                    (mat.m_Specular.B / 255.0f).ToString(usa) + " " + "1.0");
+                writer.WriteString(Helper.ToString(mat.m_Specular.R / 255.0f) + " " + Helper.ToString(mat.m_Specular.G / 255.0f) + " " +
+                    Helper.ToString(mat.m_Specular.B / 255.0f) + " " + "1.0");
                 writer.WriteEndElement();// color
                 writer.WriteEndElement();// specular
 
                 writer.WriteStartElement("transparency");
                 writer.WriteStartElement("float");
                 writer.WriteAttributeString("sid", "transparency");
-                writer.WriteString((mat.m_Alpha / 255.0f).ToString(usa));
+                writer.WriteString(Helper.ToString(mat.m_Alpha / 31f));
                 writer.WriteEndElement();// float
                 writer.WriteEndElement();// transparency
 
@@ -330,7 +330,7 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
 
             foreach (ModelBase.BoneDef root in rootBones)
             {
-                List<ModelBase.BoneDef> bonesInBranch = root.GetBranch().Values.ToList();
+                List<ModelBase.BoneDef> bonesInBranch = root.GetBranch();
 
                 List<ModelBase.VertexDef> verticesInBranch = new List<ModelBase.VertexDef>();
                 List<Vector3> positionsInBranch = new List<Vector3>();
@@ -418,8 +418,8 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
             StringBuilder sb = new StringBuilder();
             foreach (Vector3 vert in positionsInBranch)
             {
-                sb.Append(vert.X.ToString(usa) + " " + vert.Y.ToString(usa) + " " +
-                    vert.Z.ToString(usa) + " ");
+                sb.Append(Helper.ToString(vert.X) + " " + Helper.ToString(vert.Y) + " " +
+                    Helper.ToString(vert.Z) + " ");
             }
             sb.Remove(sb.Length - 1, 1);// Remove extra space character at end
             writer.WriteString(sb.ToString());
@@ -441,8 +441,8 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
             StringBuilder sb = new StringBuilder();
             foreach (Vector3 normal in normalsInBranch)
             {
-                sb.Append(normal.X.ToString(usa) + " " + normal.Y.ToString(usa) + " " +
-                    normal.Z.ToString(usa) + " ");
+                sb.Append(Helper.ToString(normal.X) + " " + Helper.ToString(normal.Y) + " " +
+                    Helper.ToString(normal.Z) + " ");
             }
             sb.Remove(sb.Length - 1, 1);// Remove extra space character at end
             writer.WriteString(sb.ToString());
@@ -464,7 +464,7 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
             StringBuilder sb = new StringBuilder();
             foreach (Vector2 texCoord in texCoordsInBranch)
             {
-                sb.Append(texCoord.X.ToString(usa) + " " + texCoord.Y.ToString(usa) + " ");
+                sb.Append(Helper.ToString(texCoord.X) + " " + Helper.ToString(texCoord.Y) + " ");
             }
             sb.Remove(sb.Length - 1, 1);// Remove extra space character at end
             writer.WriteString(sb.ToString());
@@ -486,8 +486,8 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
             StringBuilder sb = new StringBuilder();
             foreach (Color vColour in vColoursInBranch)
             {
-                sb.Append((vColour.R / 255.0f).ToString(usa) + " " + (vColour.G / 255.0f).ToString(usa) + " " +
-                    (vColour.B / 255.0f).ToString(usa) + " ");
+                sb.Append(Helper.ToString(vColour.R / 255.0f) + " " + Helper.ToString(vColour.G / 255.0f) + " " +
+                    Helper.ToString(vColour.B / 255.0f) + " ");
             }
             sb.Remove(sb.Length - 1, 1);// Remove extra space character at end
             writer.WriteString(sb.ToString());
@@ -635,7 +635,7 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
 
             foreach (ModelBase.BoneDef root in rootBones)
             {
-                IEnumerable<ModelBase.BoneDef> bonesInBranch = root.GetBranch().Values;
+                IEnumerable<ModelBase.BoneDef> bonesInBranch = root.GetBranch();
 
                 List<ModelBase.VertexDef> verticesInBranch = new List<ModelBase.VertexDef>();
                 foreach (ModelBase.BoneDef bone in bonesInBranch)
@@ -706,14 +706,14 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
                 StringBuilder sb = new StringBuilder();
                 foreach (Matrix4 matrix in invMatrices)
                 {
-                    sb.Append(matrix.Column0.X.ToString(usa) + " " + matrix.Column0.Y.ToString(usa) + " " +
-                        matrix.Column0.Z.ToString(usa) + " " + matrix.Column0.W.ToString(usa) + " ");
-                    sb.Append(matrix.Column1.X.ToString(usa) + " " + matrix.Column1.Y.ToString(usa) + " " +
-                        matrix.Column1.Z.ToString(usa) + " " + matrix.Column1.W.ToString(usa) + " ");
-                    sb.Append(matrix.Column2.X.ToString(usa) + " " + matrix.Column2.Y.ToString(usa) + " " +
-                        matrix.Column2.Z.ToString(usa) + " " + matrix.Column2.W.ToString(usa) + " ");
-                    sb.Append(matrix.Column3.X.ToString(usa) + " " + matrix.Column3.Y.ToString(usa) + " " +
-                        matrix.Column3.Z.ToString(usa) + " " + matrix.Column3.W.ToString(usa) + " ");
+                    sb.Append(Helper.ToString(matrix.Column0.X) + " " + Helper.ToString(matrix.Column0.Y) + " " +
+                        Helper.ToString(matrix.Column0.Z) + " " + Helper.ToString(matrix.Column0.W) + " ");
+                    sb.Append(Helper.ToString(matrix.Column1.X) + " " + Helper.ToString(matrix.Column1.Y) + " " +
+                        Helper.ToString(matrix.Column1.Z) + " " + Helper.ToString(matrix.Column1.W) + " ");
+                    sb.Append(Helper.ToString(matrix.Column2.X) + " " + Helper.ToString(matrix.Column2.Y) + " " +
+                        Helper.ToString(matrix.Column2.Z) + " " + Helper.ToString(matrix.Column2.W) + " ");
+                    sb.Append(Helper.ToString(matrix.Column3.X) + " " + Helper.ToString(matrix.Column3.Y) + " " +
+                        Helper.ToString(matrix.Column3.Z) + " " + Helper.ToString(matrix.Column3.W) + " ");
                 }
                 sb.Remove(sb.Length - 1, 1);// Remove extra space character at end
 
@@ -793,7 +793,7 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
                 writer.WriteStartElement("v");
                 StringBuilder v = new StringBuilder();
                 foreach (ModelBase.VertexDef vert in verticesInBranch)
-                    v.Append(vert.m_VertexBoneID + " 0 ");
+                    v.Append(vert.m_VertexBoneIndex + " 0 ");
                 v.Remove(v.Length - 1, 1);// Remove extra space character at end
                 writer.WriteString(v.ToString());
                 writer.WriteEndElement();// v
@@ -818,7 +818,7 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
 
             foreach (ModelBase.BoneDef root in rootBones)
             {
-                IEnumerable<ModelBase.BoneDef> bonesInBranch = root.GetBranch().Values;
+                IEnumerable<ModelBase.BoneDef> bonesInBranch = root.GetBranch();
 
                 if (useSRTMatricesForTransforms)
                 {
@@ -897,7 +897,7 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
             else
                 WriteDAE_Node_transformationSRT(writer, parent);
 
-            foreach (ModelBase.BoneDef bone in parent.GetChildren().Values)
+            foreach (ModelBase.BoneDef bone in parent.GetChildren())
             {
                 WriteDAE_Node_joint(writer, bone, useSRTMatricesForTransforms);
             }
@@ -911,14 +911,14 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
             writer.WriteAttributeString("sid", "transform");
             StringBuilder sb = new StringBuilder();
             Matrix4 matrix = node.m_GlobalTransformation;
-            sb.Append(matrix.Column0.X.ToString(usa) + " " + matrix.Column0.Y.ToString(usa) + " " +
-                matrix.Column0.Z.ToString(usa) + " " + matrix.Column0.W.ToString(usa) + " ");
-            sb.Append(matrix.Column1.X.ToString(usa) + " " + matrix.Column1.Y.ToString(usa) + " " +
-                matrix.Column1.Z.ToString(usa) + " " + matrix.Column1.W.ToString(usa) + " ");
-            sb.Append(matrix.Column2.X.ToString(usa) + " " + matrix.Column2.Y.ToString(usa) + " " +
-                matrix.Column2.Z.ToString(usa) + " " + matrix.Column2.W.ToString(usa) + " ");
-            sb.Append(matrix.Column3.X.ToString(usa) + " " + matrix.Column3.Y.ToString(usa) + " " +
-                matrix.Column3.Z.ToString(usa) + " " + matrix.Column3.W.ToString(usa) + " ");
+            sb.Append(Helper.ToString(matrix.Column0.X) + " " + Helper.ToString(matrix.Column0.Y) + " " +
+                Helper.ToString(matrix.Column0.Z) + " " + Helper.ToString(matrix.Column0.W) + " ");
+            sb.Append(Helper.ToString(matrix.Column1.X) + " " + Helper.ToString(matrix.Column1.Y) + " " +
+                Helper.ToString(matrix.Column1.Z) + " " + Helper.ToString(matrix.Column1.W) + " ");
+            sb.Append(Helper.ToString(matrix.Column2.X) + " " + Helper.ToString(matrix.Column2.Y) + " " +
+                Helper.ToString(matrix.Column2.Z) + " " + Helper.ToString(matrix.Column2.W) + " ");
+            sb.Append(Helper.ToString(matrix.Column3.X) + " " + Helper.ToString(matrix.Column3.Y) + " " +
+                Helper.ToString(matrix.Column3.Z) + " " + Helper.ToString(matrix.Column3.W) + " ");
             sb.Remove(sb.Length - 1, 1);// Remove extra space character at end
             writer.WriteString(sb.ToString());
             writer.WriteEndElement();// matrix
@@ -934,7 +934,7 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
 
             writer.WriteStartElement("translate");
             writer.WriteAttributeString("sid", "translate");
-            writer.WriteString(trans.X.ToString(usa) + " " + trans.Y.ToString(usa) + " " + trans.Z.ToString(usa));
+            writer.WriteString(Helper.ToString(trans.X) + " " + Helper.ToString(trans.Y) + " " + Helper.ToString(trans.Z));
             writer.WriteEndElement();// translate
 
             writer.WriteStartElement("rotate");
@@ -954,7 +954,7 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
 
             writer.WriteStartElement("scale");
             writer.WriteAttributeString("sid", "scale");
-            writer.WriteString(scale.X.ToString(usa) + " " + scale.Y.ToString(usa) + " " + scale.Z.ToString(usa));
+            writer.WriteString(Helper.ToString(scale.X) + " " + Helper.ToString(scale.Y) + " " + Helper.ToString(scale.Z));
             writer.WriteEndElement();// scale
         }
 
@@ -1045,14 +1045,14 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
             for (int i = 0; i < frames.Length; i++)
             {
                 Matrix4 matrix = frames[i].m_Matrix;
-                sb.Append(matrix.Column0.X.ToString(usa) + " " + matrix.Column0.Y.ToString(usa) + " " +
-                    matrix.Column0.Z.ToString(usa) + " " + matrix.Column0.W.ToString(usa) + " ");
-                sb.Append(matrix.Column1.X.ToString(usa) + " " + matrix.Column1.Y.ToString(usa) + " " +
-                    matrix.Column1.Z.ToString(usa) + " " + matrix.Column1.W.ToString(usa) + " ");
-                sb.Append(matrix.Column2.X.ToString(usa) + " " + matrix.Column2.Y.ToString(usa) + " " +
-                    matrix.Column2.Z.ToString(usa) + " " + matrix.Column2.W.ToString(usa) + " ");
-                sb.Append(matrix.Column3.X.ToString(usa) + " " + matrix.Column3.Y.ToString(usa) + " " +
-                    matrix.Column3.Z.ToString(usa) + " " + matrix.Column3.W.ToString(usa) + " ");
+                sb.Append(Helper.ToString(matrix.Column0.X) + " " + Helper.ToString(matrix.Column0.Y) + " " +
+                    Helper.ToString(matrix.Column0.Z) + " " + Helper.ToString(matrix.Column0.W) + " ");
+                sb.Append(Helper.ToString(matrix.Column1.X) + " " + Helper.ToString(matrix.Column1.Y) + " " +
+                    Helper.ToString(matrix.Column1.Z) + " " + Helper.ToString(matrix.Column1.W) + " ");
+                sb.Append(Helper.ToString(matrix.Column2.X) + " " + Helper.ToString(matrix.Column2.Y) + " " +
+                    Helper.ToString(matrix.Column2.Z) + " " + Helper.ToString(matrix.Column2.W) + " ");
+                sb.Append(Helper.ToString(matrix.Column3.X) + " " + Helper.ToString(matrix.Column3.Y) + " " +
+                    Helper.ToString(matrix.Column3.Z) + " " + Helper.ToString(matrix.Column3.W) + " ");
             }
             sb.Remove(sb.Length - 1, 1);// Remove extra space character at end
             writer.WriteString(sb.ToString());
@@ -1084,7 +1084,7 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
                 float y = frames[i].m_Translation.Y;
                 float z = frames[i].m_Translation.Z;
 
-                trans.Append(x.ToString(usa) + " " + y.ToString(usa) + " " + z.ToString(usa) + " ");
+                trans.Append(Helper.ToString(x) + " " + Helper.ToString(y) + " " + Helper.ToString(z) + " ");
             }
             trans.Remove(trans.Length - 1, 1);// Remove extra space character at end
             writer.WriteString(trans.ToString());
@@ -1130,7 +1130,7 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
                         break;
                 }
 
-                rot.Append(angle.ToString(usa) + " ");
+                rot.Append(Helper.ToString(angle) + " ");
             }
             rot.Remove(rot.Length - 1, 1);// Remove extra space character at end
             writer.WriteString(rot.ToString());
@@ -1162,7 +1162,7 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
                 float y = frames[i].m_Scale.Y;
                 float z = frames[i].m_Scale.Z;
 
-                scale.Append(x.ToString(usa) + " " + y.ToString(usa) + " " + z.ToString(usa) + " ");
+                scale.Append(Helper.ToString(x) + " " + Helper.ToString(y) + " " + Helper.ToString(z) + " ");
             }
             scale.Remove(scale.Length - 1, 1);// Remove extra space character at end
             writer.WriteString(scale.ToString());
@@ -1200,7 +1200,7 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
             StringBuilder time = new StringBuilder();
             for (int i = 0; i < animation.m_NumFrames; i++)
             {
-                time.Append(((float)(i * (1.0f / 30.0f))).ToString(usa) + " ");
+                time.Append(Helper.ToString((float)(i * (1.0f / 30.0f))) + " ");
             }
             time.Remove(time.Length - 1, 1);// Remove extra space character at end
             writer.WriteString(time.ToString());

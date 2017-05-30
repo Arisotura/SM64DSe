@@ -110,23 +110,22 @@ namespace SM64DSe
 
                         short s = (short)(param & 0xFFFF);
                         short t = (short)(param >> 16);
-                        m_CurVertex.m_TexCoord.X = (float)s / 16.0f;
-                        m_CurVertex.m_TexCoord.Y = (float)t / 16.0f;
+                        m_CurVertex.m_TexCoord = new Vector2((float)s / 16.0f, (float)t / 16.0f);
 
                         Vector2 texsize = new Vector2((float)matgroup.m_Texture.m_Width, (float)matgroup.m_Texture.m_Height);
 
                         if (lolol) sw.Write(String.Format("TEXCOORD {0} (TEXSIZE {1} SCALE {2} TRANS {3})\n",
                             m_CurVertex.m_TexCoord, texsize, matgroup.m_TexCoordScale, matgroup.m_TexCoordTrans));
 
-                        Vector2.Add(ref m_CurVertex.m_TexCoord, ref matgroup.m_TexCoordTrans, out m_CurVertex.m_TexCoord);
-                        Vector2.Multiply(ref m_CurVertex.m_TexCoord, ref matgroup.m_TexCoordScale, out m_CurVertex.m_TexCoord);
+                        m_CurVertex.m_TexCoord = Vector2.Add((Vector2)m_CurVertex.m_TexCoord, matgroup.m_TexCoordTrans);
+                        m_CurVertex.m_TexCoord = Vector2.Multiply((Vector2)m_CurVertex.m_TexCoord, matgroup.m_TexCoordScale);
                         /* if ((matgroup.m_TexParams & 0xC0000000) != 0)
                          {
                              m_CurVertex.m_TexCoord.Y += matgroup.m_Texture.m_Height;
                          }*/
 
                         //Vector2 texsize = new Vector2((float)matgroup.m_Texture.m_Width, (float)matgroup.m_Texture.m_Height);
-                        Vector2.Divide(ref m_CurVertex.m_TexCoord, ref texsize, out m_CurVertex.m_TexCoord);
+                        m_CurVertex.m_TexCoord = Vector2.Divide((Vector2)m_CurVertex.m_TexCoord, texsize);
 
                         // s = s*matrix[0] + t*matrix[4] + matrix[8]/16 + matrix[12]/16
                         // t = s*matrix[1] + t*matrix[5] + matrix[9]/16 + matrix[13]/16
@@ -473,7 +472,9 @@ namespace SM64DSe
                         matgroup.m_TexParams |= matgroup.m_Texture.m_DSTexParam;
                     }
                     else
+                    {
                         matgroup.m_Texture = null;
+                    }
 
                     uint pchunkoffset = m_File.Read32((uint)(m_PolyChunksOffset + (polyID * 8) + 4));
                     uint dloffset = m_File.Read32(pchunkoffset + 0x0C);
@@ -491,17 +492,24 @@ namespace SM64DSe
                     matgroup.m_Geometry = new List<VertexList>();
 
                     m_CurVertex.m_Position = new Vector3(0, 0, 0);
-                    m_CurVertex.m_TexCoord = new Vector2(0, 0);
-                    if ((matgroup.m_DifAmbColors & 0x8000) == 0x8000)
+                    m_CurVertex.m_TexCoord = null;
+                    m_CurVertex.m_Normal = null;
+
+                    if ((matgroup.m_PolyAttribs & 0x8000) != 0x8000)
                     {
-                        byte alpha = (byte)((matgroup.m_PolyAttribs >> 13) & 0xF8);
+                        byte alpha = (byte)((matgroup.m_PolyAttribs >> 16) & 0x1F);
                         alpha |= (byte)(alpha >> 5);
                         matgroup.m_Alpha = alpha;
+                    }
 
-                        m_CurVertex.m_Color = Color.FromArgb(alpha, matgroup.m_DiffuseColor);
+                    if ((matgroup.m_DifAmbColors & 0x8000) == 0x8000)
+                    {
+                        m_CurVertex.m_Color = Color.FromArgb(matgroup.m_Alpha << 3, matgroup.m_DiffuseColor);
                     }
                     else
+                    {
                         m_CurVertex.m_Color = Color.Black;
+                    }
 
                     m_CurVertex.m_MatrixID = 0;
 
@@ -676,7 +684,7 @@ namespace SM64DSe
         {
             public Vector3 m_Position;
             public Color m_Color;
-            public Vector2 m_TexCoord;
+            public Vector2? m_TexCoord;
             // Normals should only be used when one or more lights enabled for material
             public Vector3? m_Normal;
 
@@ -748,7 +756,7 @@ namespace SM64DSe
             public Color m_DiffuseColor, m_AmbientColor;
             public Color m_SpecularColor, m_EmissionColor;
 
-            public byte m_Alpha = 255;
+            public byte m_Alpha = 31;
 
             public Vector2 m_TexCoordScale;
             public float m_TexCoordRot;
@@ -808,7 +816,7 @@ namespace SM64DSe
 
             public bool Render(RenderMode mode, float scale, BCA animation, int frame)
             {
-                BeginMode[] beginmodes = { BeginMode.Triangles, BeginMode.Quads, BeginMode.TriangleStrip, BeginMode.QuadStrip };
+                PrimitiveType[] primitiveTypes = new PrimitiveType[] { PrimitiveType.Triangles, PrimitiveType.Quads, PrimitiveType.TriangleStrip, PrimitiveType.QuadStrip };
                 bool rendered_something = false;
 
                 if (m_MatGroups.Length == 0)
@@ -840,7 +848,7 @@ namespace SM64DSe
                             if (vtxlist.m_VertexList.Count == 0)
                                 continue;
 
-                            GL.Begin(beginmodes[vtxlist.m_PolyType]);
+                            GL.Begin(primitiveTypes[vtxlist.m_PolyType]);
 
                             foreach (BMD.Vertex vtx in vtxlist.m_VertexList)
                             {
@@ -910,13 +918,13 @@ namespace SM64DSe
                             if (vtxlist.m_VertexList.Count == 0)
                                 continue;
 
-                            GL.Begin(beginmodes[vtxlist.m_PolyType]);
+                            GL.Begin(primitiveTypes[vtxlist.m_PolyType]);
 
                             foreach (BMD.Vertex vtx in vtxlist.m_VertexList)
                             {
                                 GL.Color4(vtx.m_Color);
-                                if (matgroup.m_GLTextureID != 0)
-                                    GL.TexCoord2(vtx.m_TexCoord);
+                                if (matgroup.m_GLTextureID != 0 && vtx.m_TexCoord != null)
+                                    GL.TexCoord2((Vector2)vtx.m_TexCoord);
 
                                 if ((matgroup.m_PolyAttribs & 0xF) != 0x0 && vtx.m_Normal != null)
                                     GL.Normal3((Vector3)vtx.m_Normal);

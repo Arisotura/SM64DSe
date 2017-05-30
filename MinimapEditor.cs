@@ -33,24 +33,25 @@ namespace SM64DSe
         private int m_NumAreas;
         private int m_CurArea;
 
-        int m_Zoom = 2;
+        private int m_Zoom = 2;
 
-        LevelEditorForm _owner;
+        private LevelEditorForm _owner;
+        private ROMFileSelect m_ROMFileSelect = new ROMFileSelect();
+
+        private NitroFile m_PalFile;
+        private NitroFile m_TileSetFile;
+        private NitroFile[] m_TileMapFiles;
+        private NitroFile m_TileMapFile;
+
+        private int m_SizeX, m_SizeY;// Width and Height in pixels, divide by 8 to get number of tiles
+        private int m_BPP;
+        private int m_PaletteRow;
+        private bool m_IsUsingTileMap;
 
         public MinimapEditor()
         {
             InitializeComponent();
         }
-
-        NitroFile m_PalFile;
-        NitroFile m_TileSetFile;
-        NitroFile[] m_TileMapFiles;
-        NitroFile m_TileMapFile;
-
-        int m_SizeX, m_SizeY;// Width and Height in pixels, divide by 8 to get number of tiles
-        int m_BPP;
-        int m_PaletteRow;
-        Boolean m_IsUsingTileMap;
 
         private void RedrawMinimap(Boolean usingTmap, int sizeX, int sizeY, int bpp, int paletteRow = 0)
         {
@@ -149,31 +150,16 @@ namespace SM64DSe
 
         private void LoadPalette()
         {
-            gridPalette.RowCount = 16;
-            gridPalette.ColumnCount = 16;
-
-            //Read palette colours
+            // Read palette colours
             Color[] paletteColours = new Color[256];
             for (int i = 0; i < m_PalFile.m_Data.Length / 2; i++)
             {
-                //Colour in BGR15 format (16 bits) written to every even address 0,2,4...
+                // Colour in BGR15 format (16 bits) written to every even address 0,2,4...
                 ushort palColour = m_PalFile.Read16((uint)(i * 2));
                 paletteColours[i] = Helper.BGR15ToColor(palColour);
             }
-            for (int i = m_PalFile.m_Data.Length / 2; i < 256; i++)
-                paletteColours[i] = Helper.BGR15ToColor(0);// Fill blank entries with black
-            //Display palette colours
-            int clr = 0;
-            for (int row = 0; row < gridPalette.RowCount; row++)//For every row
-            {
-                gridPalette.Columns[row].Width = 16;//Set each cell's width to 16
-                for (int column = 0; column < gridPalette.ColumnCount; column++)//For every column
-                {
-                    gridPalette.Rows[row].Cells[column].Style.BackColor = paletteColours[clr];//Set the cell colour to the corresponding palette colour
-                    clr += 1;
-                }
-            }
-            gridPalette.CurrentCell.Selected = false;//Select none by default
+
+            gridPalette.SetColours(paletteColours);
         }
 
         public void ImportBMP_4BPP(string fileName, int sizeX, int sizeY, int numTilesX, int numTilesY, byte[] tilePaletteRows)
@@ -208,7 +194,7 @@ namespace SM64DSe
                 m_PalFile.Write16((uint)i * 2, (ushort)(Helper.ColorToBGR15(palette[i])));
             }
             // Pad the palette to a multiple of 16 colours
-            byte nColourSlots = (byte)((palette.Length + 16) & ~15);
+            byte nColourSlots = (byte)((palette.Length % 16 != 0) ? ((palette.Length + 16) & ~15) : palette.Length);
             for (int i = palette.Length; i < nColourSlots; i++)
             {
                 m_PalFile.Write16((uint)i * 2, 0);
@@ -662,11 +648,13 @@ namespace SM64DSe
 
         private void btnSetBackground_Click(object sender, EventArgs e)
         {
-            if (gridPalette.CurrentCell == null)
+            int palIndex = gridPalette.GetSelectedColourIndex();
+            if (palIndex < 0)
+            {
                 MessageBox.Show("Please select a colour first.");
+            }
             else
             {
-                int palIndex = (gridPalette.RowCount * gridPalette.CurrentCell.RowIndex) + gridPalette.CurrentCell.ColumnIndex;//Get the index of the selected colour in the palette file
                 SwitchBackground(palIndex);
             }
         }
@@ -741,37 +729,31 @@ namespace SM64DSe
 
         private void btnSelNCG_Click(object sender, EventArgs e)
         {
-            using (var form = new ROMFileSelect("Please select a Graphic (NCG) file."))
+            m_ROMFileSelect.Text = "Please select a Graphic (NCG) file.";
+            var result = m_ROMFileSelect.ShowDialog();
+            if (result == DialogResult.OK)
             {
-                var result = form.ShowDialog();
-                if (result == DialogResult.OK)
-                {
-                    txtSelNCG.Text = form.m_SelectedFile;
-                }
+                txtSelNCG.Text = m_ROMFileSelect.m_SelectedFile;
             }
         }
 
         private void btnSelNCL_Click(object sender, EventArgs e)
         {
-            using (var form = new ROMFileSelect("Please select a Palette (NCL) file."))
+            m_ROMFileSelect.Text = "Please select a Palette (NCL) file.";
+            var result = m_ROMFileSelect.ShowDialog();
+            if (result == DialogResult.OK)
             {
-                var result = form.ShowDialog();
-                if (result == DialogResult.OK)
-                {
-                    txtSelNCL.Text = form.m_SelectedFile;
-                }
+                txtSelNCL.Text = m_ROMFileSelect.m_SelectedFile;
             }
         }
 
         private void btnSelNSC_Click(object sender, EventArgs e)
         {
-            using (var form = new ROMFileSelect("Please select a Tile (NSC) file."))
+            m_ROMFileSelect.Text = "Please select a Tile (NSC) file.";
+            var result = m_ROMFileSelect.ShowDialog();
+            if (result == DialogResult.OK)
             {
-                var result = form.ShowDialog();
-                if (result == DialogResult.OK)
-                {
-                    txtSelNSC.Text = form.m_SelectedFile;
-                }
+                txtSelNSC.Text = m_ROMFileSelect.m_SelectedFile;
             }
         }
 
@@ -799,6 +781,7 @@ namespace SM64DSe
                 }
                 catch (Exception ex)
                 {
+                    Console.WriteLine(ex.StackTrace);
                     MessageBox.Show(ex.Message + ex.Source + "\n\n" + 
                         "An error occured:\n" + 
                         "Check they're all valid files.\n" + 

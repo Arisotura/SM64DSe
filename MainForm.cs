@@ -120,7 +120,6 @@ namespace SM64DSe
             Program.m_ROM.LoadTables();
             Program.m_ROM.EndRW();
 
-            ModelCache.Init();
             // Program.m_ShaderCache = new ShaderCache();
 
             lbxLevels.Items.AddRange(Strings.LevelNames);
@@ -130,8 +129,7 @@ namespace SM64DSe
             this.tvARM9Overlays.Nodes.Clear();
             ROMFileSelect.LoadOverlayList(this.tvARM9Overlays);
 
-            btnEditTexts.Enabled = true;
-            btnAnimationEditor.Enabled = true;
+            btnTools.Enabled = true;
             btnMore.Enabled = true;
         }
 
@@ -214,8 +212,8 @@ namespace SM64DSe
         private void btnOpenROM_Click(object sender, EventArgs e)
         {
             btnEditLevel.Enabled = false;
-            btnEditTexts.Enabled = false;
-            btnKCLEditor.Enabled = false;
+            btnEditCollisionMap.Enabled = false;
+            btnTools.Enabled = false;
             
             if (ofdOpenFile.ShowDialog(this) == DialogResult.OK)
                 LoadROM(ofdOpenFile.FileName);
@@ -262,8 +260,7 @@ namespace SM64DSe
         private void lbxLevels_SelectedIndexChanged(object sender, EventArgs e)
         {
             btnEditLevel.Enabled = (lbxLevels.SelectedIndex != -1);
-            btnKCLEditor.Enabled = (lbxLevels.SelectedIndex != -1);
-            btnEditTexts.Enabled = true;
+            btnEditCollisionMap.Enabled = (lbxLevels.SelectedIndex != -1);
         }
 
         private void btnDumpObjInfo_Click(object sender, EventArgs e)
@@ -295,9 +292,10 @@ namespace SM64DSe
                 "Provided to you by Kuribo64, the SM64DS hacking department.\n" +
                 "\n" +
                 "Credits:\n" +
-                "- Treeki: the overlay decompression (Jap77), the object list, and other help\n" +
+                "- Treeki: the overlay decompression (Jap77), the object list and other help\n" +
                 "- Dirbaio: other help\n" +
                 "- blank: help with generating collision\n" + 
+                "- mibts: BCA optimisation, level editor enhancements and other help\n" + 
                 "- Fiachra Murray: current developer and maintainer\n" + 
                 "\n" +
                 Program.AppTitle + " is free software. If you paid for it, notify Mega-Mario about it.\n" +
@@ -305,11 +303,6 @@ namespace SM64DSe
                 "Visit Kuribo64's site (http://kuribo64.net/) for more details.";
 
             MessageBox.Show(msg, "About " + Program.AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
-
-        private void btnEditTexts_Click(object sender, EventArgs e)
-        {
-            new TextEditorForm().Show();
         }
 
         private void mnitDumpAllOvls_Click(object sender, EventArgs e)
@@ -328,19 +321,22 @@ namespace SM64DSe
             slStatusLabel.Text = "All overlays have been successfully dumped.";
         }
 
-        private void btnKCLEditor_Click(object sender, EventArgs e)
+        private void btnEditCollisionMap_Click(object sender, EventArgs e)
         {
-            uint ovlID = Program.m_ROM.GetLevelOverlayID(lbxLevels.SelectedIndex);
-            NitroOverlay curOvl = new NitroOverlay(Program.m_ROM, ovlID);
-            NitroFile curKCL = Program.m_ROM.GetFileFromInternalID(curOvl.Read16((uint)(0x6A)));
-            KCLEditorForm kclForm = new KCLEditorForm(curKCL);
-            kclForm.Show();
-        }
-
-        private void btnAnimationEditor_Click(object sender, EventArgs e)
-        {
-            AnimationEditorForm animationEditorForm = new AnimationEditorForm();
-            animationEditorForm.Show();
+            uint overlayID = Program.m_ROM.GetLevelOverlayID(lbxLevels.SelectedIndex);
+            NitroOverlay currentOverlay = new NitroOverlay(Program.m_ROM, overlayID);
+            NitroFile currentKCL = Program.m_ROM.GetFileFromInternalID(currentOverlay.Read16((uint)(0x6A)));
+            if (!Properties.Settings.Default.UseSimpleModelAndCollisionMapImporters)
+            {
+                ModelAndCollisionMapEditor kclForm =
+                    new ModelAndCollisionMapEditor(null, currentKCL.m_Name, 1f, ModelAndCollisionMapEditor.StartMode.CollisionMap);
+                kclForm.Show();
+            }
+            else
+            {
+                KCLEditorForm kclForm = new KCLEditorForm(currentKCL);
+                kclForm.Show();
+            }
         }
 
         private void mnitDecompressOverlaysWithinGame_Click(object sender, EventArgs e)
@@ -552,5 +548,35 @@ namespace SM64DSe
             MessageBox.Show("ROM is " + ((suitable) ? "no longer " : "now ") + "suitable for use with NSMBe's ASM patch insertion feature");
         }
 
+        private void mnitToolsModelAndCollisionMapImporter_Click(object sender, EventArgs e)
+        {
+            new ModelAndCollisionMapEditor().Show();
+        }
+
+        private void mnitToolsCollisionMapEditor_Click(object sender, EventArgs e)
+        {
+            new ModelAndCollisionMapEditor(ModelAndCollisionMapEditor.StartMode.CollisionMap).Show();
+        }
+
+        private void mnitToolsModelAnimationEditor_Click(object sender, EventArgs e)
+        {
+            AnimationEditorForm animationEditorForm = new AnimationEditorForm();
+            animationEditorForm.Show();
+        }
+
+        private void mnitToolsTextEditor_Click(object sender, EventArgs e)
+        {
+            new TextEditorForm().Show();
+        }
+
+        private void mnitToolsImageEditor_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("Not yet implemented");
+        }
+
+        private void mnitToolsBTPEditor_Click(object sender, EventArgs e)
+        {
+            new TextureEditorForm().Show();
+        }
     }
 }

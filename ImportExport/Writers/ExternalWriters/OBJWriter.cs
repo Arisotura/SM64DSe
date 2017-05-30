@@ -56,7 +56,7 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
                             {
                                 ModelBase.FaceDef face = faceList.m_Faces[f];
 
-                                int objSplitBoneID = face.m_Vertices[0].m_VertexBoneID;
+                                int objSplitBoneID = face.m_Vertices[0].m_VertexBoneIndex;
                                 if (objSplitBoneID != boneIndex)
                                 {
                                     ModelBase.BoneDef newBone = flatBoneList[objSplitBoneID];
@@ -95,21 +95,21 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
                 //Create new material
                 mtlWriter.Write("newmtl " /*+ ((i * 2) + j)*/ + material.m_ID + "\n");
                 //Specify ambient colour - RGB 0-1
-                mtlWriter.Write("Ka " + (material.m_Ambient.R / 255.0f).ToString(usa) +
-                    " " + (material.m_Ambient.G / 255.0f).ToString(usa) +
-                    " " + (material.m_Ambient.B / 255.0f).ToString(usa) + "\n");
+                mtlWriter.Write("Ka " + Helper.ToString(material.m_Ambient.R / 255.0f) +
+                    " " + Helper.ToString(material.m_Ambient.G / 255.0f) +
+                    " " + Helper.ToString(material.m_Ambient.B / 255.0f) + "\n");
                 //Specify diffuse colour - RGB 0-1
-                mtlWriter.Write("Kd " + (material.m_Diffuse.R / 255.0f).ToString(usa) +
-                    " " + (material.m_Diffuse.G / 255.0f).ToString(usa) +
-                    " " + (material.m_Diffuse.B / 255.0f).ToString(usa) + "\n");
+                mtlWriter.Write("Kd " + Helper.ToString(material.m_Diffuse.R / 255.0f) +
+                    " " + Helper.ToString(material.m_Diffuse.G / 255.0f) +
+                    " " + Helper.ToString(material.m_Diffuse.B / 255.0f) + "\n");
                 //Specify specular colour - RGB 0-1
-                mtlWriter.Write("Ks " + (material.m_Specular.R / 255.0f).ToString(usa) +
-                    " " + (material.m_Specular.G / 255.0f).ToString(usa) +
-                    " " + (material.m_Specular.B / 255.0f).ToString(usa) + "\n");
+                mtlWriter.Write("Ks " + Helper.ToString(material.m_Specular.R / 255.0f) +
+                    " " + Helper.ToString(material.m_Specular.G / 255.0f) +
+                    " " + Helper.ToString(material.m_Specular.B / 255.0f) + "\n");
                 //Specify specular colour co-efficient - RGB 0-1
-                //mtllib += "Ns " + material.m_SpeEmiColors.ToString(usa) + "\n";
+                //mtllib += "Ns " + material.m_SpeEmiColors + "\n";
                 //Specify transparency - RGB Alpha channel 0-1
-                mtlWriter.Write("d " + (material.m_Alpha / 255.0f).ToString(usa) + "\n");
+                mtlWriter.Write("d " + Helper.ToString(material.m_Alpha / 31f) + "\n");
                 //Specify texture type 0 - 10
                 //uint textype = (currentTexture.m_Params >> 26) & 0x7;
                 mtlWriter.Write("illum 2\n");
@@ -171,12 +171,12 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
 
                 // Print a list of all vertices, texture co-ordinates and vertex colours
                 foreach (Vector3 vert in vertsCurBone)
-                    objWriter.Write("v " + vert.X.ToString(usa) + " " + vert.Y.ToString(usa) + " " + vert.Z.ToString(usa) + "\n");
+                    objWriter.Write("v " + Helper.ToString(vert.X) + " " + Helper.ToString(vert.Y) + " " + Helper.ToString(vert.Z) + "\n");
                 foreach (Vector2 textureCoord in textureCoordsCurBone)
-                    objWriter.Write("vt " + textureCoord.X.ToString(usa) + " " + textureCoord.Y.ToString(usa) + "\n");
+                    objWriter.Write("vt " + Helper.ToString(textureCoord.X) + " " + Helper.ToString(textureCoord.Y) + "\n");
                 foreach (Color vColour in vertexColoursCurBone)
-                    objWriter.Write("vc " + (vColour.R / 255.0f).ToString(usa) + " " + (vColour.G / 255.0f).ToString(usa) + " " +
-                        (vColour.B / 255.0f).ToString(usa) + "\n");
+                    objWriter.Write("vc " + Helper.ToString(vColour.R / 255.0f) + " " + Helper.ToString(vColour.G / 255.0f) + " " +
+                        Helper.ToString(vColour.B / 255.0f) + "\n");
 
                 // For each material used in the current bone, print all faces
                 foreach (ModelBase.GeometryDef geometry in bone.m_Geometries.Values)

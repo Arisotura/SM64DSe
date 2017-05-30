@@ -61,7 +61,7 @@
             this.btnOpenModel = new System.Windows.Forms.Button();
             this.txtModelName = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
-            this.glModelView = new OpenTK.GLControl();
+            this.glModelView = new SM64DSe.FormControls.ModelGLControlWithPicking();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.btnOpen = new System.Windows.Forms.ToolStripButton();
             this.btnSave = new System.Windows.Forms.ToolStripButton();
@@ -442,14 +442,7 @@
             this.glModelView.TabIndex = 0;
             this.glModelView.VSync = false;
             this.glModelView.Load += new System.EventHandler(this.glModelView_Load);
-            this.glModelView.Paint += new System.Windows.Forms.PaintEventHandler(this.glModelView_Paint);
-            this.glModelView.KeyDown += new System.Windows.Forms.KeyEventHandler(this.glModelView_KeyDown);
-            this.glModelView.KeyUp += new System.Windows.Forms.KeyEventHandler(this.glModelView_KeyUp);
-            this.glModelView.MouseDown += new System.Windows.Forms.MouseEventHandler(this.glModelView_MouseDown);
-            this.glModelView.MouseMove += new System.Windows.Forms.MouseEventHandler(this.glModelView_MouseMove);
             this.glModelView.MouseUp += new System.Windows.Forms.MouseEventHandler(this.glModelView_MouseUp);
-            this.glModelView.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.glModelView_MouseWheel);
-            this.glModelView.Resize += new System.EventHandler(this.glModelView_Resize);
             // 
             // toolStrip1
             // 
@@ -542,7 +535,7 @@
         #endregion
 
         private System.Windows.Forms.SplitContainer splitContainer1;
-        private OpenTK.GLControl glModelView;
+        private FormControls.ModelGLControlWithPicking glModelView;
         private System.Windows.Forms.ToolStrip toolStrip1;
         private System.Windows.Forms.ToolStripButton btnSave;
         private System.Windows.Forms.ListBox lbxPlanes;

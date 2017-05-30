@@ -51,7 +51,5 @@ namespace SM64DSe.ImportExport.Writers
                     e.Message + "\n" + e.Data + "\n" + e.StackTrace + "\n" + e.Source);
             }
         }
-
-        protected static CultureInfo usa = Helper.USA;
     }
 }

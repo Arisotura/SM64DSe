@@ -567,7 +567,7 @@ namespace SM64DSe.ImportExport.LevelImportExport
                 }
                 else if (reader.NodeType.Equals(XmlNodeType.Element) && reader.LocalName.Equals("YRotation"))
                 {
-                    float yRotation = float.Parse(reader.ReadElementContentAsString(), Helper.USA);
+                    float yRotation = Helper.ParseFloat(reader.ReadElementContentAsString());
                     obj.YRotation = yRotation;
                 }
                 else if (reader.NodeType.Equals(XmlNodeType.Element) && reader.LocalName.Equals("Parameters"))
@@ -602,7 +602,7 @@ namespace SM64DSe.ImportExport.LevelImportExport
                 }
                 else if (reader.NodeType.Equals(XmlNodeType.Element) && reader.LocalName.Equals("YRotation"))
                 {
-                    float yRotation = float.Parse(reader.ReadElementContentAsString(), Helper.USA);
+                    float yRotation = Helper.ParseFloat(reader.ReadElementContentAsString());
                     obj.YRotation = yRotation;
                 }
                 else if (reader.NodeType.Equals(XmlNodeType.Element) && reader.LocalName.Equals("Parameters"))
@@ -745,7 +745,7 @@ namespace SM64DSe.ImportExport.LevelImportExport
                 }
                 else if (reader.NodeType.Equals(XmlNodeType.Element) && reader.LocalName.Equals("YRotation"))
                 {
-                    float yRotation = float.Parse(reader.ReadElementContentAsString(), Helper.USA);
+                    float yRotation = Helper.ParseFloat(reader.ReadElementContentAsString());
                     obj.YRotation = yRotation;
                 }
                 else if (reader.NodeType.Equals(XmlNodeType.Element) && reader.LocalName.Equals("Parameters"))
@@ -782,7 +782,7 @@ namespace SM64DSe.ImportExport.LevelImportExport
                 }
                 else if (reader.NodeType.Equals(XmlNodeType.Element) && reader.LocalName.Equals("YRotation"))
                 {
-                    float yRotation = float.Parse(reader.ReadElementContentAsString(), Helper.USA);
+                    float yRotation = Helper.ParseFloat(reader.ReadElementContentAsString());
                     obj.YRotation = yRotation;
                 }
                 else if (reader.NodeType.Equals(XmlNodeType.Element) && reader.LocalName.Equals("Parameters"))
@@ -918,7 +918,7 @@ namespace SM64DSe.ImportExport.LevelImportExport
                 }
                 else if (reader.NodeType.Equals(XmlNodeType.Element) && reader.LocalName.Equals("YRotation"))
                 {
-                    float yRotation = float.Parse(reader.ReadElementContentAsString(), Helper.USA);
+                    float yRotation = Helper.ParseFloat(reader.ReadElementContentAsString());
                     obj.YRotation = yRotation;
                 }
                 else if (reader.NodeType.Equals(XmlNodeType.Element) && reader.LocalName.Equals("DoorType"))
@@ -968,7 +968,7 @@ namespace SM64DSe.ImportExport.LevelImportExport
                 }
                 else if (reader.NodeType.Equals(XmlNodeType.Element) && reader.LocalName.Equals("YRotation"))
                 {
-                    float yRotation = float.Parse(reader.ReadElementContentAsString(), Helper.USA);
+                    float yRotation = Helper.ParseFloat(reader.ReadElementContentAsString());
                     obj.YRotation = yRotation;
                 }
                 else if (reader.NodeType.Equals(XmlNodeType.Element) && reader.LocalName.Equals("DestinationLevel"))
@@ -1100,15 +1100,15 @@ namespace SM64DSe.ImportExport.LevelImportExport
                 {
                     if (reader.LocalName.Equals("X"))
                     {
-                        position.X = float.Parse(reader.ReadElementContentAsString(), Helper.USA);
+                        position.X = Helper.ParseFloat(reader.ReadElementContentAsString());
                     }
                     else if (reader.LocalName.Equals("Y"))
                     {
-                        position.Y = float.Parse(reader.ReadElementContentAsString(), Helper.USA);
+                        position.Y = Helper.ParseFloat(reader.ReadElementContentAsString());
                     }
                     else if (reader.LocalName.Equals("Z"))
                     {
-                        position.Z = float.Parse(reader.ReadElementContentAsString(), Helper.USA);
+                        position.Z = Helper.ParseFloat(reader.ReadElementContentAsString());
                     }
                 }
                 else if (reader.NodeType.Equals(XmlNodeType.EndElement) && reader.LocalName.Equals("Position"))

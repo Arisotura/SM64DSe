@@ -293,6 +293,25 @@ namespace SM64DSe
         public ushort GetFileIDFromOverlayID(uint ovlid) { return m_OverlayEntries[ovlid].FileID; }
         public ushort GetFileIDFromInternalID(ushort intid) { return m_FileTable[intid]; }
 
+        public bool FileExists(string name)
+        {
+            ushort id = GetFileIDFromName(name);
+            if (id < 0xF000)
+                return true;
+
+            string[] narcNames = (m_Version == Version.EUR ? new String[] { "ar1", "arc0", "c2d", "cee", "cef", "ceg", "cei", "ces", "en1", "vs1", "vs2", "vs3", "vs4" }
+                : new String[] { "ar1", "arc0", "c2d", "en1", "vs1", "vs2", "vs3", "vs4" });
+            foreach (string narcName in narcNames)
+            {
+                NARC narc = new NARC(this, GetFileIDFromName("ARCHIVE/" + narcName + ".narc"));
+                id = narc.GetFileIDFromName(name);
+                if (id < 0xF000)
+                    return true;
+            }
+
+            return false;
+        }
+
         public NitroFile GetFileFromName(string name)
         {
             ushort id = GetFileIDFromName(name);
@@ -636,9 +655,26 @@ namespace SM64DSe
 
     public class INitroROMBlock
     {
+        public INitroROMBlock() { }
+
+        public INitroROMBlock(byte[] data)
+        {
+            m_Data = data;
+        }
+
         public byte Read8(uint addr) { return m_Data[addr]; }
 	    public ushort Read16(uint addr) { return (ushort)(m_Data[addr] | (m_Data[addr+1]<<8)); }
 	    public uint Read32(uint addr) { return (uint)(m_Data[addr] | (m_Data[addr+1]<<8) | (m_Data[addr+2]<<16) | (m_Data[addr+3]<<24)); }
+        public uint ReadVar(uint addr, uint size)
+        {
+            switch(size)
+            {
+                case 1: return Read8(addr);
+                case 2: return Read16(addr);
+                case 4: return Read32(addr);
+                default: throw new InvalidDataException("Size must be 1, 2, or 4, not " + size + "!");
+            }
+        }
 
 	    public byte[] ReadBlock(uint addr, uint len)
 	    {
@@ -669,8 +705,18 @@ namespace SM64DSe
         public void Write8(uint addr, byte value) { AutoResize(addr, 1); m_Data[addr] = value; }
         public void Write16(uint addr, ushort value) { AutoResize(addr, 2); m_Data[addr] = (byte)(value & 0xFF); m_Data[addr + 1] = (byte)(value >> 8); }
         public void Write32(uint addr, uint value) { AutoResize(addr, 4); m_Data[addr] = (byte)(value & 0xFF); m_Data[addr + 1] = (byte)((value >> 8) & 0xFF); m_Data[addr + 2] = (byte)((value >> 16) & 0xFF); m_Data[addr + 3] = (byte)(value >> 24); }
+        public void WriteVar(uint addr, uint size, uint value)
+        {
+            switch (size)
+            {
+                case 1: Write8(addr, (byte)value); break;
+                case 2: Write16(addr, (ushort)value); break;
+                case 4: Write32(addr, value); break;
+                default: throw new InvalidDataException("Size must be 1, 2, or 4, not " + size + "!");
+            }
+        }
 
-	    public void WriteBlock(uint addr, byte[] data)
+        public void WriteBlock(uint addr, byte[] data)
 	    {
 		    AutoResize(addr, (uint)data.Length);
 		    Array.Copy(data, 0, m_Data, addr, data.Length);
@@ -693,6 +739,28 @@ namespace SM64DSe
                 m_Data[addr + i] = 0;
         }
 
+        public void RemoveSpace(uint addr, uint size)
+        {
+            WriteBlock(addr, ReadBlock(addr + size, (uint)m_Data.Length - addr - size));
+            Array.Resize(ref m_Data, m_Data.Length - (int)size);
+        }
+        public void AddSpace(uint addr, uint size)
+        {
+            //will get auto-resized
+            WriteBlock(addr + size, ReadBlock(addr, (uint)m_Data.Length - addr));
+            if (size >= 0x80000000u)
+                Array.Resize(ref m_Data, m_Data.Length + (int)size);
+        }
+        public void ResizeSpace(uint addr, uint oldLen, uint newLen)
+        {
+            if (oldLen == newLen)
+                return;
+            if (oldLen < newLen)
+                AddSpace(addr + oldLen, newLen - oldLen);
+            else
+                RemoveSpace(addr + newLen, oldLen - newLen);
+        }
+
         public void Clear()
         {
             Array.Resize(ref m_Data, 0);
@@ -703,6 +771,13 @@ namespace SM64DSe
 		    if ((addr + size) > m_Data.Length)
 			    Array.Resize(ref m_Data, (int)(addr + size));
 	    }
+
+        public void FixPtrAt(uint addr, uint fixstart, int delta)
+        {
+            uint temp = Read32(addr);
+            if (temp >= fixstart)
+                Write32(addr, temp + (uint)delta);
+        }
 
         // To be implemented by subclasses
         public virtual void SaveChanges() { }

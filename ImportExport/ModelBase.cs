@@ -15,6 +15,8 @@ namespace SM64DSe.ImportExport
     {
         public class BoneDefRoot : IEnumerable<BoneDef>
         {
+            public static readonly int MAX_BONE_COUNT = 32;
+
             private List<BoneDef> m_Bones;
 
             public BoneDefRoot()
@@ -35,17 +37,14 @@ namespace SM64DSe.ImportExport
             {
                 var queue = new Queue<BoneDef>();
                 foreach (BoneDef root in m_Bones)
-                    queue.Enqueue(root);
-
-                while (queue.Count > 0)
                 {
-                    var node = queue.Dequeue();
-
-                    if (node.m_ID.Equals(id))
-                        return node;
-
-                    foreach (var child in node.GetBranch().Values)
-                        queue.Enqueue(child);
+                    foreach (var node in root.GetBranch())
+                    {
+                        if (node.m_ID.Equals(id))
+                        {
+                            return node;
+                        }
+                    }
                 }
                 return null; // Not found
             }
@@ -66,17 +65,35 @@ namespace SM64DSe.ImportExport
 
             public List<BoneDef> GetAsList()
             {
-                return GetAsDictionary().Values.ToList();
+                List<BoneDef> bones = new List<BoneDef>();
+                foreach (BoneDef root in m_Bones)
+                {
+                    List<BoneDef> branch = root.GetBranch();
+                    foreach (BoneDef entry in branch)
+                    {
+                        bones.Add(entry);
+                    }
+                }
+                return bones;
+            }
+
+            public List<string> GetBoneIDList()
+            {
+                List<BoneDef> bones = GetAsList();
+                List<string> boneIDs = new List<string>(bones.Count);
+                foreach (BoneDef bone in bones)
+                {
+                    boneIDs.Add(bone.m_ID);
+                }
+                return boneIDs;
             }
 
             public Dictionary<string, BoneDef> GetAsDictionary()
             {
                 Dictionary<string, BoneDef> bones = new Dictionary<string, BoneDef>();
-                foreach (BoneDef root in m_Bones)
+                foreach (BoneDef bone in GetAsList())
                 {
-                    Dictionary<string, BoneDef> tmp = root.GetBranch();
-                    foreach (var entry in tmp)
-                        bones.Add(entry.Key, entry.Value);
+                    bones.Add(bone.m_ID, bone);
                 }
                 return bones;
             }
@@ -98,7 +115,7 @@ namespace SM64DSe.ImportExport
 
             public int GetBoneIndex(string id)
             {
-                return GetAsDictionary().Keys.ToList().IndexOf(id);
+                return GetBoneIDList().IndexOf(id);
             }
 
             public int GetParentOffset(BoneDef bone)
@@ -111,10 +128,10 @@ namespace SM64DSe.ImportExport
 
             public int GetNextSiblingOffset(BoneDef bone)
             {
-                Dictionary<string, BoneDef> bonesInBranch = bone.GetRoot().GetBranch();
+                List<BoneDef> bonesInBranch = bone.GetRoot().GetBranch();
 
                 // sibling offset, unlike parent offset should not be negative, bones should only point forward to their next sibling
-                IEnumerable<BoneDef> siblings = bonesInBranch.Values.Where(bone0 => GetParentOffset(bone0) != 0 &&
+                IEnumerable<BoneDef> siblings = bonesInBranch.Where(bone0 => GetParentOffset(bone0) != 0 &&
                     bone0.m_Parent == bone.m_Parent);
                 if (siblings.Count() > 0)
                 {
@@ -126,6 +143,28 @@ namespace SM64DSe.ImportExport
                 }
 
                 return 0;
+            }
+
+            public bool RemoveBoneByID(string id)
+            {
+                BoneDef root;
+                for (int i = 0; i < m_Bones.Count; i++)
+                {
+                    root = m_Bones.ElementAt(i);
+                    if (root.m_ID.Equals(id))
+                    {
+                        m_Bones.RemoveAt(i);
+                        return true;
+                    }
+                    foreach (var node in root.GetBranch())
+                    {
+                        if (node.m_ID.Equals(id))
+                        {
+                            return node.m_Parent.RemoveChild(node);
+                        }
+                    }
+                }
+                return false; // Not found
             }
 
             public void Clear()
@@ -141,7 +180,7 @@ namespace SM64DSe.ImportExport
 
         public class BoneDef
         {
-            private readonly Dictionary<string, BoneDef> m_Children = new Dictionary<string, BoneDef>();
+            private readonly List<BoneDef> m_Children = new List<BoneDef>();
 
             public string m_ID;
             public BoneDef m_Parent;
@@ -179,8 +218,13 @@ namespace SM64DSe.ImportExport
             {
                 item.m_Parent = this;
 
-                this.m_Children.Add(item.m_ID, item);
+                this.m_Children.Add(item);
                 item.CalculateBranchTransformations();
+            }
+
+            public bool RemoveChild(BoneDef item)
+            {
+                return m_Children.Remove(item);
             }
 
             public BoneDef GetRoot()
@@ -196,22 +240,22 @@ namespace SM64DSe.ImportExport
                 return this.GetRoot().m_ID;
             }
 
-            public Dictionary<string, BoneDef> GetBranch()
+            public List<BoneDef> GetBranch()
             {
-                Dictionary<string, BoneDef> bones = new Dictionary<string, BoneDef>();
+                List<BoneDef> bones = new List<BoneDef>();
                 GetBranchNodes(bones);
                 return bones;
             }
 
-            private void GetBranchNodes(Dictionary<string, BoneDef> bones)
+            private void GetBranchNodes(List<BoneDef> bones)
             {
-                bones.Add(this.m_ID, this);
+                bones.Add(this);
 
-                foreach (BoneDef child in m_Children.Values)
+                foreach (BoneDef child in m_Children)
                     child.GetBranchNodes(bones);
             }
 
-            public Dictionary<string, BoneDef> GetChildren()
+            public List<BoneDef> GetChildren()
             {
                 return m_Children;
             }
@@ -263,7 +307,7 @@ namespace SM64DSe.ImportExport
                 CalculateTransformation();
                 CalculateInverseTransformation();
 
-                foreach (BoneDef child in m_Children.Values)
+                foreach (BoneDef child in m_Children)
                     child.CalculateBranchTransformations();
             }
 
@@ -402,9 +446,20 @@ namespace SM64DSe.ImportExport
 
                 return true;
             }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    int hash = 13;
+                    hash = hash * 7 + m_NumVertices.GetHashCode();
+                    hash = hash * 7 + m_Vertices.GetHashCode();
+                    return hash;
+                }
+            }
         }
 
-        // NOTE: VertexDef is a Value Type. This is avoid issues such as scaling the same vertex twice 
+        // NOTE: VertexDef is a Value Type. This is to avoid issues such as scaling the same vertex twice 
         // because it's been referenced in two faces with faces[i].m_Vertices[2] = faces[i - 1].m_Vertices[0]
         public struct VertexDef
         {
@@ -412,7 +467,7 @@ namespace SM64DSe.ImportExport
             public Vector2? m_TextureCoordinate;
             public Vector3? m_Normal;
             public Color m_VertexColour;
-            public int m_VertexBoneID;
+            public int m_VertexBoneIndex;
 
             public VertexDef(Vector3 position, Vector2? textureCoordinate, Vector3? normal, Color vertexColour, int vertexBoneID)
             {
@@ -420,7 +475,7 @@ namespace SM64DSe.ImportExport
                 m_TextureCoordinate = textureCoordinate;
                 m_Normal = normal;
                 m_VertexColour = vertexColour;
-                m_VertexBoneID = vertexBoneID;
+                m_VertexBoneIndex = vertexBoneID;
             }
 
             public override bool Equals(object obj)
@@ -450,7 +505,7 @@ namespace SM64DSe.ImportExport
                     fv.m_VertexColour.B == m_VertexColour.B && fv.m_VertexColour.A == m_VertexColour.A))
                     return false;
 
-                if (!(fv.m_VertexBoneID == m_VertexBoneID))
+                if (!(fv.m_VertexBoneIndex == m_VertexBoneIndex))
                     return false;
 
                 return true;
@@ -463,7 +518,7 @@ namespace SM64DSe.ImportExport
                 hash = (hash * 7) + ((m_TextureCoordinate != null) ? m_TextureCoordinate.GetHashCode() : -1);
                 hash = (hash * 7) + ((m_Normal != null) ? m_TextureCoordinate.GetHashCode() : -1);
                 hash = (hash * 7) + m_VertexColour.GetHashCode();
-                hash = (hash * 7) + m_VertexBoneID * 397;
+                hash = (hash * 7) + m_VertexBoneIndex * 397;
                 return hash;
             }
         }
@@ -473,11 +528,10 @@ namespace SM64DSe.ImportExport
         public class MaterialDef
         {
             public string m_ID;
-            public int m_Index;
             public string m_TextureDefID;
             public bool[] m_Lights;
             public PolygonDrawingFace m_PolygonDrawingFace;
-            public int m_Alpha;
+            public byte m_Alpha;
             public bool m_WireMode;
             public PolygonMode m_PolygonMode;
             public bool m_FogFlag;
@@ -495,14 +549,13 @@ namespace SM64DSe.ImportExport
             public Vector2 m_TextureTranslation;
             public TexGenMode m_TexGenMode;
 
-            public MaterialDef(string id, int index)
+            public MaterialDef(string id)
             {
                 m_ID = id;
-                m_Index = index;
                 m_TextureDefID = null;
                 m_Lights = new bool[] { false, false, false, false };
                 m_PolygonDrawingFace = PolygonDrawingFace.Front;
-                m_Alpha = 255;
+                m_Alpha = 31;
                 m_WireMode = false;
                 m_PolygonMode = PolygonMode.Modulation;
                 m_FogFlag = true;
@@ -719,6 +772,12 @@ namespace SM64DSe.ImportExport
                 m_Format = format;
                 m_ImgHash = CalculateHash();
             }
+
+            public TextureDefNitro(NitroTexture nitroTexture)
+                : this(nitroTexture.m_TextureName, nitroTexture.m_RawTextureData, nitroTexture.m_PaletteName, 
+                nitroTexture.m_RawPaletteData, nitroTexture.m_Width, nitroTexture.m_Height, 
+                nitroTexture.m_Colour0Mode, (TextureFormat)nitroTexture.m_TexType)
+            { }
 
             public override string CalculateHash()
             {
@@ -1011,7 +1070,7 @@ namespace SM64DSe.ImportExport
             m_BoneTransformsMap = new BiDictionaryOneToOne<string, int>();
         }
 
-        public void ScaleModel(Vector3 scale)
+        public void ScaleModel(float scale)
         {
             foreach (BoneDef bone in m_BoneTree)
             {
@@ -1028,9 +1087,9 @@ namespace SM64DSe.ImportExport
                             {
                                 for (int vert = 0; vert < face.m_Vertices.Length; vert++)
                                 {
-                                    face.m_Vertices[vert].m_Position.X *= scale.X;
-                                    face.m_Vertices[vert].m_Position.Y *= scale.Y;
-                                    face.m_Vertices[vert].m_Position.Z *= scale.Z;
+                                    face.m_Vertices[vert].m_Position.X *= scale;
+                                    face.m_Vertices[vert].m_Position.Y *= scale;
+                                    face.m_Vertices[vert].m_Position.Z *= scale;
                                 }
                             }
                         }
@@ -1043,7 +1102,7 @@ namespace SM64DSe.ImportExport
             }
         }
 
-        public void ScaleAnimations(Vector3 scale)
+        public void ScaleAnimations(float scale)
         {
             foreach (AnimationDef animDef in m_Animations.Values)
             {
@@ -1057,19 +1116,19 @@ namespace SM64DSe.ImportExport
                         case AnimationComponentType.TranslateX:
                             {
                                 for (int i = 0; i < comp.GetNumValues(); i++)
-                                    comp.SetValue(i, comp.GetValue(i) * scale.X);
+                                    comp.SetValue(i, comp.GetValue(i) * scale);
                             }
                             break;
                         case AnimationComponentType.TranslateY:
                             {
                                 for (int i = 0; i < comp.GetNumValues(); i++)
-                                    comp.SetValue(i, comp.GetValue(i) * scale.Y);
+                                    comp.SetValue(i, comp.GetValue(i) * scale);
                             }
                             break;
                         case AnimationComponentType.TranslateZ:
                             {
                                 for (int i = 0; i < comp.GetNumValues(); i++)
-                                    comp.SetValue(i, comp.GetValue(i) * scale.Z);
+                                    comp.SetValue(i, comp.GetValue(i) * scale);
                             }
                             break;
                     }
@@ -1092,7 +1151,7 @@ namespace SM64DSe.ImportExport
                             {
                                 for (int vert = 0; vert < face.m_Vertices.Length; vert++)
                                 {
-                                    BoneDef currentVertexBone = m_BoneTree.GetAsList()[face.m_Vertices[vert].m_VertexBoneID];
+                                    BoneDef currentVertexBone = m_BoneTree.GetAsList()[face.m_Vertices[vert].m_VertexBoneIndex];
 
                                     Vector3 vertex = face.m_Vertices[vert].m_Position;
                                     Vector3.Transform(ref vertex, ref currentVertexBone.m_GlobalTransformation, out vertex);
@@ -1124,7 +1183,7 @@ namespace SM64DSe.ImportExport
                             {
                                 for (int vert = 0; vert < face.m_Vertices.Length; vert++)
                                 {
-                                    BoneDef currentVertexBone = m_BoneTree.GetAsList()[face.m_Vertices[vert].m_VertexBoneID];
+                                    BoneDef currentVertexBone = m_BoneTree.GetAsList()[face.m_Vertices[vert].m_VertexBoneIndex];
 
                                     Vector3 vertex = face.m_Vertices[vert].m_Position;
                                     Vector3.Transform(ref vertex, ref currentVertexBone.m_GlobalInverseTransformation, out vertex);
@@ -1179,14 +1238,24 @@ namespace SM64DSe.ImportExport
                         for (int fl = 0; fl < polyList.m_FaceLists.Count; fl++)
                         {
                             FaceListDef faceList = polyList.m_FaceLists[fl];
-                            if (faceList.m_Type != PolyListType.Triangles || faceList.m_Type != PolyListType.TriangleStrip)
+                            if (!(faceList.m_Type == PolyListType.Triangles || faceList.m_Type == PolyListType.TriangleStrip))
                             {
                                 FaceListDef triangles = new FaceListDef(PolyListType.Triangles);
 
                                 for (int pg = 0; pg < faceList.m_Faces.Count; pg++)
                                 {
                                     FaceDef face = faceList.m_Faces[pg];
-                                    int numTriangles = 1 + (face.m_NumVertices - 3);
+                                    int numTriangles;
+                                    switch (faceList.m_Type)
+                                    {
+                                        default:
+                                        case PolyListType.Polygons:
+                                            numTriangles = 1 + (face.m_NumVertices - 3);
+                                            break;
+                                        case PolyListType.QuadrilateralStrip:
+                                            numTriangles = 2;
+                                            break;
+                                    }
                                     for (int t = 0; t < numTriangles; t++)
                                     {
                                         FaceDef triangle = new FaceDef(3);
@@ -1204,7 +1273,7 @@ namespace SM64DSe.ImportExport
 
                         for (int i = removeFLs.Count - 1; i >= 0; i--)
                         {
-                            polyList.m_FaceLists.RemoveAt(i);
+                            polyList.m_FaceLists.RemoveAt(removeFLs[i]);
                         }
 
                         polyList.m_FaceLists.AddRange(triangulated);

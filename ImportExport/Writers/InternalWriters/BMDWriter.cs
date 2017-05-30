@@ -75,6 +75,15 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
                         uint param = (uint)(((ushort)(short)vtx.X) | (((ushort)(short)vtx.Y) << 16));
                         AddCommand(0x25, param);
                     }
+                    else if(Math.Abs((int)vtx.X - (int)prev.X) < 512 &&
+                            Math.Abs((int)vtx.Y - (int)prev.Y) < 512 &&
+                            Math.Abs((int)vtx.Z - (int)prev.Z) < 512)
+                    {
+                        uint xDiff = ((uint)vtx.X - (uint)prev.X) & 0x3ff;
+                        uint yDiff = ((uint)vtx.Y - (uint)prev.Y) & 0x3ff;
+                        uint zDiff = ((uint)vtx.Z - (uint)prev.Z) & 0x3ff;
+                        AddCommand(0x28, xDiff | yDiff << 10 | zDiff << 20);
+                    }
                     else
                         AddVertexCommand(_vtx);
                 }
@@ -273,10 +282,9 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
 
         public NitroFile m_ModelFile;
 
-        BMDImporter.BMDExtraImportOptions m_ImportOptions = BMDImporter.BMDExtraImportOptions.DEFAULT;
+        private BMDImporter.BMDExtraImportOptions m_ImportOptions = BMDImporter.BMDExtraImportOptions.DEFAULT;
 
-        protected bool m_ZMirror = false;
-        protected bool m_SwapYZ = false;
+        private List<string> m_OrderedBoneIDList;
 
         public BMDWriter(ModelBase model, ref NitroFile modelFile) :
             this(model, ref modelFile, BMDImporter.BMDExtraImportOptions.DEFAULT) { }
@@ -286,6 +294,8 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
         {
             m_ModelFile = modelFile;
             m_ImportOptions = extraOptions;
+
+            m_OrderedBoneIDList = model.m_BoneTree.GetBoneIDList();
 
             m_Model.EnsureTriangulation();
 
@@ -298,7 +308,12 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
             GXDisplayListPacker dlpacker = new GXDisplayListPacker();
 
             ModelBase.BoneDefRoot boneTree = m_Model.m_BoneTree;
-            Dictionary<string, ModelBase.MaterialDef> materials = m_Model.m_Materials;
+            List<ModelBase.MaterialDef> materialsInFixedOrder = m_Model.m_Materials.Values.ToList();
+            Dictionary<string, int> materialFixedIndicesByID = new Dictionary<string, int>();
+            foreach (ModelBase.MaterialDef material in materialsInFixedOrder)
+            {
+                materialFixedIndicesByID[material.m_ID] = materialFixedIndicesByID.Count;
+            }
             Dictionary<string, ModelBase.TextureDefBase> textures = m_Model.m_Textures;
 
             NitroFile bmd = m_ModelFile;
@@ -400,15 +415,15 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
             bmd.Write32(0x00, scaleval);
 
             uint curoffset = 0x3C;
-            bmd.Write32(0x0C, (uint)materials.Count);
+            bmd.Write32(0x0C, (uint)materialsInFixedOrder.Count);
             bmd.Write32(0x10, curoffset);
 
             uint dllistoffset = curoffset;
-            curoffset += (uint)(materials.Count * 8);
+            curoffset += (uint)(materialsInFixedOrder.Count * 8);
 
             // build display lists
             b = 0;
-            foreach (ModelBase.MaterialDef mat in materials.Values)
+            foreach (ModelBase.MaterialDef mat in materialsInFixedOrder)
             {
                 bmd.Write32(dllistoffset, 1);
                 bmd.Write32(dllistoffset + 0x4, curoffset);
@@ -578,7 +593,7 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
             // it'll be used as an index into this list and should return bone ID 26.
             foreach (string key in m_Model.m_BoneTransformsMap.GetFirstToSecond().Keys)
             {
-                bmd.Write16(curoffset, (ushort)m_Model.m_BoneTree.GetBoneIndex(key));
+                bmd.Write16(curoffset, (ushort)m_OrderedBoneIDList.IndexOf(key));
                 curoffset += 2;
             }
             curoffset = (uint)((curoffset + 3) & ~3);
@@ -612,14 +627,14 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
                 bmd.Write32(curoffset + 0x34, bextraoffset);// Material IDs list
                 for (byte j = 0; j < bone.m_MaterialsInBranch.Count; j++)
                 {
-                    bmd.Write8(bextraoffset, (byte)materials[bone.m_MaterialsInBranch[j]].m_Index);
+                    bmd.Write8(bextraoffset, (byte)materialFixedIndicesByID[bone.m_MaterialsInBranch[j]]);
                     bextraoffset++;
                 }
 
                 bmd.Write32(curoffset + 0x38, bextraoffset);// Displaylist IDs list
                 for (byte j = 0; j < bone.m_MaterialsInBranch.Count; j++)
                 {
-                    bmd.Write8(bextraoffset, (byte)materials[bone.m_MaterialsInBranch[j]].m_Index);
+                    bmd.Write8(bextraoffset, (byte)materialFixedIndicesByID[bone.m_MaterialsInBranch[j]]);
                     bextraoffset++;
                 }
 
@@ -634,15 +649,14 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
             curoffset = (uint)((bextraoffset + 3) & ~3);
 
             // build materials
-            bmd.Write32(0x24, (uint)materials.Count);
+            bmd.Write32(0x24, (uint)materialsInFixedOrder.Count);
             bmd.Write32(0x28, curoffset);
 
-            uint mextraoffset = (uint)(curoffset + (0x30 * materials.Count));
+            uint mextraoffset = (uint)(curoffset + (0x30 * materialsInFixedOrder.Count));
 
-            foreach (KeyValuePair<string, ModelBase.MaterialDef> _mat in materials)
+            foreach (ModelBase.MaterialDef mat in materialsInFixedOrder)
             {
-                ModelBase.MaterialDef mat = _mat.Value;
-                string matname = _mat.Key;
+                string matname = mat.m_ID;
 
                 uint texid = 0xFFFFFFFF, palid = 0xFFFFFFFF;
                 uint teximage_param = 0x00000000;
@@ -717,9 +731,9 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
                 }
                 // 6     Polygon Back Surface   (0=Hide, 1=Render)  ;Line-segments are always
                 // 7     Polygon Front Surface  (0=Hide, 1=Render)  ;rendered (no front/back)
-                if (_mat.Value.m_PolygonDrawingFace == ModelBase.MaterialDef.PolygonDrawingFace.FrontAndBack) polyattr |= 0xC0;
-                else if (_mat.Value.m_PolygonDrawingFace == ModelBase.MaterialDef.PolygonDrawingFace.Front) polyattr |= 0x80;
-                else if (_mat.Value.m_PolygonDrawingFace == ModelBase.MaterialDef.PolygonDrawingFace.Back) polyattr |= 0x40;
+                if (mat.m_PolygonDrawingFace == ModelBase.MaterialDef.PolygonDrawingFace.FrontAndBack) polyattr |= 0xC0;
+                else if (mat.m_PolygonDrawingFace == ModelBase.MaterialDef.PolygonDrawingFace.Front) polyattr |= 0x80;
+                else if (mat.m_PolygonDrawingFace == ModelBase.MaterialDef.PolygonDrawingFace.Back) polyattr |= 0x40;
                 // 12    Far-plane intersecting polygons       (0=Hide, 1=Render/clipped)
                 if (mat.m_FarClipping) polyattr |= 0x1000;
                 // 13    1-Dot polygons behind DISP_1DOT_DEPTH (0=Hide, 1=Render)
@@ -729,7 +743,7 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
                 // 15    Fog Enable                            (0=Disable, 1=Enable)
                 if (mat.m_FogFlag) polyattr |= 0x8000;
                 // 16-20 Alpha      (0=Wire-Frame, 1..30=Translucent, 31=Solid)
-                uint alpha = (uint)(mat.m_Alpha >> 3);
+                uint alpha = (uint)mat.m_Alpha;
                 polyattr |= (alpha << 16);
 
                 // Set material colours
@@ -855,13 +869,13 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
                                     removeFLs.Add(fl);
                                     replacedWithTStrips.AddRange(tStrips);
                                 }
-                                catch (ArgumentException notTriangles) { continue; }
+                                catch (ArgumentException) { continue; }
                             }
                         }
 
                         for (int i = removeFLs.Count - 1; i >= 0; i--)
                         {
-                            polyList.m_FaceLists.RemoveAt(i);
+                            polyList.m_FaceLists.RemoveAt(removeFLs.ElementAt(i));
                         }
 
                         polyList.m_FaceLists.AddRange(replacedWithTStrips);
@@ -898,30 +912,14 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
             WriteVertexToDisplayList(dlpacker, ref lastColourARGB, ref tcscale, ref lastmatrix, ref lastvtx,
                 ref lastnrm, face.m_Vertices[0]);
 
-            /*if (m_ZMirror)
-            {
-                WriteVertexToDisplayList(dlpacker, ref lastColourARGB, ref tcscale, ref lastmatrix, new Vector4(face.m_Vertices[0], 0f),
-                    face.m_Vertices[3], face.m_TextureCoordinates[3], face.m_VertexColours[3], face.m_VertexBoneIDs[3]);
-
-                WriteVertexToDisplayList(dlpacker, ref lastColourARGB, ref tcscale, ref lastmatrix, new Vector4(face.m_Vertices[3], 0f),
-                    face.m_Vertices[2], face.m_TextureCoordinates[2], face.m_VertexColours[2], face.m_VertexBoneIDs[2]);
-
-                WriteVertexToDisplayList(dlpacker, ref lastColourARGB, ref tcscale, ref lastmatrix, new Vector4(face.m_Vertices[2], 0f),
-                    face.m_Vertices[1], face.m_TextureCoordinates[1], face.m_VertexColours[1], face.m_VertexBoneIDs[1]);
-
-                lastvtx = new Vector4(face.m_Vertices[1], 0f);
-            }
-            else*/
-            {
-                WriteVertexToDisplayList(dlpacker, ref lastColourARGB, ref tcscale, ref lastmatrix, ref lastvtx,
+            WriteVertexToDisplayList(dlpacker, ref lastColourARGB, ref tcscale, ref lastmatrix, ref lastvtx,
                     ref lastnrm, face.m_Vertices[1]);
 
-                WriteVertexToDisplayList(dlpacker, ref lastColourARGB, ref tcscale, ref lastmatrix, ref lastvtx,
-                    ref lastnrm, face.m_Vertices[2]);
+            WriteVertexToDisplayList(dlpacker, ref lastColourARGB, ref tcscale, ref lastmatrix, ref lastvtx,
+                ref lastnrm, face.m_Vertices[2]);
 
-                WriteVertexToDisplayList(dlpacker, ref lastColourARGB, ref tcscale, ref lastmatrix, ref lastvtx,
-                    ref lastnrm, face.m_Vertices[3]);
-            }
+            WriteVertexToDisplayList(dlpacker, ref lastColourARGB, ref tcscale, ref lastmatrix, ref lastvtx,
+                ref lastnrm, face.m_Vertices[3]);
         }
 
         private void AddTriangleToDisplayList(GXDisplayListPacker dlpacker, ref int lastColourARGB, ref Vector2 tcscale, ref int lastmatrix,
@@ -930,24 +928,11 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
             WriteVertexToDisplayList(dlpacker, ref lastColourARGB, ref tcscale, ref lastmatrix, ref lastvtx,
                 ref lastnrm, face.m_Vertices[0]);
 
-            /*if (m_ZMirror)
-            {
-                WriteVertexToDisplayList(dlpacker, ref lastColourARGB, ref tcscale, ref lastmatrix, new Vector4(face.m_Vertices[0], 0f),
-                    face.m_Vertices[2], face.m_TextureCoordinates[2], face.m_VertexColours[2], face.m_VertexBoneIDs[2]);
-
-                WriteVertexToDisplayList(dlpacker, ref lastColourARGB, ref tcscale, ref lastmatrix, new Vector4(face.m_Vertices[2], 0f),
-                    face.m_Vertices[1], face.m_TextureCoordinates[1], face.m_VertexColours[1], face.m_VertexBoneIDs[1]);
-
-                lastvtx = new Vector4(face.m_Vertices[1], 0f);
-            }
-            else*/
-            {
-                WriteVertexToDisplayList(dlpacker, ref lastColourARGB, ref tcscale, ref lastmatrix, ref lastvtx,
+            WriteVertexToDisplayList(dlpacker, ref lastColourARGB, ref tcscale, ref lastmatrix, ref lastvtx,
                     ref lastnrm, face.m_Vertices[1]);
 
-                WriteVertexToDisplayList(dlpacker, ref lastColourARGB, ref tcscale, ref lastmatrix, ref lastvtx,
-                    ref lastnrm, face.m_Vertices[2]);
-            }
+            WriteVertexToDisplayList(dlpacker, ref lastColourARGB, ref tcscale, ref lastmatrix, ref lastvtx,
+                ref lastnrm, face.m_Vertices[2]);
         }
 
         private void AddLineToDisplayList(GXDisplayListPacker dlpacker, ref int lastColourARGB, ref Vector2 tcscale, ref int lastmatrix,
@@ -980,7 +965,7 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
             ref int lastmatrix, ref Vector4 lastvtx, ref Vector3 lastnrm, ModelBase.VertexDef vertex)
         {
             Vector4 vtx = new Vector4(vertex.m_Position, 0f);
-            int matrixID = m_Model.m_BoneTransformsMap.GetByFirst(m_Model.m_BoneTree.GetBoneByIndex(vertex.m_VertexBoneID).m_ID);
+            int matrixID = m_Model.m_BoneTransformsMap.GetByFirst(m_OrderedBoneIDList[vertex.m_VertexBoneIndex]);
             if (lastmatrix != matrixID)
             {
                 dlpacker.AddCommand(0x14, (uint)matrixID);// Matrix Restore ID for current vertex

@@ -30,7 +30,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
             m_ICAName = animationFileName;
         }
 
-        public override ModelBase LoadModel(OpenTK.Vector3 scale)
+        public override ModelBase LoadModel(float scale)
         {
             XmlDocument doc = new XmlDocument();
             doc.Load(m_ICAName);
@@ -63,7 +63,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
             this.node_anm_info = new node_anm_info();
             this.node_anm_info.frame_size = int.Parse(node_anm_info.Attributes["frame_size"].Value);
             this.node_anm_info.scaling_rule = node_anm_info.Attributes["scaling_rule"].Value;
-            this.node_anm_info.magnify = float.Parse(node_anm_info.Attributes["magnify"].Value);
+            this.node_anm_info.magnify = Helper.ParseFloat(node_anm_info.Attributes["magnify"].Value);
             this.node_anm_info.tool_start_frame = int.Parse(node_anm_info.Attributes["tool_start_frame"].Value);
             this.node_anm_info.tool_end_frame = int.Parse(node_anm_info.Attributes["tool_end_frame"].Value);
             this.node_anm_info.interpolation = node_anm_info.Attributes["interpolation"].Value;
@@ -74,9 +74,9 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                 node_anm_info.Attributes["node_size"].Value.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries),
                 Convert.ToInt32);
             this.node_anm_info.frame_step_mode = node_anm_info.Attributes["frame_step_mode"].Value;
-            this.node_anm_info.tolerance_scale = float.Parse(node_anm_info.Attributes["tolerance_scale"].Value);
-            this.node_anm_info.tolerance_rotate = float.Parse(node_anm_info.Attributes["tolerance_rotate"].Value);
-            this.node_anm_info.tolerance_translate = float.Parse(node_anm_info.Attributes["tolerance_translate"].Value);
+            this.node_anm_info.tolerance_scale = Helper.ParseFloat(node_anm_info.Attributes["tolerance_scale"].Value);
+            this.node_anm_info.tolerance_rotate = Helper.ParseFloat(node_anm_info.Attributes["tolerance_rotate"].Value);
+            this.node_anm_info.tolerance_translate = Helper.ParseFloat(node_anm_info.Attributes["tolerance_translate"].Value);
         }
 
         protected float[] ReadNodeTransformationData(XmlNode transformData)

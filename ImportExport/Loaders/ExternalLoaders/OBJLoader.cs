@@ -44,7 +44,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
             m_SketchupHack = false;
         }
 
-        public override ModelBase LoadModel(Vector3 scale)
+        public override ModelBase LoadModel(float scale)
         {
             if (m_ModelFileName == null || "".Equals(m_ModelFileName))
                 throw new SystemException("You must specify the filename of the model to load via the constructor before " +
@@ -115,10 +115,10 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                     case "v": // vertex
                         {
                             if (parts.Length < 4) continue;
-                            float x = float.Parse(parts[1], USA);
-                            float y = float.Parse(parts[2], USA);
-                            float z = float.Parse(parts[3], USA);
-                            float w = 1f; //(parts.Length < 5) ? 1f : float.Parse(parts[4], USA);
+                            float x = Helper.ParseFloat(parts[1]);
+                            float y = Helper.ParseFloat(parts[2]);
+                            float z = Helper.ParseFloat(parts[3]);
+                            float w = 1f; //(parts.Length < 5) ? 1f : Helper.ParseFloat(parts[4]);
 
                             m_Vertices.Add(new Vector4(x, y, z, w));
                             m_VertexBoneIDs.Add(currentBoneIndex);
@@ -128,8 +128,8 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                     case "vt": // texcoord
                         {
                             if (parts.Length < 2) continue;
-                            float s = float.Parse(parts[1], USA);
-                            float t = (parts.Length < 3) ? 0f : float.Parse(parts[2], USA);
+                            float s = Helper.ParseFloat(parts[1]);
+                            float t = (parts.Length < 3) ? 0f : Helper.ParseFloat(parts[2]);
 
                             m_TexCoords.Add(new Vector2(s, t));
                         }
@@ -138,9 +138,9 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                     case "vn": // normal
                         {
                             if (parts.Length < 4) continue;
-                            float x = float.Parse(parts[1], USA);
-                            float y = float.Parse(parts[2], USA);
-                            float z = float.Parse(parts[3], USA);
+                            float x = Helper.ParseFloat(parts[1]);
+                            float y = Helper.ParseFloat(parts[2]);
+                            float z = Helper.ParseFloat(parts[3]);
 
                             Vector3 vec = new Vector3(x, y, z).Normalized();
                             m_Normals.Add(vec);
@@ -150,9 +150,9 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                     case "vc": // vertex colour (non-standard "Extended OBJ" Blender plugin only)
                         {
                             if (parts.Length < 4) continue;
-                            float r = float.Parse(parts[1], USA);
-                            float g = float.Parse(parts[2], USA);
-                            float b = float.Parse(parts[3], USA);
+                            float r = Helper.ParseFloat(parts[1]);
+                            float g = Helper.ParseFloat(parts[2]);
+                            float b = Helper.ParseFloat(parts[3]);
 
                             Color vcolour = Color.FromArgb((int)(r * 255.0f), (int)(g * 255.0f), (int)(b * 255.0f));
                             m_Colours.Add(vcolour);
@@ -200,13 +200,21 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
 
                                 vert.m_Position = new Vector3(m_Vertices[int.Parse(idxs[0]) - 1].Xyz);
                                 if (m_Model.m_Materials[curmaterial].m_TextureDefID != null && idxs.Length >= 2 && idxs[1].Length > 0)
+                                {
                                     vert.m_TextureCoordinate = m_TexCoords[int.Parse(idxs[1]) - 1];
+                                }
                                 else
+                                {
                                     vert.m_TextureCoordinate = null;
-                                /*if (idxs.Length >= 3 && !idxs[2].Equals(""))
+                                }
+                                if (m_Model.m_Materials[curmaterial].m_Lights.Contains(true) && idxs.Length >= 3 && idxs[2].Trim().Length > 0)
+                                {
                                     vert.m_Normal = new Vector3(m_Normals[int.Parse(idxs[2]) - 1]);
-                                else*/ // Until it's worked out what causes the issues with normals in OBJ and DAE
+                                }
+                                else
+                                {
                                     vert.m_Normal = null;
+                                }
                                 // Vertex colours (non-standard "Extended OBJ" Blender plugin only)
                                 if (idxs.Length >= 4 && !idxs[3].Equals(""))
                                 {
@@ -217,7 +225,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                                 {
                                     vert.m_VertexColour = Color.White;
                                 }
-                                vert.m_VertexBoneID = currentBoneIndex;
+                                vert.m_VertexBoneIndex = currentBoneIndex;
 
                                 face.m_Vertices[i] = vert;
                             }
@@ -286,7 +294,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                             if (parts.Length < 2) continue;
                             curmaterial = parts[1];
 
-                            ModelBase.MaterialDef mat = new ModelBase.MaterialDef(curmaterial, m_Model.m_Materials.Count);
+                            ModelBase.MaterialDef mat = new ModelBase.MaterialDef(curmaterial);
                             if (!m_Model.m_Materials.ContainsKey(curmaterial))
                                 m_Model.m_Materials.Add(curmaterial, mat);
                         }
@@ -296,21 +304,21 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                     case "Tr": // opacity
                         {
                             if (parts.Length < 2) continue;
-                            float o = float.Parse(parts[1], USA);
+                            float o = Helper.ParseFloat(parts[1]);
                             if (m_SketchupHack)
-                                o *= 255;
+                                o *= 31;
 
                             ModelBase.MaterialDef mat = (ModelBase.MaterialDef)m_Model.m_Materials[curmaterial];
-                            mat.m_Alpha = Math.Max(0, Math.Min(255, (int)(o * 255)));
+                            mat.m_Alpha = (byte)(Math.Max(0, Math.Min(31, (int)(o * 31))));
                         }
                         break;
 
                     case "Kd": // diffuse colour
                         {
                             if (parts.Length < 4) continue;
-                            float r = float.Parse(parts[1], USA);
-                            float g = float.Parse(parts[2], USA);
-                            float b = float.Parse(parts[3], USA);
+                            float r = Helper.ParseFloat(parts[1]);
+                            float g = Helper.ParseFloat(parts[2]);
+                            float b = Helper.ParseFloat(parts[3]);
                             Color col = Color.FromArgb((int)(r * 255), (int)(g * 255), (int)(b * 255));
 
                             ModelBase.MaterialDef mat = (ModelBase.MaterialDef)m_Model.m_Materials[curmaterial];
@@ -321,9 +329,9 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                     case "Ka": // ambient colour
                         {
                             if (parts.Length < 4) continue;
-                            float r = float.Parse(parts[1], USA);
-                            float g = float.Parse(parts[2], USA);
-                            float b = float.Parse(parts[3], USA);
+                            float r = Helper.ParseFloat(parts[1]);
+                            float g = Helper.ParseFloat(parts[2]);
+                            float b = Helper.ParseFloat(parts[3]);
                             Color col = Color.FromArgb((int)(r * 255), (int)(g * 255), (int)(b * 255));
 
                             ModelBase.MaterialDef mat = (ModelBase.MaterialDef)m_Model.m_Materials[curmaterial];
@@ -334,9 +342,9 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                     case "Ks": // specular colour
                         {
                             if (parts.Length < 4) continue;
-                            float r = float.Parse(parts[1], USA);
-                            float g = float.Parse(parts[2], USA);
-                            float b = float.Parse(parts[3], USA);
+                            float r = Helper.ParseFloat(parts[1]);
+                            float g = Helper.ParseFloat(parts[2]);
+                            float b = Helper.ParseFloat(parts[3]);
                             Color col = Color.FromArgb((int)(r * 255), (int)(g * 255), (int)(b * 255));
 
                             ModelBase.MaterialDef mat = (ModelBase.MaterialDef)m_Model.m_Materials[curmaterial];

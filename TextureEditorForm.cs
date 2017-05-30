@@ -16,21 +16,40 @@ namespace SM64DSe
 {
     public partial class TextureEditorForm : Form
     {
-        BMD m_Model;
-        BTP m_BTP;
-        string m_ModelName;
+        private BMD m_Model;
+        private BTP m_BTP;
+        private string m_ModelName;
 
-        ModelImporter _owner;
+        private ROMFileSelect m_ROMFileSelect = new ROMFileSelect();
 
-        System.Windows.Forms.Timer m_BTPTimer;
+        private System.Windows.Forms.Timer m_BTPTimer;
         private int timerCount = 0;
 
-        public TextureEditorForm(string fileName, ModelImporter _owner)
+        public TextureEditorForm(string fileName)
         {
             InitializeComponent();
 
             m_ModelName = fileName;
-            this._owner = _owner;
+        }
+
+        public TextureEditorForm()
+            : this(null) { }
+
+        private void TextureEditorForm_Load(object sender, System.EventArgs e)
+        {
+            if (m_ModelName == null)
+            {
+                m_ROMFileSelect.Text = "Select a BMD file to load";
+                DialogResult result = m_ROMFileSelect.ShowDialog();
+                if (result != DialogResult.OK)
+                {
+                    Close();
+                }
+                else
+                {
+                    m_ModelName = m_ROMFileSelect.m_SelectedFile;
+                }
+            }
 
             LoadTextures();
             InitTimer();
@@ -163,16 +182,33 @@ namespace SM64DSe
 
                 SaveFileDialog export = new SaveFileDialog();
                 export.FileName = currentTexture.m_TextureName;//Default name
-                export.DefaultExt = ".png";//Default file extension
-                export.Filter = "PNG (.png)|*.png";//Filter by .png
+                export.DefaultExt = ".bmp";//Because the texture has a palette
+                export.Filter = "Image Files (*.bmp,*.png) | *.bmp;*.png";
                 if (export.ShowDialog() == DialogResult.Cancel)
                     return;
 
-                SaveTextureAsPNG(currentTexture, export.FileName);
+                string extension = export.FileName.Substring(export.FileName.Length - 4, 4);
+                if (extension.Equals(".png", StringComparison.CurrentCultureIgnoreCase))
+                    SaveTextureAsPNG(currentTexture, export.FileName);
+                else
+                    SaveTextureAsBMP(currentTexture, export.FileName);
             }
             else
             {
                 MessageBox.Show("Please select a texture first.");
+            }
+        }
+
+        private static void SaveTextureAsBMP(NitroTexture currentTexture, String fileName)
+        {
+            try
+            {
+                currentTexture.ToBitmap().Save(fileName, System.Drawing.Imaging.ImageFormat.Bmp);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("An error occurred while trying to save texture " + currentTexture.m_TextureName + ".\n\n " +
+                    ex.Message + "\n" + ex.Data + "\n" + ex.StackTrace + "\n" + ex.Source);
             }
         }
 
@@ -293,14 +329,12 @@ namespace SM64DSe
 
         private void btnLoadBTP_Click(object sender, EventArgs e)
         {
-            using (var form = new ROMFileSelect("Please select a BTP file to load."))
+            m_ROMFileSelect.Text = "Select a BTP file to load";
+            DialogResult result = m_ROMFileSelect.ShowDialog();
+            if (result == DialogResult.OK)
             {
-                var result = form.ShowDialog();
-                if (result == DialogResult.OK)
-                {
-                    ClearBTPTextBoxes();
-                    LoadBTP(form.m_SelectedFile);
-                }
+                ClearBTPTextBoxes();
+                LoadBTP(m_ROMFileSelect.m_SelectedFile);
             }
         }
 
