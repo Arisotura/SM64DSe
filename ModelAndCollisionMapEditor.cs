@@ -326,6 +326,7 @@ namespace SM64DSe
             m_OpenFileDialogue = new OpenFileDialog();
             m_ROMFileSelect = new ROMFileSelect();
             m_FolderBrowserDialogue = new FolderBrowserDialog();
+            m_FolderBrowserDialogue.SelectedPath = System.IO.Path.GetDirectoryName(Program.m_ROMPath);
             m_SaveFileDialogue = new SaveFileDialog();
         }
 

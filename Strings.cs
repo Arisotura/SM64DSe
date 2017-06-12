@@ -112,6 +112,10 @@ namespace SM64DSe
         public static readonly string MODEL_EXPORT_FORMATS_FILTER = 
             "COLLADA DAE (.dae)|*.dae|Wavefront OBJ (.obj)|*.obj";
 
+        public static readonly string IMAGE_EXPORT_PNG_FILTER = "PNG Image (.png)|*.png";
+
+        public static readonly string FILTER_XML = "XML Document (.xml)|*.xml";
+
         public static string[] WHITESPACE = new string[] { " ", "\n", "\r\n", "\t" };
 
         public static bool IsBlank(string value)

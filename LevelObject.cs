@@ -27,79 +27,17 @@ using System.Globalization;
 using System.Windows.Forms;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
+using SM64DSe.SM64DSFormats;
 
 namespace SM64DSe
 {
-    // not quite the right place but whatever
-    public class LevelSettings
-    {
-        public LevelSettings(NitroOverlay ovl)
-        {
-            m_Overlay = ovl;
-            Background = (byte)(m_Overlay.Read8(0x78) >> 4);
-            ObjectBanks = new uint[8];
-            ObjectBanks[0] = m_Overlay.Read8(0x54);
-            ObjectBanks[1] = m_Overlay.Read8(0x55);
-            ObjectBanks[2] = m_Overlay.Read8(0x56);
-            ObjectBanks[3] = m_Overlay.Read8(0x57);
-            ObjectBanks[4] = m_Overlay.Read8(0x58);
-            ObjectBanks[5] = m_Overlay.Read8(0x59);
-            ObjectBanks[6] = m_Overlay.Read8(0x5A);
-            ObjectBanks[7] = m_Overlay.Read32(0x5C);
-
-            BMDFileID = m_Overlay.Read16(0x68);
-            KCLFileID = m_Overlay.Read16(0x6A);
-            MinimapTsetFileID = m_Overlay.Read16(0x6C);
-            MinimapPalFileID = m_Overlay.Read16(0x6E);
-
-            MusicBytes = new byte[3];
-            MusicBytes[0] = m_Overlay.Read8(0x7C);
-            MusicBytes[1] = m_Overlay.Read8(0x7D);
-            MusicBytes[2] = m_Overlay.Read8(0x7E);
-
-            MinimapCoordinateScale = m_Overlay.Read16(0x76);
-            CameraStartZoomedOut = m_Overlay.Read8(0x75);
-        }
-
-        public void SaveChanges()
-        {
-            m_Overlay.Write8(0x78, (byte)(0xF | (Background << 4)));
-            m_Overlay.Write8(0x54, (byte)ObjectBanks[0]);
-            m_Overlay.Write8(0x55, (byte)ObjectBanks[1]);
-            m_Overlay.Write8(0x56, (byte)ObjectBanks[2]);
-            m_Overlay.Write8(0x57, (byte)ObjectBanks[3]);
-            m_Overlay.Write8(0x58, (byte)ObjectBanks[4]);
-            m_Overlay.Write8(0x59, (byte)ObjectBanks[5]);
-            m_Overlay.Write8(0x5A, (byte)ObjectBanks[6]);
-            m_Overlay.Write32(0x5C, (uint)ObjectBanks[7]);
-
-            m_Overlay.Write8(0x7C, MusicBytes[0]);
-            m_Overlay.Write8(0x7D, MusicBytes[1]);
-            m_Overlay.Write8(0x7E, MusicBytes[2]);
-
-            m_Overlay.Write16(0x76, MinimapCoordinateScale);
-            m_Overlay.Write8(0x75, CameraStartZoomedOut);
-        }
-
-        public NitroOverlay m_Overlay;
-        public byte Background;
-        public uint[] ObjectBanks;
-        public ushort BMDFileID, KCLFileID, MinimapTsetFileID, MinimapPalFileID;
-        public byte[] MusicBytes;
-        public ushort MinimapCoordinateScale;
-        public byte CameraStartZoomedOut;
-        public byte ActSelectorID;// NOT stored in the overlay - not possible
-    }
-
-
     public class LevelObject
     {
+        public static int NUM_OBJ_TYPES = 326;
         public static string[] k_Layers = { "(all stars)", "(star 1)", "(star 2)", "(star 3)", "(star 4)", "(star 5)", "(star 6)", "(star 7)" };
 
-        public LevelObject(NitroOverlay ovl, uint offset, int layer)
+        public LevelObject(INitroROMBlock data, int layer)
         {
-            m_Overlay = ovl;
-            m_Offset = offset;
             m_Layer = layer;
             m_Area = 0;
 
@@ -113,7 +51,7 @@ namespace SM64DSe
         public virtual bool SupportsRotation() { return true; }
         // return value: bit0=refresh display, bit1=refresh propertygrid, bit2=refresh object list
         public virtual int SetProperty(string field, object newval) { return 0; }
-        public virtual void SaveChanges() { }
+        public virtual void SaveChanges(System.IO.BinaryWriter binWriter) { }
 
         public virtual void Render(RenderMode mode)
         {
@@ -132,10 +70,24 @@ namespace SM64DSe
 
             GL.PopMatrix();
         }
+        
+        public virtual KCL.RaycastResult? Raycast(Vector3 start, Vector3 dir)
+        {
+            if (m_KCLName == null) return null;
+            KCL kcl = KCLCache.GetKCL(m_KCLName);
+            if (kcl == null) return null;
+
+            return kcl.Raycast(start - Position, Vector3.Transform(dir, new Quaternion(Vector3.UnitY, YRotation * (2 * (float)Math.PI) / 360)));
+        }
 
         //public Matrix4 m_TestMatrix;
 
-        public virtual ObjectRenderer InitialiseRenderer() { return null; }
+        public virtual ObjectRenderer InitialiseRenderer() 
+        {
+            return (Helper.IsOpenGLAvailable() ? BuildRenderer() : null); 
+        }
+        public virtual ObjectRenderer BuildRenderer() { return null; }
+        public virtual string InitializeKCL() { return ""; }
 
         public virtual void Release()
         {
@@ -147,10 +99,28 @@ namespace SM64DSe
             LevelObject copy = (LevelObject)MemberwiseClone();
             copy.GenerateProperties();
             copy.m_Renderer = copy.InitialiseRenderer();
+            copy.m_KCLName = copy.InitializeKCL();
 
             return copy;
         }
-        
+
+        public enum Type
+        {
+            STANDARD = 0,
+            ENTRANCE = 1, 
+            PATH_NODE = 2, 
+            PATH = 3, 
+            VIEW = 4, 
+            SIMPLE = 5, 
+            TELEPORT_SOURCE = 6, 
+            TELEPORT_DESTINATION = 7, 
+            FOG = 8, 
+            DOOR = 9, 
+            EXIT = 10, 
+            MINIMAP_TILE_ID = 11, 
+            MINIMAP_SCALE = 12, 
+            UNKNOWN_14 = 14
+        };
 
         public ushort ID;
         public Vector3 Position;
@@ -160,16 +130,15 @@ namespace SM64DSe
         // for standard objects: [0] = 16bit object param, [1] and [2] = what should be X and Z rotation
         // for simple objects: [0] = 7bit object param
         public ushort[] Parameters;
-
-        public NitroOverlay m_Overlay;
-        public uint m_Offset;
+        
         public int m_Layer;
         public int m_Area;
         public uint m_UniqueID;
-        public int m_Type;
+        public Type m_Type;
 
         public ObjectRenderer m_Renderer;
         public PropertyTable m_Properties;
+        public string m_KCLName = null; // For blocks and whomp's towers only ;)
     }
 
 
@@ -187,37 +156,48 @@ namespace SM64DSe
     {
         //private Hashtable m_PParams;
 
-        public StandardObject(NitroOverlay ovl, uint offset, int num, int layer, int area)
-            : base(ovl, offset, layer)
+        public StandardObject(INitroROMBlock data, int num, int layer, int area)
+            : base(data, layer)
         {
             m_Area = area;
             m_UniqueID = (uint)(0x10000000 | num);
-            m_Type = 0;
+            m_Type = Type.STANDARD;
 
-            ID = m_Overlay.Read16(m_Offset);
-            Position.X = (float)((short)m_Overlay.Read16(m_Offset + 0x2)) / 1000f;
-            Position.Y = (float)((short)m_Overlay.Read16(m_Offset + 0x4)) / 1000f;
-            Position.Z = (float)((short)m_Overlay.Read16(m_Offset + 0x6)) / 1000f;
-            YRotation = ((float)((short)m_Overlay.Read16(m_Offset + 0xA)) / 4096f) * 22.5f;
+            ID = data.Read16(0);
+            Position.X = (float)((short)data.Read16(0x2)) / 1000f;
+            Position.Y = (float)((short)data.Read16(0x4)) / 1000f;
+            Position.Z = (float)((short)data.Read16(0x6)) / 1000f;
+            YRotation = ((float)((short)data.Read16(0xA)) / 4096f) * 22.5f;
 
             Parameters = new ushort[3];
-            Parameters[0] = m_Overlay.Read16(m_Offset + 0xE);
-            Parameters[1] = m_Overlay.Read16(m_Offset + 0x8);
-            Parameters[2] = m_Overlay.Read16(m_Offset + 0xC);
+            Parameters[0] = data.Read16( 0xE);
+            Parameters[1] = data.Read16( 0x8);
+            Parameters[2] = data.Read16( 0xC);
 
             m_Renderer = InitialiseRenderer();
+            m_KCLName = InitializeKCL();
             // m_PParams = new Hashtable();
             m_Properties = new PropertyTable();
             GenerateProperties();
         }
 
-        public override ObjectRenderer InitialiseRenderer()
+        public override ObjectRenderer BuildRenderer()
         {
             return ObjectRenderer.FromLevelObject(this);
+        }
+        public override string InitializeKCL()
+        {
+            if (m_Renderer == null) return null;
+            string filename = m_Renderer.m_Filename;
+            if (filename == null) return null;
+
+            return filename.Substring(0, filename.Length - 4) + ".kcl";
         }
 
         public override string GetDescription()
         {
+            if (ID >= LevelObject.NUM_OBJ_TYPES)
+                return String.Format("{0} - Unknown", ID, k_Layers[m_Layer]);
             return String.Format("{0} - {1} {2}", ID, ObjectDatabase.m_ObjectInfo[ID].m_Name, k_Layers[m_Layer]);
         }
 
@@ -297,6 +277,7 @@ namespace SM64DSe
                 {
                     m_Renderer.Release();
                     m_Renderer = InitialiseRenderer();
+                    m_KCLName = InitializeKCL();
                     //return 3;
                 }
 
@@ -307,46 +288,46 @@ namespace SM64DSe
             return 1;
         }
 
-        public override void SaveChanges()
+        public override void SaveChanges(System.IO.BinaryWriter binWriter)
         {
-            m_Overlay.Write16(m_Offset, ID);
-            m_Overlay.Write16(m_Offset + 0x2, (ushort)((short)(Position.X * 1000f)));
-            m_Overlay.Write16(m_Offset + 0x4, (ushort)((short)(Position.Y * 1000f)));
-            m_Overlay.Write16(m_Offset + 0x6, (ushort)((short)(Position.Z * 1000f)));
-            m_Overlay.Write16(m_Offset + 0xA, (ushort)((short)((YRotation / 22.5f) * 4096f)));
-
-            m_Overlay.Write16(m_Offset + 0xE, Parameters[0]);
-            m_Overlay.Write16(m_Offset + 0x8, Parameters[1]);
-            m_Overlay.Write16(m_Offset + 0xC, Parameters[2]);
+            binWriter.Write(ID);
+            binWriter.Write((ushort)((short)(Position.X * 1000f)));
+            binWriter.Write((ushort)((short)(Position.Y * 1000f)));
+            binWriter.Write((ushort)((short)(Position.Z * 1000f)));
+            binWriter.Write(Parameters[1]);
+            binWriter.Write((ushort)((short)((YRotation / 22.5f) * 4096f)));
+            binWriter.Write(Parameters[2]);
+            binWriter.Write(Parameters[0]);
         }
     }
 
 
     public class SimpleObject : LevelObject
     {
-        public SimpleObject(NitroOverlay ovl, uint offset, int num, int layer, int area)
-            : base(ovl, offset, layer)
+        public SimpleObject(INitroROMBlock data, int num, int layer, int area)
+            : base(data, layer)
         {
             m_Area = area;
             m_UniqueID = (uint)(0x10000000 | num);
-            m_Type = 5;
+            m_Type = Type.SIMPLE;
 
-            ushort idparam = m_Overlay.Read16(m_Offset);
+            ushort idparam = data.Read16(0);
             ID = (ushort)(idparam & 0x1FF);
-            Position.X = (float)((short)m_Overlay.Read16(m_Offset + 0x2)) / 1000f;
-            Position.Y = (float)((short)m_Overlay.Read16(m_Offset + 0x4)) / 1000f;
-            Position.Z = (float)((short)m_Overlay.Read16(m_Offset + 0x6)) / 1000f;
+            Position.X = (float)((short)data.Read16(0x2)) / 1000f;
+            Position.Y = (float)((short)data.Read16(0x4)) / 1000f;
+            Position.Z = (float)((short)data.Read16(0x6)) / 1000f;
             YRotation = 0.0f;
 
             Parameters = new ushort[1];
             Parameters[0] = (ushort)(idparam >> 9);
 
             m_Renderer = InitialiseRenderer();
+            m_KCLName = InitializeKCL();
             m_Properties = new PropertyTable();
             GenerateProperties();
         }
 
-        public override ObjectRenderer InitialiseRenderer()
+        public override ObjectRenderer BuildRenderer()
         {
             return ObjectRenderer.FromLevelObject(this);
         }
@@ -396,6 +377,7 @@ namespace SM64DSe
             {
                 m_Renderer.Release();
                 m_Renderer = InitialiseRenderer();
+                m_KCLName = InitializeKCL();
             }
 
             if (field == "Object ID")
@@ -404,13 +386,13 @@ namespace SM64DSe
             return 1;
         }
 
-        public override void SaveChanges()
+        public override void SaveChanges(System.IO.BinaryWriter binWriter)
         {
             ushort idparam = (ushort)((ID & 0x1FF) | (Parameters[0] << 9));
-            m_Overlay.Write16(m_Offset, idparam);
-            m_Overlay.Write16(m_Offset + 0x2, (ushort)((short)(Position.X * 1000f)));
-            m_Overlay.Write16(m_Offset + 0x4, (ushort)((short)(Position.Y * 1000f)));
-            m_Overlay.Write16(m_Offset + 0x6, (ushort)((short)(Position.Z * 1000f)));
+            binWriter.Write(idparam);
+            binWriter.Write((ushort)((short)(Position.X * 1000f)));
+            binWriter.Write((ushort)((short)(Position.Y * 1000f)));
+            binWriter.Write((ushort)((short)(Position.Z * 1000f)));
         }
     }
 
@@ -418,31 +400,32 @@ namespace SM64DSe
     {
         public int m_EntranceID;
 
-        public EntranceObject(NitroOverlay ovl, uint offset, int num, int layer, int id)
-            : base(ovl, offset, layer)
+        public EntranceObject(INitroROMBlock data, int num, int layer, int id)
+            : base(data, layer)
         {
             m_UniqueID = (uint)(0x20000000 | num);
             m_EntranceID = id;
-            m_Type = 1;
+            m_Type = Type.ENTRANCE;
 
             ID = 0;
-            Position.X = (float)((short)m_Overlay.Read16(m_Offset + 0x2)) / 1000.0f;
-            Position.Y = (float)((short)m_Overlay.Read16(m_Offset + 0x4)) / 1000.0f;
-            Position.Z = (float)((short)m_Overlay.Read16(m_Offset + 0x6)) / 1000.0f;
-            YRotation = ((float)((short)m_Overlay.Read16(m_Offset + 0xA)) / 4096f) * 22.5f;
+            Position.X = (float)((short)data.Read16(0x2)) / 1000.0f;
+            Position.Y = (float)((short)data.Read16(0x4)) / 1000.0f;
+            Position.Z = (float)((short)data.Read16(0x6)) / 1000.0f;
+            YRotation = ((float)((short)data.Read16(0xA)) / 4096f) * 22.5f;
 
             Parameters = new ushort[5];
-            Parameters[0] = m_Overlay.Read16(m_Offset + 0x0);
-            Parameters[1] = m_Overlay.Read16(m_Offset + 0x8);
-            Parameters[2] = m_Overlay.Read16(m_Offset + 0xC);
-            Parameters[3] = m_Overlay.Read16(m_Offset + 0xE);
+            Parameters[0] = data.Read16(0x0);
+            Parameters[1] = data.Read16(0x8);
+            Parameters[2] = data.Read16(0xC);
+            Parameters[3] = data.Read16(0xE);
 
             m_Renderer = InitialiseRenderer();
+            m_KCLName = InitializeKCL();
             m_Properties = new PropertyTable(); 
             GenerateProperties();
         }
 
-        public override ObjectRenderer InitialiseRenderer()
+        public override ObjectRenderer BuildRenderer()
         {
             return new ColorCubeRenderer(Color.FromArgb(0, 255, 0), Color.FromArgb(0, 64, 0), true);
         }
@@ -461,10 +444,10 @@ namespace SM64DSe
             m_Properties.Properties.Add(new PropertySpec("Y position", typeof(float), "General", "The entrance's position along the Y axis.", Position.Y, "", typeof(FloatTypeConverter)));
             m_Properties.Properties.Add(new PropertySpec("Z position", typeof(float), "General", "The entrance's position along the Z axis.", Position.Z, "", typeof(FloatTypeConverter)));
             m_Properties.Properties.Add(new PropertySpec("Y rotation", typeof(float), "General", "The angle in degrees the entrance is rotated around the Y axis.", YRotation, "", typeof(FloatTypeConverter)));
-            m_Properties.Properties.Add(new PropertySpec("Parameter 1", typeof(ushort), "Specific", "Purpose unknown.", Parameters[0], "", typeof(HexNumberTypeConverter)));
-            m_Properties.Properties.Add(new PropertySpec("Parameter 2", typeof(ushort), "Specific", "Purpose unknown.", Parameters[1], "", typeof(HexNumberTypeConverter)));
-            m_Properties.Properties.Add(new PropertySpec("Parameter 3", typeof(ushort), "Specific", "Purpose unknown.", Parameters[2], "", typeof(HexNumberTypeConverter)));
-            m_Properties.Properties.Add(new PropertySpec("Parameter 4", typeof(ushort), "Specific", "AABC: A - Entrance mode, B - View ID, C - Purpose unknown", Parameters[3], "", typeof(HexNumberTypeConverter)));
+            m_Properties.Properties.Add(new PropertySpec("Parameter 1", typeof(ushort), "Specific", "Purpose is to be a zero.", Parameters[0], "", typeof(HexNumberTypeConverter)));
+            m_Properties.Properties.Add(new PropertySpec("Parameter 2", typeof(ushort), "Specific", "Redundant Ex Rotation.", Parameters[1], "", typeof(HexNumberTypeConverter)));
+            m_Properties.Properties.Add(new PropertySpec("Parameter 3", typeof(ushort), "Specific", "Redundant Zee Rotation.", Parameters[2], "", typeof(HexNumberTypeConverter)));
+            m_Properties.Properties.Add(new PropertySpec("Parameter 4", typeof(ushort), "Specific", "EEEEEEEEEVVVVCCC: E - Entrance mode, V - View ID, C - Area ID", Parameters[3], "", typeof(HexNumberTypeConverter)));
 
             m_Properties["X position"] = Position.X;
             m_Properties["Y position"] = Position.Y;
@@ -494,17 +477,16 @@ namespace SM64DSe
             return 0;
         }
 
-        public override void SaveChanges()
+        public override void SaveChanges(System.IO.BinaryWriter binWriter)
         {
-            m_Overlay.Write16(m_Offset + 0x2, (ushort)((short)(Position.X * 1000.0f)));
-            m_Overlay.Write16(m_Offset + 0x4, (ushort)((short)(Position.Y * 1000.0f)));
-            m_Overlay.Write16(m_Offset + 0x6, (ushort)((short)(Position.Z * 1000.0f)));
-            m_Overlay.Write16(m_Offset + 0xA, (ushort)((short)((YRotation / 22.5f) * 4096f)));
-
-            m_Overlay.Write16(m_Offset + 0x0, Parameters[0]);
-            m_Overlay.Write16(m_Offset + 0x8, Parameters[1]);
-            m_Overlay.Write16(m_Offset + 0xC, Parameters[2]);
-            m_Overlay.Write16(m_Offset + 0xE, Parameters[3]);
+            binWriter.Write(Parameters[0]);
+            binWriter.Write((ushort)((short)(Position.X * 1000.0f)));
+            binWriter.Write((ushort)((short)(Position.Y * 1000.0f)));
+            binWriter.Write((ushort)((short)(Position.Z * 1000.0f)));
+            binWriter.Write(Parameters[1]);
+            binWriter.Write((ushort)((short)((YRotation / 22.5f) * 4096f)));
+            binWriter.Write(Parameters[2]);
+            binWriter.Write(Parameters[3]);
         }
     }
 
@@ -513,28 +495,29 @@ namespace SM64DSe
         public int LevelID, EntranceID;
         public ushort Param1, Param2;
 
-        public ExitObject(NitroOverlay ovl, uint offset, int num, int layer)
-            : base(ovl, offset, layer)
+        public ExitObject(INitroROMBlock data, int num, int layer)
+            : base(data, layer)
         {
             m_UniqueID = (uint)(0x20000000 | num);
-            m_Type = 10;
+            m_Type = Type.EXIT;
 
-            Position.X = (float)((short)m_Overlay.Read16(m_Offset)) / 1000.0f;
-            Position.Y = (float)((short)m_Overlay.Read16(m_Offset + 0x2)) / 1000.0f;
-            Position.Z = (float)((short)m_Overlay.Read16(m_Offset + 0x4)) / 1000.0f;
-            YRotation = ((float)((short)m_Overlay.Read16(m_Offset + 0x8)) / 4096f) * 22.5f;
+            Position.X = (float)((short)data.Read16(0x0)) / 1000.0f;
+            Position.Y = (float)((short)data.Read16(0x2)) / 1000.0f;
+            Position.Z = (float)((short)data.Read16(0x4)) / 1000.0f;
+            YRotation = ((float)((short)data.Read16(0x8)) / 4096f) * 22.5f;
 
-            LevelID = m_Overlay.Read8(m_Offset + 0xA);
-            EntranceID = m_Overlay.Read8(m_Offset + 0xB);
-            Param1 = m_Overlay.Read16(m_Offset + 0x6);
-            Param2 = m_Overlay.Read16(m_Offset + 0xC);
+            LevelID    = data.Read8 (0xA);
+            EntranceID = data.Read8 (0xB);
+            Param1     = data.Read16(0x6);
+            Param2     = data.Read16(0xC);
 
             m_Renderer = InitialiseRenderer();
+            m_KCLName = InitializeKCL();
             m_Properties = new PropertyTable(); 
             GenerateProperties();
         }
 
-        public override ObjectRenderer InitialiseRenderer()
+        public override ObjectRenderer BuildRenderer()
         {
             return new ColorCubeRenderer(Color.FromArgb(255, 0, 0), Color.FromArgb(64, 0, 0), true);
         }
@@ -589,17 +572,16 @@ namespace SM64DSe
             return 0;
         }
 
-        public override void SaveChanges()
+        public override void SaveChanges(System.IO.BinaryWriter binWriter)
         {
-            m_Overlay.Write16(m_Offset + 0x0, (ushort)((short)(Position.X * 1000.0f)));
-            m_Overlay.Write16(m_Offset + 0x2, (ushort)((short)(Position.Y * 1000.0f)));
-            m_Overlay.Write16(m_Offset + 0x4, (ushort)((short)(Position.Z * 1000.0f)));
-            m_Overlay.Write16(m_Offset + 0x8, (ushort)((short)((YRotation / 22.5f) * 4096f)));
-
-            m_Overlay.Write8(m_Offset + 0xA, (byte)LevelID);
-            m_Overlay.Write8(m_Offset + 0xB, (byte)EntranceID);
-            m_Overlay.Write16(m_Offset + 0x6, Param1);
-            m_Overlay.Write16(m_Offset + 0xC, Param2);
+            binWriter.Write((ushort)((short)(Position.X * 1000.0f)));
+            binWriter.Write((ushort)((short)(Position.Y * 1000.0f)));
+            binWriter.Write((ushort)((short)(Position.Z * 1000.0f)));
+            binWriter.Write(Param1);
+            binWriter.Write((ushort)((short)((YRotation / 22.5f) * 4096f)));
+            binWriter.Write((byte)LevelID);
+            binWriter.Write((byte)EntranceID);
+            binWriter.Write(Param2);
         }
     }
 
@@ -607,35 +589,36 @@ namespace SM64DSe
     {
         public int DoorType, OutAreaID, InAreaID, PlaneSizeX, PlaneSizeY;
 
-        public DoorObject(NitroOverlay ovl, uint offset, int num, int layer)
-            : base(ovl, offset, layer)
+        public DoorObject(INitroROMBlock data, int num, int layer)
+            : base(data, layer)
         {
             m_UniqueID = (uint)(0x20000000 | num);
-            m_Type = 9;
+            m_Type = Type.DOOR;
 
             ID = 0;
-            Position.X = (float)((short)m_Overlay.Read16(m_Offset + 0x0)) / 1000f;
-            Position.Y = (float)((short)m_Overlay.Read16(m_Offset + 0x2)) / 1000f;
-            Position.Z = (float)((short)m_Overlay.Read16(m_Offset + 0x4)) / 1000f;
-            YRotation = ((float)((short)m_Overlay.Read16(m_Offset + 0x6)) / 4096f) * 22.5f;
+            Position.X = (float)((short)data.Read16(0x0)) / 1000f;
+            Position.Y = (float)((short)data.Read16(0x2)) / 1000f;
+            Position.Z = (float)((short)data.Read16(0x4)) / 1000f;
+            YRotation = ((float)((short)data.Read16(0x6)) / 4096f) * 22.5f;
 
-            DoorType = m_Overlay.Read8(m_Offset + 0xA);
+            DoorType = data.Read8(0xA);
             if (DoorType > 0x17) DoorType = 0x17;
 
-            InAreaID = m_Overlay.Read8(m_Offset + 0x9);
+            InAreaID = data.Read8(0x9);
             OutAreaID = InAreaID >> 4;
             InAreaID &= 0xF;
 
-            PlaneSizeX = m_Overlay.Read8(m_Offset + 0x8);
+            PlaneSizeX = data.Read8(0x8);
             PlaneSizeY = PlaneSizeX >> 4;
             PlaneSizeX &= 0xF;
 
             m_Renderer = InitialiseRenderer();
+            m_KCLName = InitializeKCL();
             m_Properties = new PropertyTable(); 
             GenerateProperties();
         }
 
-        public override ObjectRenderer InitialiseRenderer()
+        public override ObjectRenderer BuildRenderer()
         {
             return new DoorRenderer(this);
         }
@@ -686,6 +669,7 @@ namespace SM64DSe
                     else DoorType = int.Parse(((string)newval).Substring(0, ((string)newval).IndexOf(" - ")));
                     m_Renderer.Release();
                     m_Renderer = InitialiseRenderer();
+                    m_KCLName = InitializeKCL();
                     return 5;
 
                 case "Outside area": OutAreaID = Math.Max(0, Math.Min(15, (int)newval)); return 1;
@@ -705,47 +689,47 @@ namespace SM64DSe
             return 0;
         }
 
-        public override void SaveChanges()
+        public override void SaveChanges(System.IO.BinaryWriter binWriter)
         {
-            m_Overlay.Write16(m_Offset + 0x0, (ushort)((short)(Position.X * 1000.0f)));
-            m_Overlay.Write16(m_Offset + 0x2, (ushort)((short)(Position.Y * 1000.0f)));
-            m_Overlay.Write16(m_Offset + 0x4, (ushort)((short)(Position.Z * 1000.0f)));
-            m_Overlay.Write16(m_Offset + 0x6, (ushort)((short)((YRotation / 22.5f) * 4096f)));
-
-            m_Overlay.Write8(m_Offset + 0x8, (byte)(PlaneSizeX | (PlaneSizeY << 4)));
-            m_Overlay.Write8(m_Offset + 0x9, (byte)(InAreaID | (OutAreaID << 4)));
-            m_Overlay.Write8(m_Offset + 0xA, (byte)DoorType);
+            binWriter.Write((ushort)((short)(Position.X * 1000.0f)));
+            binWriter.Write((ushort)((short)(Position.Y * 1000.0f)));
+            binWriter.Write((ushort)((short)(Position.Z * 1000.0f)));
+            binWriter.Write((ushort)((short)((YRotation / 22.5f) * 4096f)));
+            binWriter.Write((byte)(PlaneSizeX | (PlaneSizeY << 4)));
+            binWriter.Write((byte)(InAreaID | (OutAreaID << 4)));
+            binWriter.Write((ushort)DoorType);
         }
     }
 
     public class PathPointObject : LevelObject
     {
-        public PathPointObject(NitroOverlay ovl, uint offset, int num, int nodeID)
-            : base(ovl, offset, 0)
+        public PathPointObject(INitroROMBlock data, int num, int nodeID)
+            : base(data, 0)
         {
             m_UniqueID = (uint)(0x30000000 | num);
-            m_Type = 2;
+            m_Type = Type.PATH_NODE;
             m_NodeID = nodeID;
 
-            Position.X = (float)((short)m_Overlay.Read16(m_Offset)) / 1000f;
-            Position.Y = (float)((short)m_Overlay.Read16(m_Offset + 0x2)) / 1000f;
-            Position.Z = (float)((short)m_Overlay.Read16(m_Offset + 0x4)) / 1000f;
+            Position.X = (float)((short)data.Read16(0x0)) / 1000f;
+            Position.Y = (float)((short)data.Read16(0x2)) / 1000f;
+            Position.Z = (float)((short)data.Read16(0x4)) / 1000f;
 
             m_Renderer = InitialiseRenderer();
+            m_KCLName = InitializeKCL();
             m_Properties = new PropertyTable();
             GenerateProperties();
         }
         
         public int m_NodeID;
 
-        public override ObjectRenderer InitialiseRenderer()
+        public override ObjectRenderer BuildRenderer()
         {
             return new ColourArrowRenderer(Color.FromArgb(0, 255, 255), Color.FromArgb(0, 64, 64), false);
         }
 
         public override string GetDescription()
         {
-            return "PathPointObject";
+            return "Path Node";
         }
 
         public override bool SupportsRotation() { return false; }
@@ -774,28 +758,28 @@ namespace SM64DSe
             return 0;
         }
 
-        public override void SaveChanges()
+        public override void SaveChanges(System.IO.BinaryWriter binWriter)
         {
-            m_Overlay.Write16(m_Offset + 0x0, (ushort)((short)(Position.X * 1000.0f)));
-            m_Overlay.Write16(m_Offset + 0x2, (ushort)((short)(Position.Y * 1000.0f)));
-            m_Overlay.Write16(m_Offset + 0x4, (ushort)((short)(Position.Z * 1000.0f)));
+            binWriter.Write((ushort)((short)(Position.X * 1000.0f)));
+            binWriter.Write((ushort)((short)(Position.Y * 1000.0f)));
+            binWriter.Write((ushort)((short)(Position.Z * 1000.0f)));
         }
     }
 
     public class PathObject : LevelObject
     {
-        public PathObject(NitroOverlay ovl, uint offset, int num)
-            : base(ovl, offset, 0)
+        public PathObject(INitroROMBlock data, int num)
+            : base(data, 0)
         {
             m_UniqueID = (uint)(0x30000000 | num);
-            m_Type = 3;
+            m_Type = Type.PATH;
 
             Parameters = new ushort[5];
-            Parameters[0] = m_Overlay.Read16(m_Offset);
-            Parameters[1] = (ushort)m_Overlay.Read8(m_Offset + 0x2);
-            Parameters[2] = (ushort)m_Overlay.Read8(m_Offset + 0x3);
-            Parameters[3] = (ushort)m_Overlay.Read8(m_Offset + 0x4);
-            Parameters[4] = (ushort)m_Overlay.Read8(m_Offset + 0x5);
+            Parameters[0] =         data.Read16(0x0);
+            Parameters[1] = (ushort)data.Read8 (0x2);
+            Parameters[2] = (ushort)data.Read8 (0x3);
+            Parameters[3] = (ushort)data.Read8 (0x4);
+            Parameters[4] = (ushort)data.Read8 (0x5);
 
             m_Properties = new PropertyTable();
             GenerateProperties();
@@ -803,7 +787,7 @@ namespace SM64DSe
 
         public override string GetDescription()
         {
-            return "PathObject";
+            return "Path";
         }
 
         public override void GenerateProperties()
@@ -839,13 +823,13 @@ namespace SM64DSe
             return 0;
         }
 
-        public override void SaveChanges()
+        public override void SaveChanges(System.IO.BinaryWriter binWriter)
         {
-            m_Overlay.Write16(m_Offset + 0x00, Parameters[0]);
-            m_Overlay.Write8(m_Offset + 0x02, (byte)Parameters[1]);
-            m_Overlay.Write8(m_Offset + 0x03, (byte)Parameters[2]);
-            m_Overlay.Write8(m_Offset + 0x04, (byte)Parameters[3]);
-            m_Overlay.Write8(m_Offset + 0x05, (byte)Parameters[4]);
+            binWriter.Write(Parameters[0]);
+            binWriter.Write((byte)Parameters[1]);
+            binWriter.Write((byte)Parameters[2]);
+            binWriter.Write((byte)Parameters[3]);
+            binWriter.Write((byte)Parameters[4]);
         }
 
         public override void Render(RenderMode mode) { }
@@ -854,28 +838,29 @@ namespace SM64DSe
 
     public class ViewObject : LevelObject
     {
-        public ViewObject(NitroOverlay ovl, uint offset, int num)
-            : base(ovl, offset, 0)
+        public ViewObject(INitroROMBlock data, int num)
+            : base(data, 0)
         {
             m_UniqueID = (uint)(0x40000000 | num);
-            m_Type = 4;
+            m_Type = LevelObject.Type.VIEW;
 
-            Position.X = (float)((short)m_Overlay.Read16(m_Offset + 0x2)) / 1000.0f;
-            Position.Y = (float)((short)m_Overlay.Read16(m_Offset + 0x4)) / 1000.0f;
-            Position.Z = (float)((short)m_Overlay.Read16(m_Offset + 0x6)) / 1000.0f;
-            YRotation = ((float)((short)m_Overlay.Read16(m_Offset + 0xA)) / 4096f) * 22.5f;
+            Position.X = (float)((short)data.Read16(0x2)) / 1000.0f;
+            Position.Y = (float)((short)data.Read16(0x4)) / 1000.0f;
+            Position.Z = (float)((short)data.Read16(0x6)) / 1000.0f;
+            YRotation = ((float)((short)data.Read16(0xA)) / 4096f) * 22.5f;
 
             Parameters = new ushort[3];
-            Parameters[0] = m_Overlay.Read16(m_Offset + 0x0);
-            Parameters[1] = m_Overlay.Read16(m_Offset + 0x8);
-            Parameters[2] = m_Overlay.Read16(m_Offset + 0xC);
+            Parameters[0] = data.Read16(0x0);
+            Parameters[1] = data.Read16(0x8);
+            Parameters[2] = data.Read16(0xC);
 
             m_Renderer = InitialiseRenderer();
+            m_KCLName = InitializeKCL();
             m_Properties = new PropertyTable(); 
             GenerateProperties();
         }
 
-        public override ObjectRenderer InitialiseRenderer()
+        public override ObjectRenderer BuildRenderer()
         {
             return new ColorCubeRenderer(Color.FromArgb(255, 255, 0), Color.FromArgb(64, 64, 0), true);
         }
@@ -893,9 +878,9 @@ namespace SM64DSe
             m_Properties.Properties.Add(new PropertySpec("Y position", typeof(float), "General", "The view's position along the Y axis.", Position.Y, "", typeof(FloatTypeConverter)));
             m_Properties.Properties.Add(new PropertySpec("Z position", typeof(float), "General", "The view's position along the Z axis.", Position.Z, "", typeof(FloatTypeConverter)));
             m_Properties.Properties.Add(new PropertySpec("Y rotation", typeof(float), "General", "The angle in degrees the view is rotated around the Y axis.", YRotation, "", typeof(FloatTypeConverter)));
-            m_Properties.Properties.Add(new PropertySpec("Parameter 1", typeof(ushort), "Specific", "Purpose unknown.", Parameters[0], "", typeof(HexNumberTypeConverter)));
-            m_Properties.Properties.Add(new PropertySpec("Parameter 2", typeof(ushort), "Specific", "Purpose unknown.", Parameters[1], "", typeof(HexNumberTypeConverter)));
-            m_Properties.Properties.Add(new PropertySpec("Parameter 3", typeof(ushort), "Specific", "Purpose unknown.", Parameters[2], "", typeof(HexNumberTypeConverter)));
+            m_Properties.Properties.Add(new PropertySpec("Parameter 1", typeof(ushort), "Specific", "View type stuff.", Parameters[0], "", typeof(HexNumberTypeConverter)));
+            m_Properties.Properties.Add(new PropertySpec("Parameter 2", typeof(ushort), "Specific", "Redundant Ex Rotation.", Parameters[1], "", typeof(HexNumberTypeConverter)));
+            m_Properties.Properties.Add(new PropertySpec("Parameter 3", typeof(ushort), "Specific", "Redundant Zee Rotation.", Parameters[2], "", typeof(HexNumberTypeConverter)));
 
             m_Properties["X position"] = Position.X;
             m_Properties["Y position"] = Position.Y;
@@ -923,42 +908,42 @@ namespace SM64DSe
             return 0;
         }
 
-        public override void SaveChanges()
+        public override void SaveChanges(System.IO.BinaryWriter binWriter)
         {
-             m_Overlay.Write16(m_Offset + 0x2, (ushort)((short)(Position.X * 1000.0f)));
-             m_Overlay.Write16(m_Offset + 0x4, (ushort)((short)(Position.Y * 1000.0f)));
-             m_Overlay.Write16(m_Offset + 0x6, (ushort)((short)(Position.Z * 1000.0f)));
-             m_Overlay.Write16(m_Offset + 0xA, (ushort)((short)((YRotation / 22.5f) * 4096f)));
-
-             m_Overlay.Write16(m_Offset + 0x0, Parameters[0]);
-             m_Overlay.Write16(m_Offset + 0x8, Parameters[1]);
-             m_Overlay.Write16(m_Offset + 0xC, Parameters[2]);
+            binWriter.Write(Parameters[0]);
+            binWriter.Write((ushort)((short)(Position.X * 1000.0f)));
+            binWriter.Write((ushort)((short)(Position.Y * 1000.0f)));
+            binWriter.Write((ushort)((short)(Position.Z * 1000.0f)));
+            binWriter.Write(Parameters[1]);
+            binWriter.Write((ushort)((short)((YRotation / 22.5f) * 4096f)));
+            binWriter.Write(Parameters[2]);
         }
     }
 
     public class TpSrcObject : LevelObject
     {
-        public TpSrcObject(NitroOverlay ovl, uint offset, int num, int layer)
-            : base(ovl, offset, layer)
+        public TpSrcObject(INitroROMBlock data, int num, int layer)
+            : base(data, layer)
         {
             m_UniqueID = (uint)(0x20000000 | num);
-            m_Type = 6;
+            m_Type = Type.TELEPORT_SOURCE;
 
-            Position.X = (float)((short)m_Overlay.Read16(m_Offset)) / 1000.0f;
-            Position.Y = (float)((short)m_Overlay.Read16(m_Offset + 0x2)) / 1000.0f;
-            Position.Z = (float)((short)m_Overlay.Read16(m_Offset + 0x4)) / 1000.0f;
+            Position.X = (float)((short)data.Read16(0x0)) / 1000.0f;
+            Position.Y = (float)((short)data.Read16(0x2)) / 1000.0f;
+            Position.Z = (float)((short)data.Read16(0x4)) / 1000.0f;
             YRotation = 0.0f;
 
             Parameters = new ushort[2];
-            Parameters[0] = m_Overlay.Read8(m_Offset + 0x6);
-            Parameters[1] = m_Overlay.Read8(m_Offset + 0x07);
+            Parameters[0] = data.Read8(0x6);
+            Parameters[1] = data.Read8(0x7);
 
             m_Renderer = InitialiseRenderer();
+            m_KCLName = InitializeKCL();
             m_Properties = new PropertyTable();
             GenerateProperties();
         }
 
-        public override ObjectRenderer InitialiseRenderer()
+        public override ObjectRenderer BuildRenderer()
         {
             return new ColorCubeRenderer(Color.FromArgb(255, 0, 255), Color.FromArgb(64, 0, 64), false);
         }
@@ -1000,39 +985,39 @@ namespace SM64DSe
             return 0;
         }
 
-        public override void SaveChanges()
+        public override void SaveChanges(System.IO.BinaryWriter binWriter)
         {
-            m_Overlay.Write16(m_Offset + 0x0, (ushort)((short)(Position.X * 1000.0f)));
-            m_Overlay.Write16(m_Offset + 0x2, (ushort)((short)(Position.Y * 1000.0f)));
-            m_Overlay.Write16(m_Offset + 0x4, (ushort)((short)(Position.Z * 1000.0f)));
-
-            m_Overlay.Write8(m_Offset + 0x6, (byte)Parameters[0]);
-            m_Overlay.Write8(m_Offset + 0x7, (byte)Parameters[1]);
+            binWriter.Write((ushort)((short)(Position.X * 1000.0f)));
+            binWriter.Write((ushort)((short)(Position.Y * 1000.0f)));
+            binWriter.Write((ushort)((short)(Position.Z * 1000.0f)));
+            binWriter.Write((byte)Parameters[0]);
+            binWriter.Write((byte)Parameters[1]);
         }
     }
 
     public class TpDstObject : LevelObject
     {
-        public TpDstObject(NitroOverlay ovl, uint offset, int num, int layer)
-            : base(ovl, offset, layer)
+        public TpDstObject(INitroROMBlock data, int num, int layer)
+            : base(data, layer)
         {
             m_UniqueID = (uint)(0x20000000 | num);
-            m_Type = 7;
+            m_Type = Type.TELEPORT_DESTINATION;
 
-            Position.X = (float)((short)m_Overlay.Read16(m_Offset)) / 1000.0f;
-            Position.Y = (float)((short)m_Overlay.Read16(m_Offset + 0x2)) / 1000.0f;
-            Position.Z = (float)((short)m_Overlay.Read16(m_Offset + 0x4)) / 1000.0f;
+            Position.X = (float)((short)data.Read16(0x0)) / 1000.0f;
+            Position.Y = (float)((short)data.Read16(0x2)) / 1000.0f;
+            Position.Z = (float)((short)data.Read16(0x4)) / 1000.0f;
             YRotation = 0.0f;
 
             Parameters = new ushort[1];
-            Parameters[0] = m_Overlay.Read16(m_Offset + 0x6);
+            Parameters[0] = data.Read16(0x6);
 
             m_Renderer = InitialiseRenderer();
+            m_KCLName = InitializeKCL();
             m_Properties = new PropertyTable();
             GenerateProperties();
         }
 
-        public override ObjectRenderer InitialiseRenderer()
+        public override ObjectRenderer BuildRenderer()
         {
             return new ColorCubeRenderer(Color.FromArgb(255, 128, 0), Color.FromArgb(64, 32, 0), false);
         }
@@ -1071,27 +1056,26 @@ namespace SM64DSe
             return 0;
         }
 
-        public override void SaveChanges()
+        public override void SaveChanges(System.IO.BinaryWriter binWriter)
         {
-            m_Overlay.Write16(m_Offset + 0x0, (ushort)((short)(Position.X * 1000.0f)));
-            m_Overlay.Write16(m_Offset + 0x2, (ushort)((short)(Position.Y * 1000.0f)));
-            m_Overlay.Write16(m_Offset + 0x4, (ushort)((short)(Position.Z * 1000.0f)));
-
-            m_Overlay.Write16(m_Offset + 0x6, Parameters[0]);
+            binWriter.Write((ushort)((short)(Position.X * 1000.0f)));
+            binWriter.Write((ushort)((short)(Position.Y * 1000.0f)));
+            binWriter.Write((ushort)((short)(Position.Z * 1000.0f)));
+            binWriter.Write(Parameters[0]);
         }
     }
 
     public class MinimapScaleObject : LevelObject
     {
-        public MinimapScaleObject(NitroOverlay ovl, uint offset, int num, int layer, int area)
-            : base(ovl, offset, layer)
+        public MinimapScaleObject(INitroROMBlock data, int num, int layer, int area)
+            : base(data, layer)
         {
-            m_Type = 12;
+            m_Type = Type.MINIMAP_SCALE;
             m_Area = area;
             m_UniqueID = (uint)(0x50000000 | num);
 
             Parameters = new ushort[1];
-            Parameters[0] = m_Overlay.Read16(m_Offset);
+            Parameters[0] = data.Read16(0);
 
             m_Properties = new PropertyTable();
             GenerateProperties();
@@ -1123,9 +1107,9 @@ namespace SM64DSe
             return 0;
         }
 
-        public override void SaveChanges()
+        public override void SaveChanges(System.IO.BinaryWriter binWriter)
         {
-            m_Overlay.Write16(m_Offset, (ushort)Parameters[0]);
+            binWriter.Write(Parameters[0]);
         }
 
         public override void Render(RenderMode mode) { }
@@ -1134,20 +1118,20 @@ namespace SM64DSe
 
     public class FogObject : LevelObject
     {
-        public FogObject(NitroOverlay ovl, uint offset, int num, int layer, int area)
-            : base(ovl, offset, layer)
+        public FogObject(INitroROMBlock data, int num, int layer, int area)
+            : base(data, layer)
         {
             m_Area = area;
-            m_Type = 8;
+            m_Type = Type.FOG;
             m_UniqueID = (uint)(0x50000000 | num);
 
             Parameters = new ushort[6];
-            Parameters[0] = m_Overlay.Read8(m_Offset);
-            Parameters[1] = m_Overlay.Read8(m_Offset + 1);
-            Parameters[2] = m_Overlay.Read8(m_Offset + 2);
-            Parameters[3] = m_Overlay.Read8(m_Offset + 3);
-            Parameters[4] = m_Overlay.Read16(m_Offset + 4);
-            Parameters[5] = m_Overlay.Read16(m_Offset + 6);
+            Parameters[0] = data.Read8 (0);
+            Parameters[1] = data.Read8 (1);
+            Parameters[2] = data.Read8 (2);
+            Parameters[3] = data.Read8 (3);
+            Parameters[4] = data.Read16(4);
+            Parameters[5] = data.Read16(6);
 
             //m_Renderer = new ColorCubeRenderer(Color.FromArgb(255, 255, 0), Color.FromArgb(Parameters[1], Parameters[2], Parameters[3]), true);
             m_Properties = new PropertyTable();
@@ -1195,14 +1179,14 @@ namespace SM64DSe
             return 0;
         }
 
-        public override void SaveChanges()
+        public override void SaveChanges(System.IO.BinaryWriter binWriter)
         {
-            m_Overlay.Write8(m_Offset, (byte)Parameters[0]);
-            m_Overlay.Write8(m_Offset + 1, (byte)Parameters[1]);
-            m_Overlay.Write8(m_Offset + 2, (byte)Parameters[2]);
-            m_Overlay.Write8(m_Offset + 3, (byte)Parameters[3]);
-            m_Overlay.Write16(m_Offset + 4, (ushort)Parameters[4]);
-            m_Overlay.Write16(m_Offset + 6, (ushort)Parameters[5]);
+            binWriter.Write((byte)Parameters[0]);
+            binWriter.Write((byte)Parameters[1]);
+            binWriter.Write((byte)Parameters[2]);
+            binWriter.Write((byte)Parameters[3]);
+            binWriter.Write((ushort)Parameters[4]);
+            binWriter.Write((ushort)Parameters[5]);
         }
 
         public override void Render(RenderMode mode) { }
@@ -1211,18 +1195,18 @@ namespace SM64DSe
 
     public class Type14Object : LevelObject
     {
-        public Type14Object(NitroOverlay ovl, uint offset, int num, int layer, int area)
-            : base(ovl, offset, layer)
+        public Type14Object(INitroROMBlock data, int num, int layer, int area)
+            : base(data, layer)
         {
             m_Area = area;
-            m_Type = 14;
+            m_Type = Type.UNKNOWN_14;
             m_UniqueID = (uint)(0x50000000 | num);
 
             Parameters = new ushort[4];
-            Parameters[0] = m_Overlay.Read8(m_Offset);
-            Parameters[1] = m_Overlay.Read8(m_Offset + 1);
-            Parameters[2] = m_Overlay.Read8(m_Offset + 2);
-            Parameters[3] = m_Overlay.Read8(m_Offset + 3);
+            Parameters[0] = data.Read8(0);
+            Parameters[1] = data.Read8(1);
+            Parameters[2] = data.Read8(2);
+            Parameters[3] = data.Read8(3);
 
             m_Properties = new PropertyTable();
             GenerateProperties();
@@ -1263,12 +1247,12 @@ namespace SM64DSe
             return 0;
         }
 
-        public override void SaveChanges()
+        public override void SaveChanges(System.IO.BinaryWriter binWriter)
         {
-            m_Overlay.Write8(m_Offset, (byte)Parameters[0]);
-            m_Overlay.Write8(m_Offset + 1, (byte)Parameters[1]);
-            m_Overlay.Write8(m_Offset + 2, (byte)Parameters[2]);
-            m_Overlay.Write8(m_Offset + 3, (byte)Parameters[3]);
+            binWriter.Write((byte)Parameters[0]);
+            binWriter.Write((byte)Parameters[1]);
+            binWriter.Write((byte)Parameters[2]);
+            binWriter.Write((byte)Parameters[3]);
         }
 
         public override void Render(RenderMode mode) { }
@@ -1279,15 +1263,15 @@ namespace SM64DSe
     {
         public int m_MinimapTileIDNum;
 
-        public MinimapTileIDObject(NitroOverlay ovl, uint offset, int num, int layer, int id)
-            : base(ovl, offset, layer)
+        public MinimapTileIDObject(INitroROMBlock data, int num, int layer, int id)
+            : base(data, layer)
         {
-            m_Type = 11;
+            m_Type = Type.MINIMAP_TILE_ID;
             m_MinimapTileIDNum = id;
             m_UniqueID = (uint)(0x50000000 | num);
 
             Parameters = new ushort[2];
-            Parameters[0] = m_Overlay.Read16(m_Offset);
+            Parameters[0] = data.Read16(0);
 
             m_Properties = new PropertyTable();
             GenerateProperties();
@@ -1319,133 +1303,241 @@ namespace SM64DSe
             return 0;
         }
 
-        public override void SaveChanges()
+        public override void SaveChanges(System.IO.BinaryWriter binWriter)
         {
-            m_Overlay.Write16(m_Offset, (ushort)Parameters[0]);
+            binWriter.Write(Parameters[0]);
         }
 
         public override void Render(RenderMode mode) { }
         public override void Release() { }
     }
 
-
+    //Stores the texture animation data per AREA.
     public class LevelTexAnim
     {
-        public LevelTexAnim(NitroOverlay ovl, uint tbloffset, uint offset, int num, int area)
+        public LevelTexAnim(int area) 
         {
-            m_Overlay = ovl;
-            // Address of the animation data
-            m_Offset = offset;
-            m_UniqueID = (uint)num;
             m_Area = area;
-            // Address of the texture animation data header for this texture animation
-            m_TexAnimHeaderOffset = tbloffset;
-
-            // Addresses at which the scale, rotation and translation data for this texture animation starts
-            m_ScaleTblOffset = m_Overlay.ReadPointer(tbloffset + 0x4) + (uint)(m_Overlay.Read16(m_Offset + 0xE) * 4);
-            m_RotTblOffset = m_Overlay.ReadPointer(tbloffset + 0x8) + (uint)(m_Overlay.Read16(m_Offset + 0x12) * 2);
-            m_TransTblOffset = m_Overlay.ReadPointer(tbloffset + 0xC) + (uint)(m_Overlay.Read16(m_Offset + 0x16) * 4);
-            
-            // Addresses of the shared scale, rotation and translation tables
-            m_BaseScaleTblAddr = m_Overlay.ReadPointer(tbloffset + 0x4);
-            m_BaseRotTblAddr = m_Overlay.ReadPointer(tbloffset + 0x8);
-            m_BaseTransTblAddr = m_Overlay.ReadPointer(tbloffset + 0xC);
-
-            m_MatNameOffset = m_Overlay.ReadPointer(m_Offset + 0x4);
+            m_Defs = new List<Def>();
         }
 
-        // Using getters for non-offset values so that these don't need updated every time a change is made eg. new scale value 
-        // inserted, the value will be written to the address only and the field updated on each get()
-
-        public uint getNumFrames()
+        public LevelTexAnim(NitroOverlay ovl, int area, int numAreas, 
+            byte levelFormatVersion = Level.k_LevelFormatVersion)
         {
-            m_NumFrames = m_Overlay.Read32(m_TexAnimHeaderOffset + 0x00);
-            return m_NumFrames;
-        }
+            // Address of the animation data
+            m_UniqueID = (uint)area;
+            m_Area = area;
 
-        public int getNumTexAnims()
-        {
-            m_NumTexAnims = (int)m_Overlay.Read32(m_TexAnimHeaderOffset + 0x10);
-            return m_NumTexAnims;
-        }
+            if(area >= numAreas || ovl.Read32((uint)(ovl.ReadPointer(0x70) + 12 * area + 4)) == 0)
+            {
+                m_Defs = new List<Def>();
+                return;
+            }
 
-        public uint getScaleTblSize()
-        {
-            m_ScaleTblSize = m_Overlay.Read16(m_Offset + 0xC);
-            return m_ScaleTblSize;
-        }
+            uint offset = ovl.ReadPointer((uint)(ovl.ReadPointer(0x70) + 12 * area + 4));
+            m_NumFrames = ovl.Read32(offset + 0x00);
+            uint scaleOffset = ovl.ReadPointer(offset + 0x04);
+            uint rotOffset = ovl.ReadPointer(offset + 0x08);
+            uint transOffset = ovl.ReadPointer(offset + 0x0c);
+            uint numAnims = ovl.Read32(offset + 0x10);
 
-        public uint getScaleTblStart()
-        {
-            m_ScaleTblStart = m_Overlay.Read16(m_Offset + 0xE);
-            return m_ScaleTblStart;
-        }
+            m_Defs = new List<Def>((int)numAnims);
+            uint animOffsetStatic = ovl.ReadPointer(offset + 0x14);
 
-        public uint getRotTblSize()
-        {
-            m_RotTblSize = m_Overlay.Read16(m_Offset + 0x10);
-            return m_RotTblSize;
-        }
+            for (uint animOffset = animOffsetStatic; animOffset < animOffsetStatic + 0x1c * numAnims; animOffset += 0x1c)
+            {
+                Def def = new Def();
+                def.m_MaterialName = ovl.ReadString(ovl.ReadPointer(animOffset + 0x04), -1);
+                def.m_DefaultScale = ovl.Read32(animOffset + 0x08);
 
-        public uint getRotTblStart()
-        {
-            m_RotTblStart = m_Overlay.Read16(m_Offset + 0x12);
-            return m_RotTblStart;
-        }
+                uint numScale = ovl.Read16(animOffset + 0x0C);
+                uint numRot   = ovl.Read16(animOffset + 0x10);
+                uint numTransX = ovl.Read16(animOffset + 0x14);
+                uint numTransY = ovl.Read16(animOffset + 0x18);
 
-        public uint getTransTblSize()
-        {
-            m_TransTblSize = m_Overlay.Read16(m_Offset + 0x14);
-            return m_TransTblSize;
-        }
+                uint scaleIndex = ovl.Read16(animOffset + 0x0E);
+                uint rotIndex   = ovl.Read16(animOffset + 0x12);
+                uint transXIndex = ovl.Read16(animOffset + 0x16);
+                uint transYIndex = ovl.Read16(animOffset + 0x1A);
 
-        public uint getTransTblStart()
-        {
-            m_TransTblStart = m_Overlay.Read16(m_Offset + 0x16);
-            return m_TransTblStart;
-        }
+                def.m_ScaleValues = new List<float>((int)numScale);
+                def.m_RotationValues   = new List<float>((int)numRot);
+                def.m_TranslationXValues = new List<float>((int)numTransX);
+                def.m_TranslationYValues = new List<float>((int)numTransY);
 
-        public string getMatName()
-        {
-            m_MatName = m_Overlay.ReadString(m_MatNameOffset, 0);
-            return m_MatName;
+                uint scaleStartOffset = scaleOffset + (scaleIndex * 4);
+                uint rotationStartOffset = rotOffset + (rotIndex * 2);
+                uint translationXStartOffset = transOffset + (transXIndex * 4);
+                uint translationYStartOffset = transOffset + (transYIndex * 4);
+
+                for (uint offs = scaleStartOffset; offs < scaleStartOffset + numScale * 4; offs += 4)
+                    def.m_ScaleValues.Add((int)ovl.Read32(offs) / 4096.0f);
+                for (uint offs = rotationStartOffset; offs < rotationStartOffset + numRot * 2; offs += 2)
+                    def.m_RotationValues  .Add((short)ovl.Read16(offs) / 4096.0f * 360.0f);
+                for (uint offs = translationXStartOffset; offs < translationXStartOffset + numTransX * 4; offs += 4)
+                    def.m_TranslationXValues.Add((int)ovl.Read32(offs) / 4096.0f);
+                switch (levelFormatVersion)
+                {
+                    case 0:
+                        if ((transYIndex + numTransY) > def.m_NumTranslationXValues)
+                        {
+                            if (transYIndex < def.m_NumTranslationXValues)
+                            {
+                                for (uint offs = translationYStartOffset; offs < translationYStartOffset + (numTransX - transYIndex) * 4; offs += 4)
+                                    def.m_TranslationYValues.Add((int)ovl.Read32(offs) / 4096.0f);
+                                for (uint i = numTransX; i < numTransY; i++)
+                                    def.m_TranslationYValues.Add(0.0f);
+                            }
+                            else
+                            {
+                                def.m_TranslationYValues.Clear();
+                                def.m_TranslationYValues.Add(0.0f);
+                            }
+                            break;
+                        }
+                        goto case 1;
+                    case 1:
+                        {
+                            for (uint offs = translationYStartOffset; offs < translationYStartOffset + numTransY * 4; offs += 4)
+                                def.m_TranslationYValues.Add((int)ovl.Read32(offs) / 4096.0f);
+                        }
+                        break;
+                }
+                m_Defs.Add(def);
+            }
         }
 
         public string GetDescription()
         {
-            return string.Format("{0} (S:{1} R:{2} T:{3})", m_MatName, m_ScaleTblSize, m_RotTblSize, m_TransTblSize);
+            return string.Format("Area: {0}, Frames: {1}", m_Area, m_NumFrames);
         }
 
-        public void SaveChanges()
+        public static List<int> CombineTransformValues(List<List<List<int>>> tripleList)
         {
+            List<List<int>> vals = new List<List<int>>();
+            tripleList.ForEach(x => vals.AddRange(x));
+
+            vals.RemoveAll(x => x.Count == 0); //get rid of empty animations
+            for (int i = vals.Count - 1; i >= 0; --i)
+                if (vals.GetRange(0, i).Any(x => x.SequenceEqual(vals[i])))
+                    vals.RemoveAt(i);
+
+            List<int> ret = new List<int>();
+            vals.ForEach(x => ret.AddRange(x));
+            return ret;
+            //Further compression can be done, but the algorithm is complicated and not worth it right now.
+            //To get a taste of how complicated it would be, look at the palette compression algorithm for
+            //a Tex4x4 texture.
         }
 
-        public NitroOverlay m_Overlay;
-        public uint m_Offset;
-        public uint m_TexAnimHeaderOffset;
+        public static void SaveAll(System.IO.BinaryWriter binWriter, List<LevelTexAnim> texAnimList, uint areaTableOffset, uint numAreas)
+        {
+            List<int> scaleValues = CombineTransformValues(
+                texAnimList.Select(x => x.m_Defs.Select(y => y.m_ScaleValuesInt.ToList())
+                    .ToList()).ToList());
+            List<int> rotationValues   = CombineTransformValues(
+                texAnimList.Select(x => x.m_Defs.Select(y => y.m_RotationValuesInt.ToList())
+                    .ToList()).ToList());
+            List<int> translationValues = CombineTransformValues(
+                texAnimList.Select(x => x.m_Defs.Select(y => y.m_CombinedTranslationValuesInt.ToList())
+                    .ToList()).ToList());
+
+            uint scaleOffset = (uint)binWriter.BaseStream.Position + Level.k_LevelOvlOffset;
+            scaleValues.ForEach(x => binWriter.Write(x));
+            uint rotOffset   = (uint)binWriter.BaseStream.Position + Level.k_LevelOvlOffset;
+            rotationValues  .ForEach(x => binWriter.Write((short)x));
+            Helper.AlignWriter(binWriter, 4);
+            uint transOffset = (uint)binWriter.BaseStream.Position + Level.k_LevelOvlOffset;
+            translationValues.ForEach(x => binWriter.Write(x));
+
+            foreach (LevelTexAnim texAnim in texAnimList)
+            {
+                if (texAnim.m_Defs.Count == 0)
+                    continue;
+
+                Helper.WritePosAndRestore(binWriter, (uint)(areaTableOffset + texAnim.m_Area * 12 + 4),
+                    Level.k_LevelOvlOffset);
+
+                binWriter.Write(texAnim.m_NumFrames);
+                binWriter.Write(scaleOffset);
+                binWriter.Write(rotOffset);
+                binWriter.Write(transOffset);
+                binWriter.Write(texAnim.m_Defs.Count);
+                binWriter.Write((uint)binWriter.BaseStream.Position + Level.k_LevelOvlOffset + 4);
+
+                uint defStrPtrOffset = (uint)binWriter.BaseStream.Position + 0x04;
+                foreach (Def def in texAnim.m_Defs)
+                {
+                    List<int> currScaleValues = def.m_ScaleValuesInt;
+                    List<int> currRotationValues = def.m_RotationValuesInt;
+                    List<int> currTranslationXValues = def.m_TranslationXValuesInt;
+                    List<int> currTranslationYValues = def.m_TranslationYValuesInt;
+                    binWriter.Write(0x0000ffff);
+                    binWriter.Write(0x00000000);
+                    binWriter.Write(0x00000001);
+                    binWriter.Write((ushort)def.m_ScaleValues.Count);
+                    binWriter.Write((ushort)Helper.FindSubList(scaleValues, currScaleValues));
+                    binWriter.Write((ushort)def.m_RotationValues.Count);
+                    binWriter.Write((ushort)Helper.FindSubList(rotationValues, currRotationValues));
+                    binWriter.Write((ushort)def.m_TranslationXValues.Count);
+                    binWriter.Write((ushort)Helper.FindSubList(translationValues, currTranslationXValues));
+                    binWriter.Write((ushort)def.m_TranslationYValues.Count);
+                    binWriter.Write((ushort)Helper.FindSubList(translationValues, currTranslationYValues));
+                }
+                foreach (Def def in texAnim.m_Defs)
+                {
+                    Helper.WritePosAndRestore(binWriter, defStrPtrOffset, Level.k_LevelOvlOffset);
+                    binWriter.Write(def.m_MaterialName.ToCharArray());
+                    binWriter.Write((byte)0);
+                    defStrPtrOffset += 0x1c;
+                }
+            }
+            
+        }
 
         public int m_Area;
         public uint m_UniqueID;
+        
+        public uint m_NumFrames;
 
-        private int m_NumTexAnims;
-        private uint m_NumFrames;
+        public int m_NumScaleValues { get { int count = 0; foreach (Def def in m_Defs) { count += def.m_NumScaleValues; } return count; } }
+        public int m_NumRotationValues { get { int count = 0; foreach (Def def in m_Defs) { count += def.m_NumRotationValues; } return count; } }
+        public int m_NumTranslationXValues { get { int count = 0; foreach (Def def in m_Defs) { count += def.m_NumTranslationXValues; } return count; } }
+        public int m_NumTranslationYValues { get { int count = 0; foreach (Def def in m_Defs) { count += def.m_NumTranslationYValues; } return count; } }
 
-        public uint m_BaseScaleTblAddr;
-        public uint m_BaseRotTblAddr;
-        public uint m_BaseTransTblAddr;
+        public class Def
+        {
+            public string m_MaterialName;
+            public List<float> m_ScaleValues;
+            public List<float> m_RotationValues;
+            public List<float> m_TranslationXValues;
+            public List<float> m_TranslationYValues;
+            public float m_DefaultScale;
 
-        public uint m_ScaleTblOffset;
-        public uint m_RotTblOffset;
-        public uint m_TransTblOffset;
+            public int m_NumScaleValues { get { return (m_ScaleValues != null) ? m_ScaleValues.Count : 0; } }
+            public int m_NumRotationValues { get { return (m_RotationValues != null) ? m_RotationValues.Count : 0; } }
+            public int m_NumTranslationXValues { get { return (m_TranslationXValues != null) ? m_TranslationXValues.Count : 0; } }
+            public int m_NumTranslationYValues { get { return (m_TranslationYValues != null) ? m_TranslationYValues.Count : 0; } }
 
-        private ushort m_ScaleTblSize;
-        private ushort m_RotTblSize;
-        private ushort m_TransTblSize;
-        private ushort m_ScaleTblStart;
-        private ushort m_RotTblStart;
-        private ushort m_TransTblStart;
+            public List<int> m_ScaleValuesInt { get { return Helper.FloatListTo20_12IntList(m_ScaleValues); } }
+            public List<int> m_RotationValuesInt { get { return Helper.FloatListToRotationIntList(m_RotationValues); } }
+            public List<int> m_TranslationXValuesInt { get { return Helper.FloatListTo20_12IntList(m_TranslationXValues); } }
+            public List<int> m_TranslationYValuesInt { get { return Helper.FloatListTo20_12IntList(m_TranslationYValues); } }
 
-        public uint m_MatNameOffset;
-        private string m_MatName;
+            public List<float> m_CombinedTranslationValues
+            {
+                get
+                {
+                    List<float> translations = new List<float>();
+                    translations.AddRange(m_TranslationXValues);
+                    translations.AddRange(m_TranslationYValues);
+                    return translations;
+                }
+            }
+            public List<int> m_CombinedTranslationValuesInt { get { return Helper.FloatListTo20_12IntList(m_CombinedTranslationValues); } }
+        }
+
+        public List<Def> m_Defs;
+        public int m_NumDefs { get { return (m_Defs != null) ? m_Defs.Count : 0; } }
     }
 }

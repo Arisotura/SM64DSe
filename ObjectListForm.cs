@@ -32,8 +32,8 @@ namespace SM64DSe
         public ushort ObjectID;
         private Dictionary<ushort, bool> m_ObjAvailable;
         private Dictionary<ushort, string> m_BasicDescriptions;
-        private int[] m_ObjectIndexIDMap = Enumerable.Range(0, 327).ToArray();
-        private string[] m_ObjectListText = new string[327];
+        private int[] m_ObjectIndexIDMap = Enumerable.Range(0, LevelObject.NUM_OBJ_TYPES + 1).ToArray();
+        private string[] m_ObjectListText = new string[LevelObject.NUM_OBJ_TYPES + 1];
 
         public ObjectListForm(ushort objid)
         {
@@ -56,7 +56,7 @@ namespace SM64DSe
         {
             ObjectID = (ushort)m_ObjectIndexIDMap[lbxObjectList.SelectedIndex];
 
-            if (ObjectID == 326)
+            if (ObjectID == LevelObject.NUM_OBJ_TYPES)
                 ObjectID = 511; // haxx
 
             // describe the object
@@ -78,10 +78,10 @@ namespace SM64DSe
 
         private void ObjectListForm_Load(object sender, EventArgs e)
         {
-            m_ObjAvailable = ((LevelEditorForm)Owner).m_ObjAvailable;
+            m_ObjAvailable = ((LevelEditorForm)Owner).m_Level.m_ObjAvailable;
             m_BasicDescriptions = new Dictionary<ushort, string>();
             lbxObjectList.BeginUpdate();
-            for (int i = 0; i < 326; i++)
+            for (int i = 0; i < LevelObject.NUM_OBJ_TYPES; i++)
             {
                 ObjectDatabase.ObjectInfo objinfo = ObjectDatabase.m_ObjectInfo[i];
                 m_ObjectListText[i] = string.Format("{0} - {1}",
@@ -90,10 +90,10 @@ namespace SM64DSe
                 m_BasicDescriptions.Add((ushort)i, objinfo.GetBasicInfo());
             }
 
-            m_ObjectListText[326] = "511 - Minimap change";
-            lbxObjectList.Items.Insert(326, m_ObjectListText[326]);
+            m_ObjectListText[LevelObject.NUM_OBJ_TYPES] = "511 - Minimap change";
+            lbxObjectList.Items.Insert(LevelObject.NUM_OBJ_TYPES, m_ObjectListText[LevelObject.NUM_OBJ_TYPES]);
             lbxObjectList.EndUpdate();
-            lbxObjectList.SelectedIndex = (ObjectID == 511) ? (ushort) 326 : ObjectID;
+            lbxObjectList.SelectedIndex = (ObjectID == 511) ? (ushort) LevelObject.NUM_OBJ_TYPES : ObjectID;
         }
 
         private void lbxObjectList_DoubleClick(object sender, EventArgs e)
@@ -110,7 +110,7 @@ namespace SM64DSe
             bool sel = (e.State & (DrawItemState.Focus | DrawItemState.Selected)) != 0;
 
             bool available;
-            if (id == 326) available = true;
+            if (id == LevelObject.NUM_OBJ_TYPES) available = true;
             else available = m_ObjAvailable[id];
 
             Color txtcolor;
@@ -145,11 +145,11 @@ namespace SM64DSe
                 for (int i = 0; i < matchingIDs.Count; i++)
                 {
                     ushort id = matchingIDs.ElementAt(i);
-                    if (id != 326)
+                    if (id != LevelObject.NUM_OBJ_TYPES)
                         lbxObjectList.Items.Insert(i, string.Format("{0} - {1}",
                             id, m_BasicDescriptions[id]));
                     else
-                        lbxObjectList.Items.Insert(326, "511 - Minimap change");
+                        lbxObjectList.Items.Insert(LevelObject.NUM_OBJ_TYPES, "511 - Minimap change");
                 }
                 lbxObjectList.EndUpdate();
             }

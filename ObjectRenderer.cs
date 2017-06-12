@@ -1082,11 +1082,6 @@ namespace SM64DSe
                 GL.Color4(m_BorderColor);
                 GL.End();
 
-                //GL.Begin(PrimitiveType.Lines);
-                //GL.Vertex3(0.0f, 0.0f, 0.0f);
-                //GL.Vertex3(0.0f, 0.0f, -s * 2.0f);
-                //GL.End();
-
                 if (m_ShowAxes)
                 {
                     GL.Begin(PrimitiveType.Lines);

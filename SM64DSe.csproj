@@ -54,9 +54,33 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualBasic" />
-    <Reference Include="OpenTK.Compatibility, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+    <Reference Include="NAudio">
+      <HintPath>bin\Release\lib\NAudio.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenTK">
+      <HintPath>bin\Release\lib\OpenTK.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenTK.Compatibility">
+      <HintPath>bin\Release\lib\OpenTK.Compatibility.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenTK.GLControl">
+      <HintPath>bin\Release\lib\OpenTK.GLControl.dll</HintPath>
+    </Reference>
+    <Reference Include="QuickGraph, Version=3.6.61114.0, Culture=neutral, PublicKeyToken=f3fb40175eec2af3, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Release\OpenTK.Compatibility.dll</HintPath>
+      <HintPath>bin\Release\QuickGraph.dll</HintPath>
+    </Reference>
+    <Reference Include="QuickGraph.Data, Version=3.6.61114.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Release\QuickGraph.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="QuickGraph.Graphviz, Version=3.6.61114.0, Culture=neutral, PublicKeyToken=f3fb40175eec2af3, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Release\QuickGraph.Graphviz.dll</HintPath>
+    </Reference>
+    <Reference Include="QuickGraph.Serialization, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Release\QuickGraph.Serialization.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
@@ -73,12 +97,6 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-    <Reference Include="OpenTK">
-      <HintPath>bin\Release\OpenTK.dll</HintPath>
-    </Reference>
-    <Reference Include="OpenTK.GLControl">
-      <HintPath>bin\Release\OpenTK.GLControl.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="3DStuff.cs" />
@@ -96,6 +114,18 @@
     </Compile>
     <Compile Include="BasicBigFloat.cs" />
     <Compile Include="BiDictionaryOneToOne.cs" />
+    <Compile Include="CodeCompilerForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="CodeCompilerForm.designer.cs">
+      <DependentUpon>CodeCompilerForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="CodeFixerForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="CodeFixerForm.designer.cs">
+      <DependentUpon>CodeFixerForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="DataHelper.cs" />
     <Compile Include="ExceptionMessageBox.cs">
       <SubType>Form</SubType>
@@ -115,7 +145,16 @@
     <Compile Include="ImportExport\BMD_BCA_KCLExporter.cs" />
     <Compile Include="ImportExport\BMDImporter.cs" />
     <Compile Include="ImportExport\KCLImporter.cs" />
-    <Compile Include="ImportExport\LevelImportExport\LevelImporter.cs" />
+    <Compile Include="ImportExport\LevelImportExport\LevelDataXML_Exporter.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ImportExport\LevelImportExport\LevelDataXML_Importer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ImportExport\LevelImportExport\LevelExporterV1.cs" />
+    <Compile Include="ImportExport\LevelImportExport\LevelExporterV2.cs" />
+    <Compile Include="ImportExport\LevelImportExport\LevelImporterV1.cs" />
+    <Compile Include="ImportExport\LevelImportExport\LevelImporterV2.cs" />
     <Compile Include="ImportExport\Loaders\AbstractModelLoader.cs" />
     <Compile Include="ImportExport\Loaders\ExternalLoaders\collada_schema_1_4.cs" />
     <Compile Include="ImportExport\Loaders\ExternalLoaders\DAELoader.cs" />
@@ -149,6 +188,8 @@
     <Compile Include="FormControls\PaletteColourGrid.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Patcher\PatchCompiler.cs" />
+    <Compile Include="Patcher\PatchMaker.cs" />
     <Compile Include="SM64DSFormats\BMD.cs" />
     <Compile Include="CLPS_Form.cs">
       <SubType>Form</SubType>
@@ -158,9 +199,7 @@
     </Compile>
     <Compile Include="Compression.cs" />
     <Compile Include="SM64DSFormats\BCA.cs" />
-    <Compile Include="ImportExport\LevelImportExport\LevelDataXML_Exporter.cs" />
     <Compile Include="Helper.cs" />
-    <Compile Include="ImportExport\LevelImportExport\LevelDataXML_Importer.cs" />
     <Compile Include="SM64DSFormats\BTP.cs" />
     <Compile Include="SM64DSFormats\BMD.NitroTexture.cs" />
     <Compile Include="SM64DSFormats\KCL.cs" />
@@ -246,6 +285,29 @@
     <Compile Include="SDATInfoEditor.Designer.cs">
       <DependentUpon>SDATInfoEditor.cs</DependentUpon>
     </Compile>
+    <Compile Include="Level.cs" />
+    <Compile Include="SM64DSFormats\SBNK.cs" />
+    <Compile Include="SM64DSFormats\SDAT.cs" />
+    <Compile Include="SM64DSFormats\SWAR.cs" />
+    <Compile Include="SoundViewForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SoundViewForm.designer.cs">
+      <DependentUpon>SoundViewForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Templates\CommonTemplate.cs" />
+    <Compile Include="Templates\PlatformTemplateForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Templates\PlatformTemplateForm.designer.cs">
+      <DependentUpon>PlatformTemplateForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TextDialogue.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TextDialogue.designer.cs">
+      <DependentUpon>TextDialogue.cs</DependentUpon>
+    </Compile>
     <Compile Include="TextureEditorForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -261,6 +323,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="CLPS_Form.resx">
       <DependentUpon>CLPS_Form.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="CodeCompilerForm.resx">
+      <DependentUpon>CodeCompilerForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="CodeFixerForm.resx">
+      <DependentUpon>CodeFixerForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ExceptionMessageBox.resx">
       <DependentUpon>ExceptionMessageBox.cs</DependentUpon>
@@ -321,6 +389,12 @@
       <DependentUpon>SettingsForm.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+    <EmbeddedResource Include="SoundViewForm.resx">
+      <DependentUpon>SoundViewForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Templates\PlatformTemplateForm.resx">
+      <DependentUpon>PlatformTemplateForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="TextEditorForm.resx">
       <DependentUpon>TextEditorForm.cs</DependentUpon>
       <SubType>Designer</SubType>
@@ -338,6 +412,8 @@
       <DependentUpon>TextureEditorForm.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="app.config" />
+    <None Include="level_ovl_init_EUR.000.bin" />
+    <None Include="level_ovl_init_EUR.001.bin" />
     <None Include="level_ovl_init_EUR.bin" />
     <None Include="level_ovl_init_JAP.bin" />
     <None Include="level_ovl_init_USAv1.bin" />
@@ -383,6 +459,13 @@
     <Content Include="Documentation\kcl_format.txt" />
     <Content Include="Documentation\SM64DS Level Format Doc v2.1x.txt" />
     <Content Include="Documentation\SM64DS Text Editing.txt" />
+    <Content Include="Templates\Enemy.cpp" />
+    <Content Include="Templates\Enemy.h" />
+    <Content Include="Templates\Platform.cpp" />
+    <Content Include="Templates\Platform.h" />
+    <None Include="Images\Stop.png" />
+    <None Include="Images\Play.png" />
+    <None Include="Images\Pause.png" />
     <None Include="Images\Small\StarFull.png" />
     <None Include="Images\Small\StarEmpty.png" />
     <None Include="Images\Small\DPad.png" />

@@ -12,19 +12,31 @@ namespace SM64DSe
 {
     public partial class OffsetAllObjectCoordsForm : Form
     {
-        LevelEditorForm _owner;
+        public static readonly LevelObject.Type[] k_MovableLevelObjectTypes = new LevelObject.Type[] {
+            LevelObject.Type.STANDARD, 
+            LevelObject.Type.SIMPLE, 
+            LevelObject.Type.ENTRANCE, 
+            LevelObject.Type.EXIT, 
+            LevelObject.Type.DOOR, 
+            LevelObject.Type.PATH_NODE, 
+            LevelObject.Type.VIEW, 
+            LevelObject.Type.TELEPORT_SOURCE, 
+            LevelObject.Type.TELEPORT_DESTINATION
+        };
+
+        protected LevelEditorForm _owner;
 
         public OffsetAllObjectCoordsForm()
         {
             InitializeComponent();
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void btnUpdate_Click(object sender, EventArgs e)
         {
             this._owner = (LevelEditorForm)Owner;
 
-            int[] movableTypes = new int[] { 0, 5, 1, 10, 9, 2, 4, 6, 7 };
-            IEnumerable<LevelObject> objects = _owner.m_LevelObjects.Values.Where(obj => movableTypes.Contains(obj.m_Type));
+            IEnumerable<LevelObject> objects =
+                _owner.m_Level.m_LevelObjects.Values.Where(obj => k_MovableLevelObjectTypes.Contains(obj.m_Type));
             try
             {
                 foreach (LevelObject obj in objects)
@@ -43,8 +55,8 @@ namespace SM64DSe
                     }
                     obj.GenerateProperties();
                 }
-                for (int i = 0; i < 8; i++)
-                    _owner.RefreshObjects(i);
+                for (int area = 0; area < Level.k_MaxNumAreas; area++)
+                    _owner.RefreshObjects(area);
             }
             catch { MessageBox.Show("Please enter a valid value in the format x.xxxxxx"); }
         }

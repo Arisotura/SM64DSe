@@ -1,0 +1,12 @@
+Yoshi's Beautiful Garden:
+0: Blue Coins Activate
+1: Door Block Disappear
+2: Bob-Omb Spawner 1
+3: Bob-Omb Spawner 2
+4: Cork Stone Starts Falling
+5: Cork Stone Hits Volcano
+6: Water Starts Draining
+7: Water Finishes Draining
+8: Star 5 exposed
+9: Switch Blocks Activate
+A: Sprinkler On

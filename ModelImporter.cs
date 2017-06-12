@@ -49,8 +49,6 @@ namespace SM64DSe
             }
         }
 
-        private LevelSettings m_LevelSettings;
-
         // importation settings
         private class ModelImportSettings
         {
@@ -378,10 +376,7 @@ namespace SM64DSe
             m_ImportedModel.Release();
         }
 
-        private void ModelImporter_Load(object sender, EventArgs e)
-        {
-            m_LevelSettings = ((LevelEditorForm)Owner).m_LevelSettings;
-        }
+        private void ModelImporter_Load(object sender, EventArgs e) { }
 
         private void cbGenerateCollision_CheckedChanged(object sender, System.EventArgs e)
         {

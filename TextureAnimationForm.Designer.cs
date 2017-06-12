@@ -33,41 +33,32 @@
             this.lbxTexAnim = new System.Windows.Forms.ListBox();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
-            this.lbxScale = new System.Windows.Forms.ListBox();
-            this.lbxRotation = new System.Windows.Forms.ListBox();
-            this.lbxTranslation = new System.Windows.Forms.ListBox();
+            this.lbxScaleValues = new System.Windows.Forms.ListBox();
+            this.lbxRotationValues = new System.Windows.Forms.ListBox();
+            this.lbxTranslationXValues = new System.Windows.Forms.ListBox();
             this.label3 = new System.Windows.Forms.Label();
-            this.label4 = new System.Windows.Forms.Label();
-            this.txtScale = new System.Windows.Forms.TextBox();
-            this.txtRotation = new System.Windows.Forms.TextBox();
-            this.txtTranslation = new System.Windows.Forms.TextBox();
+            this.lblTranslationXValues = new System.Windows.Forms.Label();
+            this.txtScaleValue = new System.Windows.Forms.TextBox();
+            this.txtRotationValue = new System.Windows.Forms.TextBox();
+            this.txtTranslationXValue = new System.Windows.Forms.TextBox();
             this.txtMaterialName = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
             this.btnRemoveAll = new System.Windows.Forms.Button();
             this.btnRemove = new System.Windows.Forms.Button();
             this.btnAdd = new System.Windows.Forms.Button();
-            this.btnSaveCurrent = new System.Windows.Forms.Button();
-            this.btnAddScale = new System.Windows.Forms.Button();
-            this.btnRemScale = new System.Windows.Forms.Button();
-            this.btnAddRot = new System.Windows.Forms.Button();
-            this.btnRemRot = new System.Windows.Forms.Button();
-            this.btnAddTrans = new System.Windows.Forms.Button();
-            this.btnRemTrans = new System.Windows.Forms.Button();
-            this.label7 = new System.Windows.Forms.Label();
+            this.btnScaleAdd = new System.Windows.Forms.Button();
+            this.btnScaleRemove = new System.Windows.Forms.Button();
+            this.btnRotationAdd = new System.Windows.Forms.Button();
+            this.btnRotationRemove = new System.Windows.Forms.Button();
+            this.btnTranslationXAdd = new System.Windows.Forms.Button();
+            this.btnTranslationXRemove = new System.Windows.Forms.Button();
             this.label8 = new System.Windows.Forms.Label();
-            this.txtScaleStart = new System.Windows.Forms.TextBox();
-            this.txtScaleSize = new System.Windows.Forms.TextBox();
-            this.txtRotStart = new System.Windows.Forms.TextBox();
-            this.txtRotSize = new System.Windows.Forms.TextBox();
-            this.txtTransStart = new System.Windows.Forms.TextBox();
-            this.txtTransSize = new System.Windows.Forms.TextBox();
+            this.txtScaleLength = new System.Windows.Forms.TextBox();
+            this.txtRotationLength = new System.Windows.Forms.TextBox();
+            this.txtTranslationXLength = new System.Windows.Forms.TextBox();
             this.label9 = new System.Windows.Forms.Label();
-            this.label10 = new System.Windows.Forms.Label();
-            this.label11 = new System.Windows.Forms.Label();
-            this.label12 = new System.Windows.Forms.Label();
-            this.label13 = new System.Windows.Forms.Label();
-            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.lblTranslationXLength = new System.Windows.Forms.Label();
             this.label14 = new System.Windows.Forms.Label();
             this.txtNumFrames = new System.Windows.Forms.TextBox();
             this.splitCVertical = new System.Windows.Forms.SplitContainer();
@@ -76,36 +67,55 @@
             this.panel1 = new System.Windows.Forms.Panel();
             this.tlpHorizontal = new System.Windows.Forms.TableLayoutPanel();
             this.pnlTexAnimSettings = new System.Windows.Forms.Panel();
-            this.label24 = new System.Windows.Forms.Label();
-            this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            this.tlpTransformations = new System.Windows.Forms.TableLayoutPanel();
             this.pnlScale = new System.Windows.Forms.Panel();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.btnGenerateScale = new System.Windows.Forms.Button();
+            this.btnScaleLengthUpdate = new System.Windows.Forms.Button();
+            this.grpScaleGeneration = new System.Windows.Forms.GroupBox();
+            this.btnScaleGenerate = new System.Windows.Forms.Button();
             this.label17 = new System.Windows.Forms.Label();
             this.label16 = new System.Windows.Forms.Label();
             this.label15 = new System.Windows.Forms.Label();
-            this.txtGenerateScaleAmount = new System.Windows.Forms.TextBox();
-            this.txtGenerateScaleEndValue = new System.Windows.Forms.TextBox();
-            this.txtGenerateScaleStartValue = new System.Windows.Forms.TextBox();
-            this.pnlTranslation = new System.Windows.Forms.Panel();
-            this.groupBox3 = new System.Windows.Forms.GroupBox();
-            this.btnGenerateTranslation = new System.Windows.Forms.Button();
+            this.txtScaleGenerationAmount = new System.Windows.Forms.TextBox();
+            this.txtScaleGenerationEndValue = new System.Windows.Forms.TextBox();
+            this.txtScaleGenerationStartValue = new System.Windows.Forms.TextBox();
+            this.pnlTranslationX = new System.Windows.Forms.Panel();
+            this.btnTranslationXLengthUpdate = new System.Windows.Forms.Button();
+            this.grpTranslationXGeneration = new System.Windows.Forms.GroupBox();
+            this.btnTranslationXGenerate = new System.Windows.Forms.Button();
             this.label21 = new System.Windows.Forms.Label();
             this.label22 = new System.Windows.Forms.Label();
             this.label23 = new System.Windows.Forms.Label();
-            this.txtGenerateTranslationAmount = new System.Windows.Forms.TextBox();
-            this.txtGenerateTranslationEndValue = new System.Windows.Forms.TextBox();
-            this.txtGenerateTranslationStartValue = new System.Windows.Forms.TextBox();
+            this.txtTranslationXGenerationAmount = new System.Windows.Forms.TextBox();
+            this.txtTranslationXGenerationEndValue = new System.Windows.Forms.TextBox();
+            this.txtTranslationXGenerationStartValue = new System.Windows.Forms.TextBox();
             this.pnlRotation = new System.Windows.Forms.Panel();
-            this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this.btnGenerateRotation = new System.Windows.Forms.Button();
+            this.btnRotationLengthUpdate = new System.Windows.Forms.Button();
+            this.grpRotationGeneration = new System.Windows.Forms.GroupBox();
+            this.btnRotationGenerate = new System.Windows.Forms.Button();
             this.label18 = new System.Windows.Forms.Label();
             this.label19 = new System.Windows.Forms.Label();
             this.label20 = new System.Windows.Forms.Label();
-            this.txtGenerateRotationAmount = new System.Windows.Forms.TextBox();
-            this.txtGenerateRotationEndValue = new System.Windows.Forms.TextBox();
-            this.txtGenerateRotationStartValue = new System.Windows.Forms.TextBox();
-            //((System.ComponentModel.ISupportInitialize)(this.splitCVertical)).BeginInit();
+            this.txtRotationGenerationAmount = new System.Windows.Forms.TextBox();
+            this.txtRotationGenerationEndValue = new System.Windows.Forms.TextBox();
+            this.txtRotationGenerationStartValue = new System.Windows.Forms.TextBox();
+            this.pnlTranslationY = new System.Windows.Forms.Panel();
+            this.btnTranslationYLengthUpdate = new System.Windows.Forms.Button();
+            this.grpTranslationYGeneration = new System.Windows.Forms.GroupBox();
+            this.btnTranslationYGenerate = new System.Windows.Forms.Button();
+            this.label4 = new System.Windows.Forms.Label();
+            this.label7 = new System.Windows.Forms.Label();
+            this.label10 = new System.Windows.Forms.Label();
+            this.txtTranslationYGenerationAmount = new System.Windows.Forms.TextBox();
+            this.txtTranslationYGenerationEndValue = new System.Windows.Forms.TextBox();
+            this.txtTranslationYGenerationStartValue = new System.Windows.Forms.TextBox();
+            this.btnTranslationYAdd = new System.Windows.Forms.Button();
+            this.lbxTranslationYValues = new System.Windows.Forms.ListBox();
+            this.btnTranslationYRemove = new System.Windows.Forms.Button();
+            this.lblTranslationYValues = new System.Windows.Forms.Label();
+            this.txtTranslationYLength = new System.Windows.Forms.TextBox();
+            this.lblTranslationYLength = new System.Windows.Forms.Label();
+            this.txtTranslationYValue = new System.Windows.Forms.TextBox();
+            ((System.ComponentModel.ISupportInitialize)(this.splitCVertical)).BeginInit();
             this.splitCVertical.Panel1.SuspendLayout();
             this.splitCVertical.Panel2.SuspendLayout();
             this.splitCVertical.SuspendLayout();
@@ -114,13 +124,15 @@
             this.panel1.SuspendLayout();
             this.tlpHorizontal.SuspendLayout();
             this.pnlTexAnimSettings.SuspendLayout();
-            this.tableLayoutPanel1.SuspendLayout();
+            this.tlpTransformations.SuspendLayout();
             this.pnlScale.SuspendLayout();
-            this.groupBox1.SuspendLayout();
-            this.pnlTranslation.SuspendLayout();
-            this.groupBox3.SuspendLayout();
+            this.grpScaleGeneration.SuspendLayout();
+            this.pnlTranslationX.SuspendLayout();
+            this.grpTranslationXGeneration.SuspendLayout();
             this.pnlRotation.SuspendLayout();
-            this.groupBox2.SuspendLayout();
+            this.grpRotationGeneration.SuspendLayout();
+            this.pnlTranslationY.SuspendLayout();
+            this.grpTranslationYGeneration.SuspendLayout();
             this.SuspendLayout();
             // 
             // lbxArea
@@ -131,7 +143,7 @@
             this.lbxArea.FormattingEnabled = true;
             this.lbxArea.Location = new System.Drawing.Point(6, 23);
             this.lbxArea.Name = "lbxArea";
-            this.lbxArea.Size = new System.Drawing.Size(130, 134);
+            this.lbxArea.Size = new System.Drawing.Size(155, 134);
             this.lbxArea.TabIndex = 0;
             this.lbxArea.SelectedIndexChanged += new System.EventHandler(this.lbxArea_SelectedIndexChanged);
             // 
@@ -143,14 +155,14 @@
             this.lbxTexAnim.FormattingEnabled = true;
             this.lbxTexAnim.Location = new System.Drawing.Point(6, 19);
             this.lbxTexAnim.Name = "lbxTexAnim";
-            this.lbxTexAnim.Size = new System.Drawing.Size(130, 121);
+            this.lbxTexAnim.Size = new System.Drawing.Size(155, 121);
             this.lbxTexAnim.TabIndex = 1;
             this.lbxTexAnim.SelectedIndexChanged += new System.EventHandler(this.lbxTexAnim_SelectedIndexChanged);
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(3, 10);
+            this.label1.Location = new System.Drawing.Point(6, 6);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(75, 13);
             this.label1.TabIndex = 2;
@@ -165,41 +177,41 @@
             this.label2.TabIndex = 3;
             this.label2.Text = "Scale Values";
             // 
-            // lbxScale
+            // lbxScaleValues
             // 
-            this.lbxScale.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            this.lbxScaleValues.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.lbxScale.FormattingEnabled = true;
-            this.lbxScale.Location = new System.Drawing.Point(6, 19);
-            this.lbxScale.Name = "lbxScale";
-            this.lbxScale.Size = new System.Drawing.Size(148, 134);
-            this.lbxScale.TabIndex = 4;
-            this.lbxScale.SelectedIndexChanged += new System.EventHandler(this.lbxScale_SelectedIndexChanged);
+            this.lbxScaleValues.FormattingEnabled = true;
+            this.lbxScaleValues.Location = new System.Drawing.Point(6, 19);
+            this.lbxScaleValues.Name = "lbxScaleValues";
+            this.lbxScaleValues.Size = new System.Drawing.Size(150, 147);
+            this.lbxScaleValues.TabIndex = 4;
+            this.lbxScaleValues.SelectedIndexChanged += new System.EventHandler(this.lbxScaleValues_SelectedIndexChanged);
             // 
-            // lbxRotation
+            // lbxRotationValues
             // 
-            this.lbxRotation.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            this.lbxRotationValues.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.lbxRotation.FormattingEnabled = true;
-            this.lbxRotation.Location = new System.Drawing.Point(6, 19);
-            this.lbxRotation.Name = "lbxRotation";
-            this.lbxRotation.Size = new System.Drawing.Size(148, 134);
-            this.lbxRotation.TabIndex = 5;
-            this.lbxRotation.SelectedIndexChanged += new System.EventHandler(this.lbxRotation_SelectedIndexChanged);
+            this.lbxRotationValues.FormattingEnabled = true;
+            this.lbxRotationValues.Location = new System.Drawing.Point(6, 19);
+            this.lbxRotationValues.Name = "lbxRotationValues";
+            this.lbxRotationValues.Size = new System.Drawing.Size(150, 147);
+            this.lbxRotationValues.TabIndex = 5;
+            this.lbxRotationValues.SelectedIndexChanged += new System.EventHandler(this.lbxRotationValues_SelectedIndexChanged);
             // 
-            // lbxTranslation
+            // lbxTranslationXValues
             // 
-            this.lbxTranslation.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            this.lbxTranslationXValues.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.lbxTranslation.FormattingEnabled = true;
-            this.lbxTranslation.Location = new System.Drawing.Point(6, 19);
-            this.lbxTranslation.Name = "lbxTranslation";
-            this.lbxTranslation.Size = new System.Drawing.Size(148, 134);
-            this.lbxTranslation.TabIndex = 6;
-            this.lbxTranslation.SelectedIndexChanged += new System.EventHandler(this.lbxTranslation_SelectedIndexChanged);
+            this.lbxTranslationXValues.FormattingEnabled = true;
+            this.lbxTranslationXValues.Location = new System.Drawing.Point(6, 19);
+            this.lbxTranslationXValues.Name = "lbxTranslationXValues";
+            this.lbxTranslationXValues.Size = new System.Drawing.Size(150, 147);
+            this.lbxTranslationXValues.TabIndex = 6;
+            this.lbxTranslationXValues.SelectedIndexChanged += new System.EventHandler(this.lbxTranslationXValues_SelectedIndexChanged);
             // 
             // label3
             // 
@@ -210,48 +222,48 @@
             this.label3.TabIndex = 7;
             this.label3.Text = "Rotation Values";
             // 
-            // label4
+            // lblTranslationXValues
             // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(3, 3);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(94, 13);
-            this.label4.TabIndex = 8;
-            this.label4.Text = "Translation Values";
+            this.lblTranslationXValues.AutoSize = true;
+            this.lblTranslationXValues.Location = new System.Drawing.Point(3, 3);
+            this.lblTranslationXValues.Name = "lblTranslationXValues";
+            this.lblTranslationXValues.Size = new System.Drawing.Size(104, 13);
+            this.lblTranslationXValues.TabIndex = 8;
+            this.lblTranslationXValues.Text = "Translation X Values";
             // 
-            // txtScale
+            // txtScaleValue
             // 
-            this.txtScale.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
+            this.txtScaleValue.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtScale.Location = new System.Drawing.Point(6, 201);
-            this.txtScale.Name = "txtScale";
-            this.txtScale.Size = new System.Drawing.Size(88, 20);
-            this.txtScale.TabIndex = 9;
-            this.txtScale.TextChanged += new System.EventHandler(this.txtScale_TextChanged);
+            this.txtScaleValue.Location = new System.Drawing.Point(6, 204);
+            this.txtScaleValue.Name = "txtScaleValue";
+            this.txtScaleValue.Size = new System.Drawing.Size(92, 20);
+            this.txtScaleValue.TabIndex = 9;
+            this.txtScaleValue.TextChanged += new System.EventHandler(this.txtScaleValue_TextChanged);
             // 
-            // txtRotation
+            // txtRotationValue
             // 
-            this.txtRotation.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
+            this.txtRotationValue.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtRotation.Location = new System.Drawing.Point(6, 201);
-            this.txtRotation.Name = "txtRotation";
-            this.txtRotation.Size = new System.Drawing.Size(88, 20);
-            this.txtRotation.TabIndex = 10;
-            this.txtRotation.TextChanged += new System.EventHandler(this.txtRotation_TextChanged);
+            this.txtRotationValue.Location = new System.Drawing.Point(6, 204);
+            this.txtRotationValue.Name = "txtRotationValue";
+            this.txtRotationValue.Size = new System.Drawing.Size(92, 20);
+            this.txtRotationValue.TabIndex = 10;
+            this.txtRotationValue.TextChanged += new System.EventHandler(this.txtRotationValue_TextChanged);
             // 
-            // txtTranslation
+            // txtTranslationXValue
             // 
-            this.txtTranslation.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
+            this.txtTranslationXValue.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtTranslation.Location = new System.Drawing.Point(6, 202);
-            this.txtTranslation.Name = "txtTranslation";
-            this.txtTranslation.Size = new System.Drawing.Size(88, 20);
-            this.txtTranslation.TabIndex = 11;
-            this.txtTranslation.TextChanged += new System.EventHandler(this.txtTranslation_TextChanged);
+            this.txtTranslationXValue.Location = new System.Drawing.Point(7, 205);
+            this.txtTranslationXValue.Name = "txtTranslationXValue";
+            this.txtTranslationXValue.Size = new System.Drawing.Size(91, 20);
+            this.txtTranslationXValue.TabIndex = 11;
+            this.txtTranslationXValue.TextChanged += new System.EventHandler(this.txtTranslationXValue_TextChanged);
             // 
             // txtMaterialName
             // 
-            this.txtMaterialName.Location = new System.Drawing.Point(97, 7);
+            this.txtMaterialName.Location = new System.Drawing.Point(95, 3);
             this.txtMaterialName.Name = "txtMaterialName";
             this.txtMaterialName.Size = new System.Drawing.Size(120, 20);
             this.txtMaterialName.TabIndex = 12;
@@ -309,229 +321,136 @@
             this.btnAdd.UseVisualStyleBackColor = true;
             this.btnAdd.Click += new System.EventHandler(this.btnAdd_Click);
             // 
-            // btnSaveCurrent
+            // btnScaleAdd
             // 
-            this.btnSaveCurrent.Location = new System.Drawing.Point(0, 41);
-            this.btnSaveCurrent.Name = "btnSaveCurrent";
-            this.btnSaveCurrent.Size = new System.Drawing.Size(90, 23);
-            this.btnSaveCurrent.TabIndex = 20;
-            this.btnSaveCurrent.Text = "Save Changes";
-            this.btnSaveCurrent.UseVisualStyleBackColor = true;
-            this.btnSaveCurrent.Click += new System.EventHandler(this.btnSaveCurrent_Click);
+            this.btnScaleAdd.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnScaleAdd.Location = new System.Drawing.Point(133, 202);
+            this.btnScaleAdd.Name = "btnScaleAdd";
+            this.btnScaleAdd.Size = new System.Drawing.Size(23, 23);
+            this.btnScaleAdd.TabIndex = 22;
+            this.btnScaleAdd.Text = "+";
+            this.btnScaleAdd.UseVisualStyleBackColor = true;
+            this.btnScaleAdd.Click += new System.EventHandler(this.btnScaleAdd_Click);
             // 
-            // btnAddScale
+            // btnScaleRemove
             // 
-            this.btnAddScale.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnAddScale.Location = new System.Drawing.Point(131, 199);
-            this.btnAddScale.Name = "btnAddScale";
-            this.btnAddScale.Size = new System.Drawing.Size(23, 23);
-            this.btnAddScale.TabIndex = 22;
-            this.btnAddScale.Text = "+";
-            this.btnAddScale.UseVisualStyleBackColor = true;
-            this.btnAddScale.Click += new System.EventHandler(this.btnAddScale_Click);
+            this.btnScaleRemove.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnScaleRemove.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnScaleRemove.Location = new System.Drawing.Point(104, 203);
+            this.btnScaleRemove.Name = "btnScaleRemove";
+            this.btnScaleRemove.Size = new System.Drawing.Size(23, 23);
+            this.btnScaleRemove.TabIndex = 21;
+            this.btnScaleRemove.Text = "-";
+            this.btnScaleRemove.UseVisualStyleBackColor = true;
+            this.btnScaleRemove.Click += new System.EventHandler(this.btnScaleRemove_Click);
             // 
-            // btnRemScale
+            // btnRotationAdd
             // 
-            this.btnRemScale.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnRemScale.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnRemScale.Location = new System.Drawing.Point(102, 199);
-            this.btnRemScale.Name = "btnRemScale";
-            this.btnRemScale.Size = new System.Drawing.Size(23, 23);
-            this.btnRemScale.TabIndex = 21;
-            this.btnRemScale.Text = "-";
-            this.btnRemScale.UseVisualStyleBackColor = true;
-            this.btnRemScale.Click += new System.EventHandler(this.btnRemScale_Click);
+            this.btnRotationAdd.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnRotationAdd.Location = new System.Drawing.Point(133, 202);
+            this.btnRotationAdd.Name = "btnRotationAdd";
+            this.btnRotationAdd.Size = new System.Drawing.Size(23, 23);
+            this.btnRotationAdd.TabIndex = 24;
+            this.btnRotationAdd.Text = "+";
+            this.btnRotationAdd.UseVisualStyleBackColor = true;
+            this.btnRotationAdd.Click += new System.EventHandler(this.btnRotationAdd_Click);
             // 
-            // btnAddRot
+            // btnRotationRemove
             // 
-            this.btnAddRot.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnAddRot.Location = new System.Drawing.Point(131, 198);
-            this.btnAddRot.Name = "btnAddRot";
-            this.btnAddRot.Size = new System.Drawing.Size(23, 23);
-            this.btnAddRot.TabIndex = 24;
-            this.btnAddRot.Text = "+";
-            this.btnAddRot.UseVisualStyleBackColor = true;
-            this.btnAddRot.Click += new System.EventHandler(this.btnAddRot_Click);
+            this.btnRotationRemove.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnRotationRemove.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnRotationRemove.Location = new System.Drawing.Point(104, 201);
+            this.btnRotationRemove.Name = "btnRotationRemove";
+            this.btnRotationRemove.Size = new System.Drawing.Size(23, 23);
+            this.btnRotationRemove.TabIndex = 23;
+            this.btnRotationRemove.Text = "-";
+            this.btnRotationRemove.UseVisualStyleBackColor = true;
+            this.btnRotationRemove.Click += new System.EventHandler(this.btnRotationRemove_Click);
             // 
-            // btnRemRot
+            // btnTranslationXAdd
             // 
-            this.btnRemRot.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnRemRot.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnRemRot.Location = new System.Drawing.Point(102, 198);
-            this.btnRemRot.Name = "btnRemRot";
-            this.btnRemRot.Size = new System.Drawing.Size(23, 23);
-            this.btnRemRot.TabIndex = 23;
-            this.btnRemRot.Text = "-";
-            this.btnRemRot.UseVisualStyleBackColor = true;
-            this.btnRemRot.Click += new System.EventHandler(this.btnRemRot_Click);
+            this.btnTranslationXAdd.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnTranslationXAdd.Location = new System.Drawing.Point(133, 202);
+            this.btnTranslationXAdd.Name = "btnTranslationXAdd";
+            this.btnTranslationXAdd.Size = new System.Drawing.Size(23, 23);
+            this.btnTranslationXAdd.TabIndex = 26;
+            this.btnTranslationXAdd.Text = "+";
+            this.btnTranslationXAdd.UseVisualStyleBackColor = true;
+            this.btnTranslationXAdd.Click += new System.EventHandler(this.btnTranslationXAdd_Click);
             // 
-            // btnAddTrans
+            // btnTranslationXRemove
             // 
-            this.btnAddTrans.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnAddTrans.Location = new System.Drawing.Point(131, 200);
-            this.btnAddTrans.Name = "btnAddTrans";
-            this.btnAddTrans.Size = new System.Drawing.Size(23, 23);
-            this.btnAddTrans.TabIndex = 26;
-            this.btnAddTrans.Text = "+";
-            this.btnAddTrans.UseVisualStyleBackColor = true;
-            this.btnAddTrans.Click += new System.EventHandler(this.btnAddTrans_Click);
-            // 
-            // btnRemTrans
-            // 
-            this.btnRemTrans.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnRemTrans.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnRemTrans.Location = new System.Drawing.Point(102, 200);
-            this.btnRemTrans.Name = "btnRemTrans";
-            this.btnRemTrans.Size = new System.Drawing.Size(23, 23);
-            this.btnRemTrans.TabIndex = 25;
-            this.btnRemTrans.Text = "-";
-            this.btnRemTrans.UseVisualStyleBackColor = true;
-            this.btnRemTrans.Click += new System.EventHandler(this.btnRemTrans_Click);
-            // 
-            // label7
-            // 
-            this.label7.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(3, 161);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(58, 13);
-            this.label7.TabIndex = 27;
-            this.label7.Text = "Start Index";
+            this.btnTranslationXRemove.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnTranslationXRemove.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnTranslationXRemove.Location = new System.Drawing.Point(104, 202);
+            this.btnTranslationXRemove.Name = "btnTranslationXRemove";
+            this.btnTranslationXRemove.Size = new System.Drawing.Size(23, 23);
+            this.btnTranslationXRemove.TabIndex = 25;
+            this.btnTranslationXRemove.Text = "-";
+            this.btnTranslationXRemove.UseVisualStyleBackColor = true;
+            this.btnTranslationXRemove.Click += new System.EventHandler(this.btnTranslationXRemove_Click);
             // 
             // label8
             // 
             this.label8.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(3, 181);
+            this.label8.Location = new System.Drawing.Point(3, 184);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(40, 13);
             this.label8.TabIndex = 28;
             this.label8.Text = "Length";
             // 
-            // txtScaleStart
+            // txtScaleLength
             // 
-            this.txtScaleStart.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
+            this.txtScaleLength.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtScaleStart.Location = new System.Drawing.Point(97, 158);
-            this.txtScaleStart.Name = "txtScaleStart";
-            this.txtScaleStart.Size = new System.Drawing.Size(57, 20);
-            this.txtScaleStart.TabIndex = 29;
-            this.txtScaleStart.TextChanged += new System.EventHandler(this.txtScaleStart_TextChanged);
+            this.txtScaleLength.Location = new System.Drawing.Point(44, 181);
+            this.txtScaleLength.Name = "txtScaleLength";
+            this.txtScaleLength.Size = new System.Drawing.Size(54, 20);
+            this.txtScaleLength.TabIndex = 30;
             // 
-            // txtScaleSize
+            // txtRotationLength
             // 
-            this.txtScaleSize.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
+            this.txtRotationLength.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtScaleSize.Location = new System.Drawing.Point(97, 178);
-            this.txtScaleSize.Name = "txtScaleSize";
-            this.txtScaleSize.Size = new System.Drawing.Size(57, 20);
-            this.txtScaleSize.TabIndex = 30;
-            this.txtScaleSize.TextChanged += new System.EventHandler(this.txtScaleSize_TextChanged);
+            this.txtRotationLength.Location = new System.Drawing.Point(44, 181);
+            this.txtRotationLength.Name = "txtRotationLength";
+            this.txtRotationLength.Size = new System.Drawing.Size(54, 20);
+            this.txtRotationLength.TabIndex = 32;
             // 
-            // txtRotStart
+            // txtTranslationXLength
             // 
-            this.txtRotStart.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
+            this.txtTranslationXLength.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtRotStart.Location = new System.Drawing.Point(97, 158);
-            this.txtRotStart.Name = "txtRotStart";
-            this.txtRotStart.Size = new System.Drawing.Size(57, 20);
-            this.txtRotStart.TabIndex = 31;
-            this.txtRotStart.TextChanged += new System.EventHandler(this.txtRotStart_TextChanged);
-            // 
-            // txtRotSize
-            // 
-            this.txtRotSize.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtRotSize.Location = new System.Drawing.Point(97, 178);
-            this.txtRotSize.Name = "txtRotSize";
-            this.txtRotSize.Size = new System.Drawing.Size(57, 20);
-            this.txtRotSize.TabIndex = 32;
-            this.txtRotSize.TextChanged += new System.EventHandler(this.txtRotSize_TextChanged);
-            // 
-            // txtTransStart
-            // 
-            this.txtTransStart.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtTransStart.Location = new System.Drawing.Point(97, 158);
-            this.txtTransStart.Name = "txtTransStart";
-            this.txtTransStart.Size = new System.Drawing.Size(57, 20);
-            this.txtTransStart.TabIndex = 33;
-            this.txtTransStart.TextChanged += new System.EventHandler(this.txtTransStart_TextChanged);
-            // 
-            // txtTransSize
-            // 
-            this.txtTransSize.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtTransSize.Location = new System.Drawing.Point(97, 178);
-            this.txtTransSize.Name = "txtTransSize";
-            this.txtTransSize.Size = new System.Drawing.Size(57, 20);
-            this.txtTransSize.TabIndex = 34;
-            this.txtTransSize.TextChanged += new System.EventHandler(this.txtTransSize_TextChanged);
+            this.txtTranslationXLength.Location = new System.Drawing.Point(45, 181);
+            this.txtTranslationXLength.Name = "txtTranslationXLength";
+            this.txtTranslationXLength.Size = new System.Drawing.Size(53, 20);
+            this.txtTranslationXLength.TabIndex = 34;
             // 
             // label9
             // 
             this.label9.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(6, 181);
+            this.label9.Location = new System.Drawing.Point(6, 184);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(40, 13);
             this.label9.TabIndex = 36;
             this.label9.Text = "Length";
             // 
-            // label10
+            // lblTranslationXLength
             // 
-            this.label10.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(6, 161);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(58, 13);
-            this.label10.TabIndex = 35;
-            this.label10.Text = "Start Index";
-            // 
-            // label11
-            // 
-            this.label11.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(6, 181);
-            this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(40, 13);
-            this.label11.TabIndex = 38;
-            this.label11.Text = "Length";
-            // 
-            // label12
-            // 
-            this.label12.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.label12.AutoSize = true;
-            this.label12.Location = new System.Drawing.Point(6, 161);
-            this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(58, 13);
-            this.label12.TabIndex = 37;
-            this.label12.Text = "Start Index";
-            // 
-            // label13
-            // 
-            this.label13.AutoSize = true;
-            this.label13.Enabled = false;
-            this.label13.Location = new System.Drawing.Point(254, 27);
-            this.label13.Name = "label13";
-            this.label13.Size = new System.Drawing.Size(116, 13);
-            this.label13.TabIndex = 39;
-            this.label13.Text = "m_offset + 0, + 24, +26";
-            this.label13.Visible = false;
-            // 
-            // textBox1
-            // 
-            this.textBox1.Enabled = false;
-            this.textBox1.Location = new System.Drawing.Point(257, 43);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(195, 20);
-            this.textBox1.TabIndex = 40;
-            this.textBox1.Visible = false;
+            this.lblTranslationXLength.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.lblTranslationXLength.AutoSize = true;
+            this.lblTranslationXLength.Location = new System.Drawing.Point(7, 184);
+            this.lblTranslationXLength.Name = "lblTranslationXLength";
+            this.lblTranslationXLength.Size = new System.Drawing.Size(40, 13);
+            this.lblTranslationXLength.TabIndex = 38;
+            this.lblTranslationXLength.Text = "Length";
             // 
             // label14
             // 
             this.label14.AutoSize = true;
-            this.label14.Location = new System.Drawing.Point(289, 10);
+            this.label14.Location = new System.Drawing.Point(6, 32);
             this.label14.Name = "label14";
             this.label14.Size = new System.Drawing.Size(73, 13);
             this.label14.TabIndex = 42;
@@ -539,9 +458,9 @@
             // 
             // txtNumFrames
             // 
-            this.txtNumFrames.Location = new System.Drawing.Point(368, 7);
+            this.txtNumFrames.Location = new System.Drawing.Point(95, 29);
             this.txtNumFrames.Name = "txtNumFrames";
-            this.txtNumFrames.Size = new System.Drawing.Size(100, 20);
+            this.txtNumFrames.Size = new System.Drawing.Size(120, 20);
             this.txtNumFrames.TabIndex = 43;
             this.txtNumFrames.TextChanged += new System.EventHandler(this.txtNumFrames_TextChanged);
             // 
@@ -558,8 +477,8 @@
             // splitCVertical.Panel2
             // 
             this.splitCVertical.Panel2.Controls.Add(this.tlpHorizontal);
-            this.splitCVertical.Size = new System.Drawing.Size(694, 411);
-            this.splitCVertical.SplitterDistance = 187;
+            this.splitCVertical.Size = new System.Drawing.Size(846, 411);
+            this.splitCVertical.SplitterDistance = 170;
             this.splitCVertical.TabIndex = 44;
             // 
             // tlpAreaTexAnimSelect
@@ -574,7 +493,7 @@
             this.tlpAreaTexAnimSelect.RowCount = 2;
             this.tlpAreaTexAnimSelect.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 45F));
             this.tlpAreaTexAnimSelect.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 55F));
-            this.tlpAreaTexAnimSelect.Size = new System.Drawing.Size(187, 411);
+            this.tlpAreaTexAnimSelect.Size = new System.Drawing.Size(170, 411);
             this.tlpAreaTexAnimSelect.TabIndex = 22;
             // 
             // pnlArea
@@ -584,7 +503,7 @@
             this.pnlArea.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlArea.Location = new System.Drawing.Point(3, 3);
             this.pnlArea.Name = "pnlArea";
-            this.pnlArea.Size = new System.Drawing.Size(181, 178);
+            this.pnlArea.Size = new System.Drawing.Size(164, 178);
             this.pnlArea.TabIndex = 20;
             // 
             // panel1
@@ -597,7 +516,7 @@
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(3, 187);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(181, 221);
+            this.panel1.Size = new System.Drawing.Size(164, 221);
             this.panel1.TabIndex = 21;
             // 
             // tlpHorizontal
@@ -605,111 +524,108 @@
             this.tlpHorizontal.ColumnCount = 1;
             this.tlpHorizontal.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tlpHorizontal.Controls.Add(this.pnlTexAnimSettings, 0, 1);
-            this.tlpHorizontal.Controls.Add(this.tableLayoutPanel1, 0, 0);
+            this.tlpHorizontal.Controls.Add(this.tlpTransformations, 0, 0);
             this.tlpHorizontal.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tlpHorizontal.Location = new System.Drawing.Point(0, 0);
             this.tlpHorizontal.Name = "tlpHorizontal";
             this.tlpHorizontal.RowCount = 2;
             this.tlpHorizontal.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tlpHorizontal.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 80F));
-            this.tlpHorizontal.Size = new System.Drawing.Size(503, 411);
+            this.tlpHorizontal.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 60F));
+            this.tlpHorizontal.Size = new System.Drawing.Size(672, 411);
             this.tlpHorizontal.TabIndex = 44;
             // 
             // pnlTexAnimSettings
             // 
-            this.pnlTexAnimSettings.Controls.Add(this.label24);
             this.pnlTexAnimSettings.Controls.Add(this.label1);
             this.pnlTexAnimSettings.Controls.Add(this.txtMaterialName);
             this.pnlTexAnimSettings.Controls.Add(this.txtNumFrames);
-            this.pnlTexAnimSettings.Controls.Add(this.btnSaveCurrent);
             this.pnlTexAnimSettings.Controls.Add(this.label14);
-            this.pnlTexAnimSettings.Controls.Add(this.label13);
-            this.pnlTexAnimSettings.Controls.Add(this.textBox1);
             this.pnlTexAnimSettings.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pnlTexAnimSettings.Location = new System.Drawing.Point(3, 334);
+            this.pnlTexAnimSettings.Location = new System.Drawing.Point(3, 354);
             this.pnlTexAnimSettings.Name = "pnlTexAnimSettings";
-            this.pnlTexAnimSettings.Size = new System.Drawing.Size(497, 74);
+            this.pnlTexAnimSettings.Size = new System.Drawing.Size(666, 54);
             this.pnlTexAnimSettings.TabIndex = 45;
             // 
-            // label24
+            // tlpTransformations
             // 
-            this.label24.AutoSize = true;
-            this.label24.Location = new System.Drawing.Point(94, 46);
-            this.label24.Name = "label24";
-            this.label24.Size = new System.Drawing.Size(131, 13);
-            this.label24.TabIndex = 44;
-            this.label24.Text = "Saves all changes to level";
-            // 
-            // tableLayoutPanel1
-            // 
-            this.tableLayoutPanel1.ColumnCount = 3;
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
-            this.tableLayoutPanel1.Controls.Add(this.pnlScale, 0, 0);
-            this.tableLayoutPanel1.Controls.Add(this.pnlTranslation, 2, 0);
-            this.tableLayoutPanel1.Controls.Add(this.pnlRotation, 1, 0);
-            this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tableLayoutPanel1.Location = new System.Drawing.Point(3, 3);
-            this.tableLayoutPanel1.Name = "tableLayoutPanel1";
-            this.tableLayoutPanel1.RowCount = 1;
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 325F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(497, 325);
-            this.tableLayoutPanel1.TabIndex = 37;
+            this.tlpTransformations.ColumnCount = 4;
+            this.tlpTransformations.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25F));
+            this.tlpTransformations.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25F));
+            this.tlpTransformations.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25F));
+            this.tlpTransformations.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25F));
+            this.tlpTransformations.Controls.Add(this.pnlScale, 0, 0);
+            this.tlpTransformations.Controls.Add(this.pnlTranslationX, 2, 0);
+            this.tlpTransformations.Controls.Add(this.pnlRotation, 1, 0);
+            this.tlpTransformations.Controls.Add(this.pnlTranslationY, 3, 0);
+            this.tlpTransformations.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tlpTransformations.Location = new System.Drawing.Point(3, 3);
+            this.tlpTransformations.Name = "tlpTransformations";
+            this.tlpTransformations.RowCount = 1;
+            this.tlpTransformations.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.tlpTransformations.Size = new System.Drawing.Size(666, 345);
+            this.tlpTransformations.TabIndex = 37;
             // 
             // pnlScale
             // 
-            this.pnlScale.Controls.Add(this.groupBox1);
+            this.pnlScale.Controls.Add(this.btnScaleLengthUpdate);
+            this.pnlScale.Controls.Add(this.grpScaleGeneration);
             this.pnlScale.Controls.Add(this.label2);
             this.pnlScale.Controls.Add(this.label8);
-            this.pnlScale.Controls.Add(this.label7);
-            this.pnlScale.Controls.Add(this.lbxScale);
-            this.pnlScale.Controls.Add(this.txtScaleStart);
-            this.pnlScale.Controls.Add(this.txtScaleSize);
-            this.pnlScale.Controls.Add(this.btnAddScale);
-            this.pnlScale.Controls.Add(this.btnRemScale);
-            this.pnlScale.Controls.Add(this.txtScale);
+            this.pnlScale.Controls.Add(this.lbxScaleValues);
+            this.pnlScale.Controls.Add(this.txtScaleLength);
+            this.pnlScale.Controls.Add(this.btnScaleAdd);
+            this.pnlScale.Controls.Add(this.btnScaleRemove);
+            this.pnlScale.Controls.Add(this.txtScaleValue);
             this.pnlScale.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlScale.Location = new System.Drawing.Point(3, 3);
             this.pnlScale.Name = "pnlScale";
-            this.pnlScale.Size = new System.Drawing.Size(159, 319);
+            this.pnlScale.Size = new System.Drawing.Size(160, 339);
             this.pnlScale.TabIndex = 44;
             // 
-            // groupBox1
+            // btnScaleLengthUpdate
             // 
-            this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
+            this.btnScaleLengthUpdate.Location = new System.Drawing.Point(104, 179);
+            this.btnScaleLengthUpdate.Name = "btnScaleLengthUpdate";
+            this.btnScaleLengthUpdate.Size = new System.Drawing.Size(52, 23);
+            this.btnScaleLengthUpdate.TabIndex = 45;
+            this.btnScaleLengthUpdate.Text = "Update";
+            this.btnScaleLengthUpdate.UseVisualStyleBackColor = true;
+            this.btnScaleLengthUpdate.Click += new System.EventHandler(this.btnScaleLengthUpdate_Click);
+            // 
+            // grpScaleGeneration
+            // 
+            this.grpScaleGeneration.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.groupBox1.Controls.Add(this.btnGenerateScale);
-            this.groupBox1.Controls.Add(this.label17);
-            this.groupBox1.Controls.Add(this.label16);
-            this.groupBox1.Controls.Add(this.label15);
-            this.groupBox1.Controls.Add(this.txtGenerateScaleAmount);
-            this.groupBox1.Controls.Add(this.txtGenerateScaleEndValue);
-            this.groupBox1.Controls.Add(this.txtGenerateScaleStartValue);
-            this.groupBox1.Location = new System.Drawing.Point(3, 227);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(151, 89);
-            this.groupBox1.TabIndex = 31;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Generate";
+            this.grpScaleGeneration.Controls.Add(this.btnScaleGenerate);
+            this.grpScaleGeneration.Controls.Add(this.label17);
+            this.grpScaleGeneration.Controls.Add(this.label16);
+            this.grpScaleGeneration.Controls.Add(this.label15);
+            this.grpScaleGeneration.Controls.Add(this.txtScaleGenerationAmount);
+            this.grpScaleGeneration.Controls.Add(this.txtScaleGenerationEndValue);
+            this.grpScaleGeneration.Controls.Add(this.txtScaleGenerationStartValue);
+            this.grpScaleGeneration.Location = new System.Drawing.Point(3, 231);
+            this.grpScaleGeneration.Name = "grpScaleGeneration";
+            this.grpScaleGeneration.Size = new System.Drawing.Size(148, 105);
+            this.grpScaleGeneration.TabIndex = 31;
+            this.grpScaleGeneration.TabStop = false;
+            this.grpScaleGeneration.Text = "Generate";
             // 
-            // btnGenerateScale
+            // btnScaleGenerate
             // 
-            this.btnGenerateScale.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
+            this.btnScaleGenerate.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnGenerateScale.Location = new System.Drawing.Point(6, 66);
-            this.btnGenerateScale.Name = "btnGenerateScale";
-            this.btnGenerateScale.Size = new System.Drawing.Size(145, 23);
-            this.btnGenerateScale.TabIndex = 6;
-            this.btnGenerateScale.Text = "Generate Scale";
-            this.btnGenerateScale.UseVisualStyleBackColor = true;
-            this.btnGenerateScale.Click += new System.EventHandler(this.btnGenerateScale_Click);
+            this.btnScaleGenerate.Location = new System.Drawing.Point(6, 82);
+            this.btnScaleGenerate.Name = "btnScaleGenerate";
+            this.btnScaleGenerate.Size = new System.Drawing.Size(142, 23);
+            this.btnScaleGenerate.TabIndex = 6;
+            this.btnScaleGenerate.Text = "Generate Scale";
+            this.btnScaleGenerate.UseVisualStyleBackColor = true;
+            this.btnScaleGenerate.Click += new System.EventHandler(this.btnScaleGenerate_Click);
             // 
             // label17
             // 
             this.label17.AutoSize = true;
-            this.label17.Location = new System.Drawing.Point(6, 50);
+            this.label17.Location = new System.Drawing.Point(6, 54);
             this.label17.Name = "label17";
             this.label17.Size = new System.Drawing.Size(71, 13);
             this.label17.TabIndex = 5;
@@ -718,7 +634,7 @@
             // label16
             // 
             this.label16.AutoSize = true;
-            this.label16.Location = new System.Drawing.Point(6, 31);
+            this.label16.Location = new System.Drawing.Point(6, 35);
             this.label16.Name = "label16";
             this.label16.Size = new System.Drawing.Size(56, 13);
             this.label16.TabIndex = 4;
@@ -727,92 +643,101 @@
             // label15
             // 
             this.label15.AutoSize = true;
-            this.label15.Location = new System.Drawing.Point(6, 14);
+            this.label15.Location = new System.Drawing.Point(6, 15);
             this.label15.Name = "label15";
             this.label15.Size = new System.Drawing.Size(59, 13);
             this.label15.TabIndex = 3;
             this.label15.Text = "Start Value";
             // 
-            // txtGenerateScaleAmount
+            // txtScaleGenerationAmount
             // 
-            this.txtGenerateScaleAmount.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            this.txtScaleGenerationAmount.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtGenerateScaleAmount.Location = new System.Drawing.Point(83, 47);
-            this.txtGenerateScaleAmount.Name = "txtGenerateScaleAmount";
-            this.txtGenerateScaleAmount.Size = new System.Drawing.Size(68, 20);
-            this.txtGenerateScaleAmount.TabIndex = 2;
+            this.txtScaleGenerationAmount.Location = new System.Drawing.Point(77, 51);
+            this.txtScaleGenerationAmount.Name = "txtScaleGenerationAmount";
+            this.txtScaleGenerationAmount.Size = new System.Drawing.Size(65, 20);
+            this.txtScaleGenerationAmount.TabIndex = 2;
             // 
-            // txtGenerateScaleEndValue
+            // txtScaleGenerationEndValue
             // 
-            this.txtGenerateScaleEndValue.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            this.txtScaleGenerationEndValue.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtGenerateScaleEndValue.Location = new System.Drawing.Point(83, 28);
-            this.txtGenerateScaleEndValue.Name = "txtGenerateScaleEndValue";
-            this.txtGenerateScaleEndValue.Size = new System.Drawing.Size(68, 20);
-            this.txtGenerateScaleEndValue.TabIndex = 1;
+            this.txtScaleGenerationEndValue.Location = new System.Drawing.Point(77, 31);
+            this.txtScaleGenerationEndValue.Name = "txtScaleGenerationEndValue";
+            this.txtScaleGenerationEndValue.Size = new System.Drawing.Size(65, 20);
+            this.txtScaleGenerationEndValue.TabIndex = 1;
             // 
-            // txtGenerateScaleStartValue
+            // txtScaleGenerationStartValue
             // 
-            this.txtGenerateScaleStartValue.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            this.txtScaleGenerationStartValue.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtGenerateScaleStartValue.Location = new System.Drawing.Point(83, 11);
-            this.txtGenerateScaleStartValue.Name = "txtGenerateScaleStartValue";
-            this.txtGenerateScaleStartValue.Size = new System.Drawing.Size(68, 20);
-            this.txtGenerateScaleStartValue.TabIndex = 0;
+            this.txtScaleGenerationStartValue.Location = new System.Drawing.Point(77, 11);
+            this.txtScaleGenerationStartValue.Name = "txtScaleGenerationStartValue";
+            this.txtScaleGenerationStartValue.Size = new System.Drawing.Size(65, 20);
+            this.txtScaleGenerationStartValue.TabIndex = 0;
             // 
-            // pnlTranslation
+            // pnlTranslationX
             // 
-            this.pnlTranslation.AutoSize = true;
-            this.pnlTranslation.Controls.Add(this.groupBox3);
-            this.pnlTranslation.Controls.Add(this.label4);
-            this.pnlTranslation.Controls.Add(this.btnAddTrans);
-            this.pnlTranslation.Controls.Add(this.btnRemTrans);
-            this.pnlTranslation.Controls.Add(this.txtTransStart);
-            this.pnlTranslation.Controls.Add(this.txtTransSize);
-            this.pnlTranslation.Controls.Add(this.txtTranslation);
-            this.pnlTranslation.Controls.Add(this.lbxTranslation);
-            this.pnlTranslation.Controls.Add(this.label12);
-            this.pnlTranslation.Controls.Add(this.label11);
-            this.pnlTranslation.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pnlTranslation.Location = new System.Drawing.Point(333, 3);
-            this.pnlTranslation.Name = "pnlTranslation";
-            this.pnlTranslation.Size = new System.Drawing.Size(161, 319);
-            this.pnlTranslation.TabIndex = 46;
+            this.pnlTranslationX.AutoSize = true;
+            this.pnlTranslationX.Controls.Add(this.btnTranslationXLengthUpdate);
+            this.pnlTranslationX.Controls.Add(this.grpTranslationXGeneration);
+            this.pnlTranslationX.Controls.Add(this.lblTranslationXValues);
+            this.pnlTranslationX.Controls.Add(this.btnTranslationXAdd);
+            this.pnlTranslationX.Controls.Add(this.btnTranslationXRemove);
+            this.pnlTranslationX.Controls.Add(this.txtTranslationXLength);
+            this.pnlTranslationX.Controls.Add(this.txtTranslationXValue);
+            this.pnlTranslationX.Controls.Add(this.lbxTranslationXValues);
+            this.pnlTranslationX.Controls.Add(this.lblTranslationXLength);
+            this.pnlTranslationX.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pnlTranslationX.Location = new System.Drawing.Point(335, 3);
+            this.pnlTranslationX.Name = "pnlTranslationX";
+            this.pnlTranslationX.Size = new System.Drawing.Size(160, 339);
+            this.pnlTranslationX.TabIndex = 46;
             // 
-            // groupBox3
+            // btnTranslationXLengthUpdate
             // 
-            this.groupBox3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
+            this.btnTranslationXLengthUpdate.Location = new System.Drawing.Point(104, 178);
+            this.btnTranslationXLengthUpdate.Name = "btnTranslationXLengthUpdate";
+            this.btnTranslationXLengthUpdate.Size = new System.Drawing.Size(52, 23);
+            this.btnTranslationXLengthUpdate.TabIndex = 45;
+            this.btnTranslationXLengthUpdate.Text = "Update";
+            this.btnTranslationXLengthUpdate.UseVisualStyleBackColor = true;
+            this.btnTranslationXLengthUpdate.Click += new System.EventHandler(this.btnTranslationXLengthUpdate_Click);
+            // 
+            // grpTranslationXGeneration
+            // 
+            this.grpTranslationXGeneration.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.groupBox3.Controls.Add(this.btnGenerateTranslation);
-            this.groupBox3.Controls.Add(this.label21);
-            this.groupBox3.Controls.Add(this.label22);
-            this.groupBox3.Controls.Add(this.label23);
-            this.groupBox3.Controls.Add(this.txtGenerateTranslationAmount);
-            this.groupBox3.Controls.Add(this.txtGenerateTranslationEndValue);
-            this.groupBox3.Controls.Add(this.txtGenerateTranslationStartValue);
-            this.groupBox3.Location = new System.Drawing.Point(4, 227);
-            this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(151, 89);
-            this.groupBox3.TabIndex = 32;
-            this.groupBox3.TabStop = false;
-            this.groupBox3.Text = "Generate";
+            this.grpTranslationXGeneration.Controls.Add(this.btnTranslationXGenerate);
+            this.grpTranslationXGeneration.Controls.Add(this.label21);
+            this.grpTranslationXGeneration.Controls.Add(this.label22);
+            this.grpTranslationXGeneration.Controls.Add(this.label23);
+            this.grpTranslationXGeneration.Controls.Add(this.txtTranslationXGenerationAmount);
+            this.grpTranslationXGeneration.Controls.Add(this.txtTranslationXGenerationEndValue);
+            this.grpTranslationXGeneration.Controls.Add(this.txtTranslationXGenerationStartValue);
+            this.grpTranslationXGeneration.Location = new System.Drawing.Point(4, 232);
+            this.grpTranslationXGeneration.Name = "grpTranslationXGeneration";
+            this.grpTranslationXGeneration.Size = new System.Drawing.Size(147, 104);
+            this.grpTranslationXGeneration.TabIndex = 32;
+            this.grpTranslationXGeneration.TabStop = false;
+            this.grpTranslationXGeneration.Text = "Generate";
             // 
-            // btnGenerateTranslation
+            // btnTranslationXGenerate
             // 
-            this.btnGenerateTranslation.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
+            this.btnTranslationXGenerate.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnGenerateTranslation.Location = new System.Drawing.Point(6, 66);
-            this.btnGenerateTranslation.Name = "btnGenerateTranslation";
-            this.btnGenerateTranslation.Size = new System.Drawing.Size(145, 23);
-            this.btnGenerateTranslation.TabIndex = 6;
-            this.btnGenerateTranslation.Text = "Generate Translation";
-            this.btnGenerateTranslation.UseVisualStyleBackColor = true;
-            this.btnGenerateTranslation.Click += new System.EventHandler(this.btnGenerateTranslation_Click);
+            this.btnTranslationXGenerate.Location = new System.Drawing.Point(6, 81);
+            this.btnTranslationXGenerate.Name = "btnTranslationXGenerate";
+            this.btnTranslationXGenerate.Size = new System.Drawing.Size(141, 23);
+            this.btnTranslationXGenerate.TabIndex = 6;
+            this.btnTranslationXGenerate.Text = "Generate X Translation";
+            this.btnTranslationXGenerate.UseVisualStyleBackColor = true;
+            this.btnTranslationXGenerate.Click += new System.EventHandler(this.btnTranslationXGenerate_Click);
             // 
             // label21
             // 
             this.label21.AutoSize = true;
-            this.label21.Location = new System.Drawing.Point(6, 50);
+            this.label21.Location = new System.Drawing.Point(6, 53);
             this.label21.Name = "label21";
             this.label21.Size = new System.Drawing.Size(71, 13);
             this.label21.TabIndex = 5;
@@ -821,7 +746,7 @@
             // label22
             // 
             this.label22.AutoSize = true;
-            this.label22.Location = new System.Drawing.Point(6, 31);
+            this.label22.Location = new System.Drawing.Point(6, 34);
             this.label22.Name = "label22";
             this.label22.Size = new System.Drawing.Size(56, 13);
             this.label22.TabIndex = 4;
@@ -836,86 +761,95 @@
             this.label23.TabIndex = 3;
             this.label23.Text = "Start Value";
             // 
-            // txtGenerateTranslationAmount
+            // txtTranslationXGenerationAmount
             // 
-            this.txtGenerateTranslationAmount.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            this.txtTranslationXGenerationAmount.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtGenerateTranslationAmount.Location = new System.Drawing.Point(83, 47);
-            this.txtGenerateTranslationAmount.Name = "txtGenerateTranslationAmount";
-            this.txtGenerateTranslationAmount.Size = new System.Drawing.Size(68, 20);
-            this.txtGenerateTranslationAmount.TabIndex = 2;
+            this.txtTranslationXGenerationAmount.Location = new System.Drawing.Point(77, 50);
+            this.txtTranslationXGenerationAmount.Name = "txtTranslationXGenerationAmount";
+            this.txtTranslationXGenerationAmount.Size = new System.Drawing.Size(64, 20);
+            this.txtTranslationXGenerationAmount.TabIndex = 2;
             // 
-            // txtGenerateTranslationEndValue
+            // txtTranslationXGenerationEndValue
             // 
-            this.txtGenerateTranslationEndValue.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            this.txtTranslationXGenerationEndValue.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtGenerateTranslationEndValue.Location = new System.Drawing.Point(83, 28);
-            this.txtGenerateTranslationEndValue.Name = "txtGenerateTranslationEndValue";
-            this.txtGenerateTranslationEndValue.Size = new System.Drawing.Size(68, 20);
-            this.txtGenerateTranslationEndValue.TabIndex = 1;
+            this.txtTranslationXGenerationEndValue.Location = new System.Drawing.Point(77, 31);
+            this.txtTranslationXGenerationEndValue.Name = "txtTranslationXGenerationEndValue";
+            this.txtTranslationXGenerationEndValue.Size = new System.Drawing.Size(64, 20);
+            this.txtTranslationXGenerationEndValue.TabIndex = 1;
             // 
-            // txtGenerateTranslationStartValue
+            // txtTranslationXGenerationStartValue
             // 
-            this.txtGenerateTranslationStartValue.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            this.txtTranslationXGenerationStartValue.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtGenerateTranslationStartValue.Location = new System.Drawing.Point(83, 11);
-            this.txtGenerateTranslationStartValue.Name = "txtGenerateTranslationStartValue";
-            this.txtGenerateTranslationStartValue.Size = new System.Drawing.Size(68, 20);
-            this.txtGenerateTranslationStartValue.TabIndex = 0;
+            this.txtTranslationXGenerationStartValue.Location = new System.Drawing.Point(77, 10);
+            this.txtTranslationXGenerationStartValue.Name = "txtTranslationXGenerationStartValue";
+            this.txtTranslationXGenerationStartValue.Size = new System.Drawing.Size(64, 20);
+            this.txtTranslationXGenerationStartValue.TabIndex = 0;
             // 
             // pnlRotation
             // 
             this.pnlRotation.AutoSize = true;
-            this.pnlRotation.Controls.Add(this.groupBox2);
+            this.pnlRotation.Controls.Add(this.btnRotationLengthUpdate);
+            this.pnlRotation.Controls.Add(this.grpRotationGeneration);
             this.pnlRotation.Controls.Add(this.label3);
-            this.pnlRotation.Controls.Add(this.txtRotStart);
-            this.pnlRotation.Controls.Add(this.btnAddRot);
-            this.pnlRotation.Controls.Add(this.txtRotSize);
-            this.pnlRotation.Controls.Add(this.lbxRotation);
-            this.pnlRotation.Controls.Add(this.btnRemRot);
-            this.pnlRotation.Controls.Add(this.label10);
+            this.pnlRotation.Controls.Add(this.btnRotationAdd);
+            this.pnlRotation.Controls.Add(this.txtRotationLength);
+            this.pnlRotation.Controls.Add(this.lbxRotationValues);
+            this.pnlRotation.Controls.Add(this.btnRotationRemove);
             this.pnlRotation.Controls.Add(this.label9);
-            this.pnlRotation.Controls.Add(this.txtRotation);
+            this.pnlRotation.Controls.Add(this.txtRotationValue);
             this.pnlRotation.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pnlRotation.Location = new System.Drawing.Point(168, 3);
+            this.pnlRotation.Location = new System.Drawing.Point(169, 3);
             this.pnlRotation.Name = "pnlRotation";
-            this.pnlRotation.Size = new System.Drawing.Size(159, 319);
+            this.pnlRotation.Size = new System.Drawing.Size(160, 339);
             this.pnlRotation.TabIndex = 45;
             // 
-            // groupBox2
+            // btnRotationLengthUpdate
             // 
-            this.groupBox2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
+            this.btnRotationLengthUpdate.Location = new System.Drawing.Point(104, 179);
+            this.btnRotationLengthUpdate.Name = "btnRotationLengthUpdate";
+            this.btnRotationLengthUpdate.Size = new System.Drawing.Size(52, 23);
+            this.btnRotationLengthUpdate.TabIndex = 45;
+            this.btnRotationLengthUpdate.Text = "Update";
+            this.btnRotationLengthUpdate.UseVisualStyleBackColor = true;
+            this.btnRotationLengthUpdate.Click += new System.EventHandler(this.btnRotationLengthUpdate_Click);
+            // 
+            // grpRotationGeneration
+            // 
+            this.grpRotationGeneration.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.groupBox2.Controls.Add(this.btnGenerateRotation);
-            this.groupBox2.Controls.Add(this.label18);
-            this.groupBox2.Controls.Add(this.label19);
-            this.groupBox2.Controls.Add(this.label20);
-            this.groupBox2.Controls.Add(this.txtGenerateRotationAmount);
-            this.groupBox2.Controls.Add(this.txtGenerateRotationEndValue);
-            this.groupBox2.Controls.Add(this.txtGenerateRotationStartValue);
-            this.groupBox2.Location = new System.Drawing.Point(3, 227);
-            this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(151, 89);
-            this.groupBox2.TabIndex = 37;
-            this.groupBox2.TabStop = false;
-            this.groupBox2.Text = "Generate";
+            this.grpRotationGeneration.Controls.Add(this.btnRotationGenerate);
+            this.grpRotationGeneration.Controls.Add(this.label18);
+            this.grpRotationGeneration.Controls.Add(this.label19);
+            this.grpRotationGeneration.Controls.Add(this.label20);
+            this.grpRotationGeneration.Controls.Add(this.txtRotationGenerationAmount);
+            this.grpRotationGeneration.Controls.Add(this.txtRotationGenerationEndValue);
+            this.grpRotationGeneration.Controls.Add(this.txtRotationGenerationStartValue);
+            this.grpRotationGeneration.Location = new System.Drawing.Point(3, 230);
+            this.grpRotationGeneration.Name = "grpRotationGeneration";
+            this.grpRotationGeneration.Size = new System.Drawing.Size(148, 106);
+            this.grpRotationGeneration.TabIndex = 37;
+            this.grpRotationGeneration.TabStop = false;
+            this.grpRotationGeneration.Text = "Generate";
             // 
-            // btnGenerateRotation
+            // btnRotationGenerate
             // 
-            this.btnGenerateRotation.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
+            this.btnRotationGenerate.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnGenerateRotation.Location = new System.Drawing.Point(6, 66);
-            this.btnGenerateRotation.Name = "btnGenerateRotation";
-            this.btnGenerateRotation.Size = new System.Drawing.Size(145, 23);
-            this.btnGenerateRotation.TabIndex = 6;
-            this.btnGenerateRotation.Text = "Generate Rotation";
-            this.btnGenerateRotation.UseVisualStyleBackColor = true;
-            this.btnGenerateRotation.Click += new System.EventHandler(this.btnGenerateRotation_Click);
+            this.btnRotationGenerate.Location = new System.Drawing.Point(6, 83);
+            this.btnRotationGenerate.Name = "btnRotationGenerate";
+            this.btnRotationGenerate.Size = new System.Drawing.Size(142, 23);
+            this.btnRotationGenerate.TabIndex = 6;
+            this.btnRotationGenerate.Text = "Generate Rotation";
+            this.btnRotationGenerate.UseVisualStyleBackColor = true;
+            this.btnRotationGenerate.Click += new System.EventHandler(this.btnRotationGenerate_Click);
             // 
             // label18
             // 
             this.label18.AutoSize = true;
-            this.label18.Location = new System.Drawing.Point(6, 50);
+            this.label18.Location = new System.Drawing.Point(6, 55);
             this.label18.Name = "label18";
             this.label18.Size = new System.Drawing.Size(71, 13);
             this.label18.TabIndex = 5;
@@ -924,7 +858,7 @@
             // label19
             // 
             this.label19.AutoSize = true;
-            this.label19.Location = new System.Drawing.Point(6, 31);
+            this.label19.Location = new System.Drawing.Point(6, 36);
             this.label19.Name = "label19";
             this.label19.Size = new System.Drawing.Size(56, 13);
             this.label19.TabIndex = 4;
@@ -933,51 +867,236 @@
             // label20
             // 
             this.label20.AutoSize = true;
-            this.label20.Location = new System.Drawing.Point(6, 14);
+            this.label20.Location = new System.Drawing.Point(6, 15);
             this.label20.Name = "label20";
             this.label20.Size = new System.Drawing.Size(59, 13);
             this.label20.TabIndex = 3;
             this.label20.Text = "Start Value";
             // 
-            // txtGenerateRotationAmount
+            // txtRotationGenerationAmount
             // 
-            this.txtGenerateRotationAmount.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            this.txtRotationGenerationAmount.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtGenerateRotationAmount.Location = new System.Drawing.Point(83, 47);
-            this.txtGenerateRotationAmount.Name = "txtGenerateRotationAmount";
-            this.txtGenerateRotationAmount.Size = new System.Drawing.Size(68, 20);
-            this.txtGenerateRotationAmount.TabIndex = 2;
+            this.txtRotationGenerationAmount.Location = new System.Drawing.Point(77, 51);
+            this.txtRotationGenerationAmount.Name = "txtRotationGenerationAmount";
+            this.txtRotationGenerationAmount.Size = new System.Drawing.Size(65, 20);
+            this.txtRotationGenerationAmount.TabIndex = 2;
             // 
-            // txtGenerateRotationEndValue
+            // txtRotationGenerationEndValue
             // 
-            this.txtGenerateRotationEndValue.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            this.txtRotationGenerationEndValue.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtGenerateRotationEndValue.Location = new System.Drawing.Point(83, 28);
-            this.txtGenerateRotationEndValue.Name = "txtGenerateRotationEndValue";
-            this.txtGenerateRotationEndValue.Size = new System.Drawing.Size(68, 20);
-            this.txtGenerateRotationEndValue.TabIndex = 1;
+            this.txtRotationGenerationEndValue.Location = new System.Drawing.Point(77, 32);
+            this.txtRotationGenerationEndValue.Name = "txtRotationGenerationEndValue";
+            this.txtRotationGenerationEndValue.Size = new System.Drawing.Size(65, 20);
+            this.txtRotationGenerationEndValue.TabIndex = 1;
             // 
-            // txtGenerateRotationStartValue
+            // txtRotationGenerationStartValue
             // 
-            this.txtGenerateRotationStartValue.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            this.txtRotationGenerationStartValue.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtGenerateRotationStartValue.Location = new System.Drawing.Point(83, 11);
-            this.txtGenerateRotationStartValue.Name = "txtGenerateRotationStartValue";
-            this.txtGenerateRotationStartValue.Size = new System.Drawing.Size(68, 20);
-            this.txtGenerateRotationStartValue.TabIndex = 0;
+            this.txtRotationGenerationStartValue.Location = new System.Drawing.Point(77, 12);
+            this.txtRotationGenerationStartValue.Name = "txtRotationGenerationStartValue";
+            this.txtRotationGenerationStartValue.Size = new System.Drawing.Size(65, 20);
+            this.txtRotationGenerationStartValue.TabIndex = 0;
+            // 
+            // pnlTranslationY
+            // 
+            this.pnlTranslationY.AutoSize = true;
+            this.pnlTranslationY.Controls.Add(this.btnTranslationYLengthUpdate);
+            this.pnlTranslationY.Controls.Add(this.grpTranslationYGeneration);
+            this.pnlTranslationY.Controls.Add(this.btnTranslationYAdd);
+            this.pnlTranslationY.Controls.Add(this.lbxTranslationYValues);
+            this.pnlTranslationY.Controls.Add(this.btnTranslationYRemove);
+            this.pnlTranslationY.Controls.Add(this.lblTranslationYValues);
+            this.pnlTranslationY.Controls.Add(this.txtTranslationYLength);
+            this.pnlTranslationY.Controls.Add(this.lblTranslationYLength);
+            this.pnlTranslationY.Controls.Add(this.txtTranslationYValue);
+            this.pnlTranslationY.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pnlTranslationY.Location = new System.Drawing.Point(501, 3);
+            this.pnlTranslationY.Name = "pnlTranslationY";
+            this.pnlTranslationY.Size = new System.Drawing.Size(162, 339);
+            this.pnlTranslationY.TabIndex = 47;
+            // 
+            // btnTranslationYLengthUpdate
+            // 
+            this.btnTranslationYLengthUpdate.Location = new System.Drawing.Point(104, 178);
+            this.btnTranslationYLengthUpdate.Name = "btnTranslationYLengthUpdate";
+            this.btnTranslationYLengthUpdate.Size = new System.Drawing.Size(52, 23);
+            this.btnTranslationYLengthUpdate.TabIndex = 44;
+            this.btnTranslationYLengthUpdate.Text = "Update";
+            this.btnTranslationYLengthUpdate.UseVisualStyleBackColor = true;
+            this.btnTranslationYLengthUpdate.Click += new System.EventHandler(this.btnTranslationYLengthUpdate_Click);
+            // 
+            // grpTranslationYGeneration
+            // 
+            this.grpTranslationYGeneration.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.grpTranslationYGeneration.Controls.Add(this.btnTranslationYGenerate);
+            this.grpTranslationYGeneration.Controls.Add(this.label4);
+            this.grpTranslationYGeneration.Controls.Add(this.label7);
+            this.grpTranslationYGeneration.Controls.Add(this.label10);
+            this.grpTranslationYGeneration.Controls.Add(this.txtTranslationYGenerationAmount);
+            this.grpTranslationYGeneration.Controls.Add(this.txtTranslationYGenerationEndValue);
+            this.grpTranslationYGeneration.Controls.Add(this.txtTranslationYGenerationStartValue);
+            this.grpTranslationYGeneration.Location = new System.Drawing.Point(6, 231);
+            this.grpTranslationYGeneration.Name = "grpTranslationYGeneration";
+            this.grpTranslationYGeneration.Size = new System.Drawing.Size(150, 104);
+            this.grpTranslationYGeneration.TabIndex = 33;
+            this.grpTranslationYGeneration.TabStop = false;
+            this.grpTranslationYGeneration.Text = "Generate";
+            // 
+            // btnTranslationYGenerate
+            // 
+            this.btnTranslationYGenerate.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnTranslationYGenerate.Location = new System.Drawing.Point(6, 81);
+            this.btnTranslationYGenerate.Name = "btnTranslationYGenerate";
+            this.btnTranslationYGenerate.Size = new System.Drawing.Size(144, 23);
+            this.btnTranslationYGenerate.TabIndex = 6;
+            this.btnTranslationYGenerate.Text = "Generate Y Translation";
+            this.btnTranslationYGenerate.UseVisualStyleBackColor = true;
+            this.btnTranslationYGenerate.Click += new System.EventHandler(this.btnTranslationYGenerate_Click);
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(6, 53);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(71, 13);
+            this.label4.TabIndex = 5;
+            this.label4.Text = "No. of Values";
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(6, 34);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(56, 13);
+            this.label7.TabIndex = 4;
+            this.label7.Text = "End Value";
+            // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Location = new System.Drawing.Point(6, 14);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(59, 13);
+            this.label10.TabIndex = 3;
+            this.label10.Text = "Start Value";
+            // 
+            // txtTranslationYGenerationAmount
+            // 
+            this.txtTranslationYGenerationAmount.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtTranslationYGenerationAmount.Location = new System.Drawing.Point(77, 50);
+            this.txtTranslationYGenerationAmount.Name = "txtTranslationYGenerationAmount";
+            this.txtTranslationYGenerationAmount.Size = new System.Drawing.Size(67, 20);
+            this.txtTranslationYGenerationAmount.TabIndex = 2;
+            // 
+            // txtTranslationYGenerationEndValue
+            // 
+            this.txtTranslationYGenerationEndValue.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtTranslationYGenerationEndValue.Location = new System.Drawing.Point(77, 32);
+            this.txtTranslationYGenerationEndValue.Name = "txtTranslationYGenerationEndValue";
+            this.txtTranslationYGenerationEndValue.Size = new System.Drawing.Size(67, 20);
+            this.txtTranslationYGenerationEndValue.TabIndex = 1;
+            // 
+            // txtTranslationYGenerationStartValue
+            // 
+            this.txtTranslationYGenerationStartValue.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtTranslationYGenerationStartValue.Location = new System.Drawing.Point(77, 11);
+            this.txtTranslationYGenerationStartValue.Name = "txtTranslationYGenerationStartValue";
+            this.txtTranslationYGenerationStartValue.Size = new System.Drawing.Size(67, 20);
+            this.txtTranslationYGenerationStartValue.TabIndex = 0;
+            // 
+            // btnTranslationYAdd
+            // 
+            this.btnTranslationYAdd.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnTranslationYAdd.Location = new System.Drawing.Point(133, 201);
+            this.btnTranslationYAdd.Name = "btnTranslationYAdd";
+            this.btnTranslationYAdd.Size = new System.Drawing.Size(23, 23);
+            this.btnTranslationYAdd.TabIndex = 41;
+            this.btnTranslationYAdd.Text = "+";
+            this.btnTranslationYAdd.UseVisualStyleBackColor = true;
+            this.btnTranslationYAdd.Click += new System.EventHandler(this.btnTranslationYAdd_Click);
+            // 
+            // lbxTranslationYValues
+            // 
+            this.lbxTranslationYValues.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.lbxTranslationYValues.FormattingEnabled = true;
+            this.lbxTranslationYValues.Location = new System.Drawing.Point(6, 19);
+            this.lbxTranslationYValues.Name = "lbxTranslationYValues";
+            this.lbxTranslationYValues.Size = new System.Drawing.Size(150, 147);
+            this.lbxTranslationYValues.TabIndex = 39;
+            this.lbxTranslationYValues.SelectedIndexChanged += new System.EventHandler(this.lbxTranslationYValues_SelectedIndexChanged);
+            // 
+            // btnTranslationYRemove
+            // 
+            this.btnTranslationYRemove.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnTranslationYRemove.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnTranslationYRemove.Location = new System.Drawing.Point(104, 202);
+            this.btnTranslationYRemove.Name = "btnTranslationYRemove";
+            this.btnTranslationYRemove.Size = new System.Drawing.Size(23, 23);
+            this.btnTranslationYRemove.TabIndex = 40;
+            this.btnTranslationYRemove.Text = "-";
+            this.btnTranslationYRemove.UseVisualStyleBackColor = true;
+            this.btnTranslationYRemove.Click += new System.EventHandler(this.btnTranslationYRemove_Click);
+            // 
+            // lblTranslationYValues
+            // 
+            this.lblTranslationYValues.AutoSize = true;
+            this.lblTranslationYValues.Location = new System.Drawing.Point(3, 3);
+            this.lblTranslationYValues.Name = "lblTranslationYValues";
+            this.lblTranslationYValues.Size = new System.Drawing.Size(104, 13);
+            this.lblTranslationYValues.TabIndex = 9;
+            this.lblTranslationYValues.Text = "Translation Y Values";
+            // 
+            // txtTranslationYLength
+            // 
+            this.txtTranslationYLength.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtTranslationYLength.Location = new System.Drawing.Point(45, 180);
+            this.txtTranslationYLength.Name = "txtTranslationYLength";
+            this.txtTranslationYLength.Size = new System.Drawing.Size(53, 20);
+            this.txtTranslationYLength.TabIndex = 42;
+            // 
+            // lblTranslationYLength
+            // 
+            this.lblTranslationYLength.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.lblTranslationYLength.AutoSize = true;
+            this.lblTranslationYLength.Location = new System.Drawing.Point(6, 183);
+            this.lblTranslationYLength.Name = "lblTranslationYLength";
+            this.lblTranslationYLength.Size = new System.Drawing.Size(40, 13);
+            this.lblTranslationYLength.TabIndex = 43;
+            this.lblTranslationYLength.Text = "Length";
+            // 
+            // txtTranslationYValue
+            // 
+            this.txtTranslationYValue.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtTranslationYValue.Location = new System.Drawing.Point(6, 204);
+            this.txtTranslationYValue.Name = "txtTranslationYValue";
+            this.txtTranslationYValue.Size = new System.Drawing.Size(92, 20);
+            this.txtTranslationYValue.TabIndex = 39;
+            this.txtTranslationYValue.TextChanged += new System.EventHandler(this.txtTranslationYValue_TextChanged);
             // 
             // TextureAnimationForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(694, 411);
+            this.ClientSize = new System.Drawing.Size(846, 411);
             this.Controls.Add(this.splitCVertical);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "TextureAnimationForm";
             this.Text = "Texture Animation Editor";
             this.splitCVertical.Panel1.ResumeLayout(false);
             this.splitCVertical.Panel2.ResumeLayout(false);
-            //((System.ComponentModel.ISupportInitialize)(this.splitCVertical)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.splitCVertical)).EndInit();
             this.splitCVertical.ResumeLayout(false);
             this.tlpAreaTexAnimSelect.ResumeLayout(false);
             this.pnlArea.ResumeLayout(false);
@@ -987,20 +1106,24 @@
             this.tlpHorizontal.ResumeLayout(false);
             this.pnlTexAnimSettings.ResumeLayout(false);
             this.pnlTexAnimSettings.PerformLayout();
-            this.tableLayoutPanel1.ResumeLayout(false);
-            this.tableLayoutPanel1.PerformLayout();
+            this.tlpTransformations.ResumeLayout(false);
+            this.tlpTransformations.PerformLayout();
             this.pnlScale.ResumeLayout(false);
             this.pnlScale.PerformLayout();
-            this.groupBox1.ResumeLayout(false);
-            this.groupBox1.PerformLayout();
-            this.pnlTranslation.ResumeLayout(false);
-            this.pnlTranslation.PerformLayout();
-            this.groupBox3.ResumeLayout(false);
-            this.groupBox3.PerformLayout();
+            this.grpScaleGeneration.ResumeLayout(false);
+            this.grpScaleGeneration.PerformLayout();
+            this.pnlTranslationX.ResumeLayout(false);
+            this.pnlTranslationX.PerformLayout();
+            this.grpTranslationXGeneration.ResumeLayout(false);
+            this.grpTranslationXGeneration.PerformLayout();
             this.pnlRotation.ResumeLayout(false);
             this.pnlRotation.PerformLayout();
-            this.groupBox2.ResumeLayout(false);
-            this.groupBox2.PerformLayout();
+            this.grpRotationGeneration.ResumeLayout(false);
+            this.grpRotationGeneration.PerformLayout();
+            this.pnlTranslationY.ResumeLayout(false);
+            this.pnlTranslationY.PerformLayout();
+            this.grpTranslationYGeneration.ResumeLayout(false);
+            this.grpTranslationYGeneration.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -1011,77 +1134,87 @@
         private System.Windows.Forms.ListBox lbxTexAnim;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.ListBox lbxScale;
-        private System.Windows.Forms.ListBox lbxRotation;
-        private System.Windows.Forms.ListBox lbxTranslation;
+        private System.Windows.Forms.ListBox lbxScaleValues;
+        private System.Windows.Forms.ListBox lbxRotationValues;
+        private System.Windows.Forms.ListBox lbxTranslationXValues;
         private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.TextBox txtScale;
-        private System.Windows.Forms.TextBox txtRotation;
-        private System.Windows.Forms.TextBox txtTranslation;
+        private System.Windows.Forms.Label lblTranslationXValues;
+        private System.Windows.Forms.TextBox txtScaleValue;
+        private System.Windows.Forms.TextBox txtRotationValue;
+        private System.Windows.Forms.TextBox txtTranslationXValue;
         private System.Windows.Forms.TextBox txtMaterialName;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.Button btnRemoveAll;
         private System.Windows.Forms.Button btnRemove;
         private System.Windows.Forms.Button btnAdd;
-        private System.Windows.Forms.Button btnSaveCurrent;
-        private System.Windows.Forms.Button btnAddScale;
-        private System.Windows.Forms.Button btnRemScale;
-        private System.Windows.Forms.Button btnAddRot;
-        private System.Windows.Forms.Button btnRemRot;
-        private System.Windows.Forms.Button btnAddTrans;
-        private System.Windows.Forms.Button btnRemTrans;
-        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.Button btnScaleAdd;
+        private System.Windows.Forms.Button btnScaleRemove;
+        private System.Windows.Forms.Button btnRotationAdd;
+        private System.Windows.Forms.Button btnRotationRemove;
+        private System.Windows.Forms.Button btnTranslationXAdd;
+        private System.Windows.Forms.Button btnTranslationXRemove;
         private System.Windows.Forms.Label label8;
-        private System.Windows.Forms.TextBox txtScaleStart;
-        private System.Windows.Forms.TextBox txtScaleSize;
-        private System.Windows.Forms.TextBox txtRotStart;
-        private System.Windows.Forms.TextBox txtRotSize;
-        private System.Windows.Forms.TextBox txtTransStart;
-        private System.Windows.Forms.TextBox txtTransSize;
+        private System.Windows.Forms.TextBox txtScaleLength;
+        private System.Windows.Forms.TextBox txtRotationLength;
+        private System.Windows.Forms.TextBox txtTranslationXLength;
         private System.Windows.Forms.Label label9;
-        private System.Windows.Forms.Label label10;
-        private System.Windows.Forms.Label label11;
-        private System.Windows.Forms.Label label12;
-        private System.Windows.Forms.Label label13;
-        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.Label lblTranslationXLength;
         private System.Windows.Forms.Label label14;
         private System.Windows.Forms.TextBox txtNumFrames;
         private System.Windows.Forms.SplitContainer splitCVertical;
-        private System.Windows.Forms.Panel pnlTranslation;
+        private System.Windows.Forms.Panel pnlTranslationX;
         private System.Windows.Forms.Panel pnlRotation;
         private System.Windows.Forms.Panel pnlScale;
-        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
+        private System.Windows.Forms.TableLayoutPanel tlpTransformations;
         private System.Windows.Forms.TableLayoutPanel tlpHorizontal;
         private System.Windows.Forms.Panel pnlTexAnimSettings;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Panel pnlArea;
         private System.Windows.Forms.TableLayoutPanel tlpAreaTexAnimSelect;
-        private System.Windows.Forms.GroupBox groupBox1;
-        private System.Windows.Forms.Button btnGenerateScale;
+        private System.Windows.Forms.GroupBox grpScaleGeneration;
+        private System.Windows.Forms.Button btnScaleGenerate;
         private System.Windows.Forms.Label label17;
         private System.Windows.Forms.Label label16;
         private System.Windows.Forms.Label label15;
-        private System.Windows.Forms.TextBox txtGenerateScaleAmount;
-        private System.Windows.Forms.TextBox txtGenerateScaleEndValue;
-        private System.Windows.Forms.TextBox txtGenerateScaleStartValue;
-        private System.Windows.Forms.GroupBox groupBox3;
-        private System.Windows.Forms.Button btnGenerateTranslation;
+        private System.Windows.Forms.TextBox txtScaleGenerationAmount;
+        private System.Windows.Forms.TextBox txtScaleGenerationEndValue;
+        private System.Windows.Forms.TextBox txtScaleGenerationStartValue;
+        private System.Windows.Forms.GroupBox grpTranslationXGeneration;
+        private System.Windows.Forms.Button btnTranslationXGenerate;
         private System.Windows.Forms.Label label21;
         private System.Windows.Forms.Label label22;
         private System.Windows.Forms.Label label23;
-        private System.Windows.Forms.TextBox txtGenerateTranslationAmount;
-        private System.Windows.Forms.TextBox txtGenerateTranslationEndValue;
-        private System.Windows.Forms.TextBox txtGenerateTranslationStartValue;
-        private System.Windows.Forms.GroupBox groupBox2;
-        private System.Windows.Forms.Button btnGenerateRotation;
+        private System.Windows.Forms.TextBox txtTranslationXGenerationAmount;
+        private System.Windows.Forms.TextBox txtTranslationXGenerationEndValue;
+        private System.Windows.Forms.TextBox txtTranslationXGenerationStartValue;
+        private System.Windows.Forms.GroupBox grpRotationGeneration;
+        private System.Windows.Forms.Button btnRotationGenerate;
         private System.Windows.Forms.Label label18;
         private System.Windows.Forms.Label label19;
         private System.Windows.Forms.Label label20;
-        private System.Windows.Forms.TextBox txtGenerateRotationAmount;
-        private System.Windows.Forms.TextBox txtGenerateRotationEndValue;
-        private System.Windows.Forms.TextBox txtGenerateRotationStartValue;
-        private System.Windows.Forms.Label label24;
+        private System.Windows.Forms.TextBox txtRotationGenerationAmount;
+        private System.Windows.Forms.TextBox txtRotationGenerationEndValue;
+        private System.Windows.Forms.TextBox txtRotationGenerationStartValue;
+        private System.Windows.Forms.Panel pnlTranslationY;
+        private System.Windows.Forms.GroupBox grpTranslationYGeneration;
+        private System.Windows.Forms.Button btnTranslationYGenerate;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.Label label10;
+        private System.Windows.Forms.TextBox txtTranslationYGenerationAmount;
+        private System.Windows.Forms.TextBox txtTranslationYGenerationEndValue;
+        private System.Windows.Forms.TextBox txtTranslationYGenerationStartValue;
+        private System.Windows.Forms.Button btnTranslationYAdd;
+        private System.Windows.Forms.ListBox lbxTranslationYValues;
+        private System.Windows.Forms.Button btnTranslationYRemove;
+        private System.Windows.Forms.Label lblTranslationYValues;
+        private System.Windows.Forms.TextBox txtTranslationYLength;
+        private System.Windows.Forms.Label lblTranslationYLength;
+        private System.Windows.Forms.TextBox txtTranslationYValue;
+        private System.Windows.Forms.Button btnTranslationYLengthUpdate;
+        private System.Windows.Forms.Button btnScaleLengthUpdate;
+        private System.Windows.Forms.Button btnTranslationXLengthUpdate;
+        private System.Windows.Forms.Button btnRotationLengthUpdate;
     }
 }

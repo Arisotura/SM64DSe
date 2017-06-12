@@ -37,7 +37,7 @@ namespace SM64DSe
             m_Name = m_ROM.GetFileNameFromID(id);
             m_Data = m_ROM.ExtractFile(m_ID);
 
-            if (Read32(0x0) == 0x37375A4C)
+            if (m_Data.Length >= 4 && Read32(0x0) == 0x37375A4C)
                 LZ77.Decompress(ref m_Data, true);
         }
 

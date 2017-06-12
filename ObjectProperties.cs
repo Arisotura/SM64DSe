@@ -108,7 +108,11 @@ namespace SM64DSe
             if (id == 0x1FF)
                 return "511 - Minimap change";
             if (destinationType == typeof(string))
+            {
+                if (id >= LevelObject.NUM_OBJ_TYPES)
+                    return string.Format("{0} - Unknown", id);
                 return string.Format("{0} - {1}", id, ObjectDatabase.m_ObjectInfo[id].m_Name);
+            }
             return base.ConvertTo(context, culture, value, destinationType);
         }
 
@@ -126,8 +130,8 @@ namespace SM64DSe
             if (!ushort.TryParse(_val, out ret))
                 throw new ArgumentException("Invalid object ID.");
 
-            if ((ret > 325) && (ret != 511))
-                throw new ArgumentException("Object ID out of range.\r\nValid object IDs are within 0 and 325, or 511.");
+            if (ret >= 512)
+                throw new ArgumentException("Object ID out of range.\r\nValid object IDs are within 0 and 326, or 511.");
 
             return ret;
         }

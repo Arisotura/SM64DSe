@@ -37,7 +37,6 @@ namespace SM64DSe
             this.tsEditActions = new System.Windows.Forms.ToolStrip();
             this.btnImportModel = new System.Windows.Forms.ToolStripButton();
             this.btnExportLevelModel = new System.Windows.Forms.ToolStripButton();
-            this.btnAddTexAnim = new System.Windows.Forms.ToolStripButton();
             this.btnAddObject = new System.Windows.Forms.ToolStripButton();
             this.btnAddWarp = new System.Windows.Forms.ToolStripDropDownButton();
             this.btnAddEntrance = new System.Windows.Forms.ToolStripMenuItem();
@@ -83,6 +82,7 @@ namespace SM64DSe
             this.txtRstPlaneOffX = new System.Windows.Forms.ToolStripTextBox();
             this.txtRstPlaneOffY = new System.Windows.Forms.ToolStripTextBox();
             this.txtRstPlaneOffZ = new System.Windows.Forms.ToolStripTextBox();
+            this.btnMakeOverlay = new System.Windows.Forms.ToolStripButton();
             this.tsToolBar = new System.Windows.Forms.ToolStrip();
             this.btnSave = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
@@ -110,6 +110,7 @@ namespace SM64DSe
             this.btnStarAll = new System.Windows.Forms.ToolStripButton();
             this.ssStatusBar = new System.Windows.Forms.StatusStrip();
             this.slStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
+            this.btnRemoveAll = new System.Windows.Forms.ToolStripButton();
             //((System.ComponentModel.ISupportInitialize)(this.spcMainContainer)).BeginInit();
             this.spcMainContainer.Panel1.SuspendLayout();
             this.spcMainContainer.Panel2.SuspendLayout();
@@ -195,11 +196,11 @@ namespace SM64DSe
             this.tsEditActions.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.btnImportModel,
             this.btnExportLevelModel,
-            this.btnAddTexAnim,
             this.btnAddObject,
             this.btnAddWarp,
             this.btnAddView,
             this.btnRemoveSel,
+            this.btnRemoveAll,
             this.btnReplaceObjModel,
             this.btnExportObjectModel,
             this.btnAddPathNodes,
@@ -234,15 +235,6 @@ namespace SM64DSe
             this.btnExportLevelModel.Size = new System.Drawing.Size(108, 19);
             this.btnExportLevelModel.Text = "Export level model";
             this.btnExportLevelModel.Click += new System.EventHandler(this.btnExportLevelModel_Click);
-            // 
-            // btnAddTexAnim
-            // 
-            this.btnAddTexAnim.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.btnAddTexAnim.Image = ((System.Drawing.Image)(resources.GetObject("btnAddTexAnim.Image")));
-            this.btnAddTexAnim.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnAddTexAnim.Name = "btnAddTexAnim";
-            this.btnAddTexAnim.Size = new System.Drawing.Size(129, 19);
-            this.btnAddTexAnim.Text = "Add texture animation";
             // 
             // btnAddObject
             // 
@@ -350,7 +342,7 @@ namespace SM64DSe
             this.btnExportObjectModel.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnExportObjectModel.Name = "btnExportObjectModel";
             this.btnExportObjectModel.Size = new System.Drawing.Size(117, 19);
-            this.btnExportObjectModel.Text = "Export object model";
+            this.btnExportObjectModel.Text = "Export model";
             this.btnExportObjectModel.Click += new System.EventHandler(this.btnExportObjectModel_Click);
             // 
             // btnAddPathNodes
@@ -472,7 +464,8 @@ namespace SM64DSe
             this.toolStripSeparator4,
             this.btnOrthView,
             this.menuGridSettings,
-            this.menuRestrictionPlane});
+            this.menuRestrictionPlane,
+            this.btnMakeOverlay});
             this.tsViewActions.Location = new System.Drawing.Point(0, 0);
             this.tsViewActions.Name = "tsViewActions";
             this.tsViewActions.Size = new System.Drawing.Size(689, 25);
@@ -495,6 +488,7 @@ namespace SM64DSe
             // btnImportXML
             // 
             this.btnImportXML.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.btnImportXML.Enabled = true;
             this.btnImportXML.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnImportXML.Name = "btnImportXML";
             this.btnImportXML.Size = new System.Drawing.Size(74, 22);
@@ -504,6 +498,7 @@ namespace SM64DSe
             // btnExportXML
             // 
             this.btnExportXML.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.btnExportXML.Enabled = true;
             this.btnExportXML.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnExportXML.Name = "btnExportXML";
             this.btnExportXML.Size = new System.Drawing.Size(71, 22);
@@ -547,7 +542,6 @@ namespace SM64DSe
             this.txtGridOffsetX,
             this.txtGridOffsetY,
             this.txtGridOffsetZ});
-            this.menuGridSettings.Image = ((System.Drawing.Image)(resources.GetObject("menuGridSettings.Image")));
             this.menuGridSettings.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.menuGridSettings.Name = "menuGridSettings";
             this.menuGridSettings.Size = new System.Drawing.Size(42, 22);
@@ -612,7 +606,6 @@ namespace SM64DSe
             this.txtRstPlaneOffX,
             this.txtRstPlaneOffY,
             this.txtRstPlaneOffZ});
-            this.menuRestrictionPlane.Image = ((System.Drawing.Image)(resources.GetObject("menuRestrictionPlane.Image")));
             this.menuRestrictionPlane.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.menuRestrictionPlane.Name = "menuRestrictionPlane";
             this.menuRestrictionPlane.Size = new System.Drawing.Size(108, 22);
@@ -663,6 +656,16 @@ namespace SM64DSe
             this.txtRstPlaneOffZ.Size = new System.Drawing.Size(100, 23);
             this.txtRstPlaneOffZ.Text = "0.0";
             this.txtRstPlaneOffZ.ToolTipText = "Distance from Origin";
+            // 
+            // btnMakeOverlay
+            // 
+            this.btnMakeOverlay.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.btnMakeOverlay.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnMakeOverlay.Name = "btnMakeOverlay";
+            this.btnMakeOverlay.Size = new System.Drawing.Size(113, 22);
+            this.btnMakeOverlay.Text = "Make Level Overlay";
+            this.btnMakeOverlay.ToolTipText = "Ready to show off your level coding skills?";
+            this.btnMakeOverlay.Click += new System.EventHandler(this.btnMakeOverlay_Click);
             // 
             // tsToolBar
             // 
@@ -959,6 +962,15 @@ namespace SM64DSe
             this.slStatusLabel.Paint += new System.Windows.Forms.PaintEventHandler(this.slStatusLabel_Paint);
             this.slStatusLabel.TextChanged += new System.EventHandler(this.slStatusLabel_TextChanged);
             // 
+            // btnRemoveAll
+            // 
+            this.btnRemoveAll.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.btnRemoveAll.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnRemoveAll.Name = "btnRemoveAll";
+            this.btnRemoveAll.Size = new System.Drawing.Size(69, 19);
+            this.btnRemoveAll.Text = "Remove all";
+            this.btnRemoveAll.Click += new System.EventHandler(this.btnRemoveAll_Click);
+            // 
             // LevelEditorForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1028,7 +1040,6 @@ namespace SM64DSe
         private System.Windows.Forms.ToolStripStatusLabel slStatusLabel;
         private System.Windows.Forms.ToolStripButton btnImportModel;
         private System.Windows.Forms.ToolStripButton btnRemoveSel;
-        private System.Windows.Forms.ToolStripButton btnAddTexAnim;
         private System.Windows.Forms.ToolStripButton btnAddObject;
         private System.Windows.Forms.ToolStripDropDownButton btnAddWarp;
         private System.Windows.Forms.ToolStripMenuItem btnAddEntrance;
@@ -1076,5 +1087,7 @@ namespace SM64DSe
         private System.Windows.Forms.ToolStripTextBox txtRstPlaneOffZ;
         private System.Windows.Forms.ToolStripTextBox txtRstPlaneOffX;
         private System.Windows.Forms.ToolStripTextBox txtRstPlaneOffY;
+        private System.Windows.Forms.ToolStripButton btnMakeOverlay;
+        private System.Windows.Forms.ToolStripButton btnRemoveAll;
     }
 }

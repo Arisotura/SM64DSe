@@ -39,7 +39,7 @@
             this.btnAdd = new System.Windows.Forms.Button();
             this.btnShiftUp = new System.Windows.Forms.Button();
             this.btnShiftDown = new System.Windows.Forms.Button();
-            //((System.ComponentModel.ISupportInitialize)(this.gridCLPSData)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.gridCLPSData)).BeginInit();
             this.SuspendLayout();
             // 
             // label1
@@ -81,16 +81,16 @@
             // 
             this.gridCLPSData.AllowUserToAddRows = false;
             this.gridCLPSData.AllowUserToDeleteRows = false;
-            this.gridCLPSData.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.gridCLPSData.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.gridCLPSData.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.gridCLPSData.Location = new System.Drawing.Point(15, 110);
             this.gridCLPSData.MultiSelect = false;
             this.gridCLPSData.Name = "gridCLPSData";
             dataGridViewCellStyle1.ForeColor = System.Drawing.Color.Black;
             this.gridCLPSData.RowsDefaultCellStyle = dataGridViewCellStyle1;
-            this.gridCLPSData.Size = new System.Drawing.Size(569, 181);
+            this.gridCLPSData.Size = new System.Drawing.Size(860, 268);
             this.gridCLPSData.StandardTab = true;
             this.gridCLPSData.TabIndex = 6;
             this.gridCLPSData.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.gridCLPSData_CellEndEdit);
@@ -98,7 +98,7 @@
             // btnRemove
             // 
             this.btnRemove.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.btnRemove.Location = new System.Drawing.Point(15, 298);
+            this.btnRemove.Location = new System.Drawing.Point(15, 385);
             this.btnRemove.Name = "btnRemove";
             this.btnRemove.Size = new System.Drawing.Size(22, 23);
             this.btnRemove.TabIndex = 7;
@@ -109,7 +109,7 @@
             // btnAdd
             // 
             this.btnAdd.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.btnAdd.Location = new System.Drawing.Point(43, 298);
+            this.btnAdd.Location = new System.Drawing.Point(43, 385);
             this.btnAdd.Name = "btnAdd";
             this.btnAdd.Size = new System.Drawing.Size(22, 23);
             this.btnAdd.TabIndex = 8;
@@ -120,7 +120,7 @@
             // btnShiftUp
             // 
             this.btnShiftUp.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnShiftUp.Location = new System.Drawing.Point(590, 188);
+            this.btnShiftUp.Location = new System.Drawing.Point(881, 275);
             this.btnShiftUp.Name = "btnShiftUp";
             this.btnShiftUp.Size = new System.Drawing.Size(22, 23);
             this.btnShiftUp.TabIndex = 9;
@@ -131,7 +131,7 @@
             // btnShiftDown
             // 
             this.btnShiftDown.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnShiftDown.Location = new System.Drawing.Point(590, 217);
+            this.btnShiftDown.Location = new System.Drawing.Point(881, 304);
             this.btnShiftDown.Name = "btnShiftDown";
             this.btnShiftDown.Size = new System.Drawing.Size(22, 23);
             this.btnShiftDown.TabIndex = 10;
@@ -143,7 +143,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(624, 343);
+            this.ClientSize = new System.Drawing.Size(915, 430);
             this.Controls.Add(this.btnShiftDown);
             this.Controls.Add(this.btnShiftUp);
             this.Controls.Add(this.btnAdd);
@@ -156,7 +156,7 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "CLPS_Form";
             this.Text = "CLPS Data";
-            //((System.ComponentModel.ISupportInitialize)(this.gridCLPSData)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.gridCLPSData)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 

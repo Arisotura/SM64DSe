@@ -21,6 +21,7 @@ namespace SM64DSe
         private string m_ModelName;
 
         private ROMFileSelect m_ROMFileSelect = new ROMFileSelect();
+        private FolderBrowserDialog m_FolderBrowserDialogue = new FolderBrowserDialog();
 
         private System.Windows.Forms.Timer m_BTPTimer;
         private int timerCount = 0;
@@ -155,12 +156,11 @@ namespace SM64DSe
 
         private void btnExportAll_Click(object sender, EventArgs e)
         {
-            FolderBrowserDialog fbd = new FolderBrowserDialog();
-            DialogResult result = fbd.ShowDialog();
-            String folderName = "";
+            m_FolderBrowserDialogue.SelectedPath = System.IO.Path.GetDirectoryName(Program.m_ROMPath);
+            DialogResult result = m_FolderBrowserDialogue.ShowDialog();
             if (result == DialogResult.OK)
             {
-                folderName = fbd.SelectedPath;
+                string folderName = m_FolderBrowserDialogue.SelectedPath;
                 for (int i = 0; i < m_Model.m_Textures.Values.Count; i++)
                 {
                     NitroTexture currentTexture = m_Model.m_Textures.Values.ElementAt(i);

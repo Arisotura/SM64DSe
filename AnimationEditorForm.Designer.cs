@@ -401,6 +401,7 @@
             // chkOptimise
             // 
             this.chkOptimise.AutoSize = true;
+            this.chkOptimise.Checked = true;
             this.chkOptimise.Location = new System.Drawing.Point(3, 106);
             this.chkOptimise.Name = "chkOptimise";
             this.chkOptimise.Size = new System.Drawing.Size(66, 17);

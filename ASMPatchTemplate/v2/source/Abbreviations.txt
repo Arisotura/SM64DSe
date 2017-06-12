@@ -1,0 +1,8 @@
+E = Enemy
+F = Fundamental
+L = Level
+M = Mount
+N = NPC
+O = Object unclassified
+P = Platform
+T = Template

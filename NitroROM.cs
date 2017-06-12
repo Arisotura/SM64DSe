@@ -133,6 +133,7 @@ namespace SM64DSe
 
                 FileEntry fe;
                 fe.ID = f;
+                fe.InternalID = 0xFFFF;
                 fe.ParentID = 0;
                 fe.Offset = start;
                 fe.Size = end - start;
@@ -232,6 +233,7 @@ namespace SM64DSe
 		        uint str_offset = ovl0.ReadPointer(m_FileTableOffset + (i*4));
 		        string fname = ovl0.ReadString(str_offset, 0);
 		        m_FileTable[i] = GetFileIDFromName(fname);
+                m_FileEntries[GetFileIDFromName(fname)].InternalID = (ushort)i;
 	        }
 
             m_FileStream.Position = m_LevelOvlIDTableOffset;
@@ -292,6 +294,17 @@ namespace SM64DSe
         }
         public ushort GetFileIDFromOverlayID(uint ovlid) { return m_OverlayEntries[ovlid].FileID; }
         public ushort GetFileIDFromInternalID(ushort intid) { return m_FileTable[intid]; }
+
+        public ushort GetDirIDFromName(string name)
+        {
+            foreach (DirEntry de in m_DirEntries)
+            {
+                if (de.FullName == name)
+                    return de.ID;
+            }
+
+            return 0x0000;
+        }
 
         public bool FileExists(string name)
         {
@@ -355,6 +368,11 @@ namespace SM64DSe
         public FileEntry[] GetFileEntries()
         {
             return m_FileEntries;
+        }
+
+        public DirEntry[] GetDirEntries()
+        {
+            return m_DirEntries;
         }
 
         public uint GetOverlayEntryOffset(uint ovlid) { return m_OverlayEntries[ovlid].EntryOffset; }
@@ -546,6 +564,7 @@ namespace SM64DSe
 	        Array.Resize(ref m_FileEntries, m_FileEntries.Length+1);
             FileEntry fe;
             fe.ID = fileid;
+            fe.InternalID = 0xFFFF;
             fe.ParentID = 0;
             fe.Offset = fileaddr;
             fe.Size = 0;
@@ -631,6 +650,7 @@ namespace SM64DSe
         public struct FileEntry
         {
             public ushort ID;
+            public ushort InternalID;
             public ushort ParentID;
             public string Name;
             public string FullName;

@@ -41,12 +41,20 @@
             this.mnitDecompressOverlaysWithinGame = new System.Windows.Forms.ToolStripMenuItem();
             this.mnitHexDumpToBinaryFile = new System.Windows.Forms.ToolStripMenuItem();
             this.mnitEditSDATINFOBlockToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.mnitToggleSuitabilityForNSMBeASMPatchingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.btnASMHacking = new System.Windows.Forms.ToolStripDropDownButton();
+            this.mnitASMHackingCompilation = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnitASMHackingCompilationCodeCompiler = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnitASMHackingCompilationFixCodeOffsets = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnitASMHackingGeneration = new System.Windows.Forms.ToolStripMenuItem();
+            this.platformEditorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.btnTools = new System.Windows.Forms.ToolStripDropDownButton();
             this.mnitToolsModelAndCollisionMapImporter = new System.Windows.Forms.ToolStripMenuItem();
             this.mnitToolsCollisionMapEditor = new System.Windows.Forms.ToolStripMenuItem();
             this.mnitToolsModelAnimationEditor = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnitToolsBTPEditor = new System.Windows.Forms.ToolStripMenuItem();
             this.mnitToolsTextEditor = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnitToolsSoundBrowser = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnitToggleSuitabilityForNSMBeASMPatchingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mnitToolsImageEditor = new System.Windows.Forms.ToolStripMenuItem();
             this.ofdOpenFile = new System.Windows.Forms.OpenFileDialog();
             this.sfdSaveFile = new System.Windows.Forms.SaveFileDialog();
@@ -77,23 +85,23 @@
             this.btnReplaceOverlay = new System.Windows.Forms.Button();
             this.btnExtractOverlay = new System.Windows.Forms.Button();
             this.btnDecompressOverlay = new System.Windows.Forms.Button();
-            this.mnitToolsBTPEditor = new System.Windows.Forms.ToolStripMenuItem();
+            this.tssASMHacking001 = new System.Windows.Forms.ToolStripSeparator();
             this.tsToolBar.SuspendLayout();
             this.ssStatusBar.SuspendLayout();
             this.tbcMainFormTabControl.SuspendLayout();
             this.tbpLevels.SuspendLayout();
-            //((System.ComponentModel.ISupportInitialize)(this.splitContainerLevels)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainerLevels)).BeginInit();
             this.splitContainerLevels.Panel1.SuspendLayout();
             this.splitContainerLevels.Panel2.SuspendLayout();
             this.splitContainerLevels.SuspendLayout();
             this.tbpFileSystem.SuspendLayout();
-            //((System.ComponentModel.ISupportInitialize)(this.spcFileSystemTab)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.spcFileSystemTab)).BeginInit();
             this.spcFileSystemTab.Panel1.SuspendLayout();
             this.spcFileSystemTab.Panel2.SuspendLayout();
             this.spcFileSystemTab.SuspendLayout();
             this.pnlFileOptions.SuspendLayout();
             this.tbpARM9Overlays.SuspendLayout();
-            //((System.ComponentModel.ISupportInitialize)(this.spcARM9Overlays)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.spcARM9Overlays)).BeginInit();
             this.spcARM9Overlays.Panel1.SuspendLayout();
             this.spcARM9Overlays.Panel2.SuspendLayout();
             this.spcARM9Overlays.SuspendLayout();
@@ -106,10 +114,11 @@
             this.btnHalp,
             this.btnOptions,
             this.btnMore,
+            this.btnASMHacking,
             this.btnTools});
             this.tsToolBar.Location = new System.Drawing.Point(0, 0);
             this.tsToolBar.Name = "tsToolBar";
-            this.tsToolBar.Size = new System.Drawing.Size(484, 25);
+            this.tsToolBar.Size = new System.Drawing.Size(508, 25);
             this.tsToolBar.TabIndex = 0;
             this.tsToolBar.Text = "toolStrip1";
             // 
@@ -171,8 +180,7 @@
             this.mnitDumpAllOvls,
             this.mnitDecompressOverlaysWithinGame,
             this.mnitHexDumpToBinaryFile,
-            this.mnitEditSDATINFOBlockToolStripMenuItem,
-            this.mnitToggleSuitabilityForNSMBeASMPatchingToolStripMenuItem});
+            this.mnitEditSDATINFOBlockToolStripMenuItem});
             this.btnMore.Enabled = false;
             this.btnMore.Image = ((System.Drawing.Image)(resources.GetObject("btnMore.Image")));
             this.btnMore.ImageTransparentColor = System.Drawing.Color.Magenta;
@@ -183,28 +191,28 @@
             // mnitAdditionalPatches
             // 
             this.mnitAdditionalPatches.Name = "mnitAdditionalPatches";
-            this.mnitAdditionalPatches.Size = new System.Drawing.Size(304, 22);
+            this.mnitAdditionalPatches.Size = new System.Drawing.Size(259, 22);
             this.mnitAdditionalPatches.Text = "Additional Patches";
             this.mnitAdditionalPatches.Click += new System.EventHandler(this.mnitAdditionalPatches_Click);
             // 
             // mnitDumpAllOvls
             // 
             this.mnitDumpAllOvls.Name = "mnitDumpAllOvls";
-            this.mnitDumpAllOvls.Size = new System.Drawing.Size(304, 22);
+            this.mnitDumpAllOvls.Size = new System.Drawing.Size(259, 22);
             this.mnitDumpAllOvls.Text = "Dump All Overlays";
             this.mnitDumpAllOvls.Click += new System.EventHandler(this.mnitDumpAllOvls_Click);
             // 
             // mnitDecompressOverlaysWithinGame
             // 
             this.mnitDecompressOverlaysWithinGame.Name = "mnitDecompressOverlaysWithinGame";
-            this.mnitDecompressOverlaysWithinGame.Size = new System.Drawing.Size(304, 22);
+            this.mnitDecompressOverlaysWithinGame.Size = new System.Drawing.Size(259, 22);
             this.mnitDecompressOverlaysWithinGame.Text = "Decompress Overlays Within Game";
             this.mnitDecompressOverlaysWithinGame.Click += new System.EventHandler(this.mnitDecompressOverlaysWithinGame_Click);
             // 
             // mnitHexDumpToBinaryFile
             // 
             this.mnitHexDumpToBinaryFile.Name = "mnitHexDumpToBinaryFile";
-            this.mnitHexDumpToBinaryFile.Size = new System.Drawing.Size(304, 22);
+            this.mnitHexDumpToBinaryFile.Size = new System.Drawing.Size(259, 22);
             this.mnitHexDumpToBinaryFile.Text = "Hex Dump to Binary File";
             this.mnitHexDumpToBinaryFile.Click += new System.EventHandler(this.mnitHexDumpToBinaryFile_Click);
             // 
@@ -212,17 +220,63 @@
             // 
             this.mnitEditSDATINFOBlockToolStripMenuItem.Enabled = false;
             this.mnitEditSDATINFOBlockToolStripMenuItem.Name = "mnitEditSDATINFOBlockToolStripMenuItem";
-            this.mnitEditSDATINFOBlockToolStripMenuItem.Size = new System.Drawing.Size(304, 22);
+            this.mnitEditSDATINFOBlockToolStripMenuItem.Size = new System.Drawing.Size(259, 22);
             this.mnitEditSDATINFOBlockToolStripMenuItem.Text = "Edit SDAT INFO Block";
             this.mnitEditSDATINFOBlockToolStripMenuItem.Visible = false;
             this.mnitEditSDATINFOBlockToolStripMenuItem.Click += new System.EventHandler(this.mnitEditSDATINFOBlockToolStripMenuItem_Click);
             // 
-            // mnitToggleSuitabilityForNSMBeASMPatchingToolStripMenuItem
+            // btnASMHacking
             // 
-            this.mnitToggleSuitabilityForNSMBeASMPatchingToolStripMenuItem.Name = "mnitToggleSuitabilityForNSMBeASMPatchingToolStripMenuItem";
-            this.mnitToggleSuitabilityForNSMBeASMPatchingToolStripMenuItem.Size = new System.Drawing.Size(304, 22);
-            this.mnitToggleSuitabilityForNSMBeASMPatchingToolStripMenuItem.Text = "Toggle Suitability for NSMBe ASM Patching";
-            this.mnitToggleSuitabilityForNSMBeASMPatchingToolStripMenuItem.Click += new System.EventHandler(this.mnitToggleSuitabilityForNSMBeASMPatchingToolStripMenuItem_Click);
+            this.btnASMHacking.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.btnASMHacking.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.btnASMHacking.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.mnitASMHackingCompilation,
+            this.mnitASMHackingGeneration,
+            this.tssASMHacking001, 
+            this.mnitToggleSuitabilityForNSMBeASMPatchingToolStripMenuItem});
+            this.btnASMHacking.Enabled = false;
+            this.btnASMHacking.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnASMHacking.Name = "btnASMHacking";
+            this.btnASMHacking.Size = new System.Drawing.Size(92, 22);
+            this.btnASMHacking.Text = "ASM Hacking";
+            // 
+            // mnitASMHackingCompilation
+            // 
+            this.mnitASMHackingCompilation.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.mnitASMHackingCompilationCodeCompiler,
+            this.mnitASMHackingCompilationFixCodeOffsets});
+            this.mnitASMHackingCompilation.Name = "mnitASMHackingCompilation";
+            this.mnitASMHackingCompilation.Size = new System.Drawing.Size(152, 22);
+            this.mnitASMHackingCompilation.Text = "Compilation";
+            // 
+            // mnitASMHackingCompilationCodeCompiler
+            // 
+            this.mnitASMHackingCompilationCodeCompiler.Name = "mnitASMHackingCompilationCodeCompiler";
+            this.mnitASMHackingCompilationCodeCompiler.Size = new System.Drawing.Size(159, 22);
+            this.mnitASMHackingCompilationCodeCompiler.Text = "Code Compiler";
+            this.mnitASMHackingCompilationCodeCompiler.Click += new System.EventHandler(this.mnitASMHackingCompilationCodeCompiler_Click);
+            // 
+            // mnitASMHackingCompilationFixCodeOffsets
+            // 
+            this.mnitASMHackingCompilationFixCodeOffsets.Name = "mnitASMHackingCompilationFixCodeOffsets";
+            this.mnitASMHackingCompilationFixCodeOffsets.Size = new System.Drawing.Size(159, 22);
+            this.mnitASMHackingCompilationFixCodeOffsets.Text = "Fix Code Offsets";
+            this.mnitASMHackingCompilationFixCodeOffsets.Click += new System.EventHandler(this.mnitASMHackingCompilationFixCodeOffsets_Click);
+            // 
+            // mnitASMHackingGeneration
+            // 
+            this.mnitASMHackingGeneration.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.platformEditorToolStripMenuItem});
+            this.mnitASMHackingGeneration.Name = "mnitASMHackingGeneration";
+            this.mnitASMHackingGeneration.Size = new System.Drawing.Size(152, 22);
+            this.mnitASMHackingGeneration.Text = "Generation";
+            // 
+            // platformEditorToolStripMenuItem
+            // 
+            this.platformEditorToolStripMenuItem.Name = "platformEditorToolStripMenuItem";
+            this.platformEditorToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
+            this.platformEditorToolStripMenuItem.Text = "Platform Editor";
+            this.platformEditorToolStripMenuItem.Click += new System.EventHandler(this.platformEditorToolStripMenuItem_Click);
             // 
             // btnTools
             // 
@@ -233,7 +287,8 @@
             this.mnitToolsCollisionMapEditor,
             this.mnitToolsModelAnimationEditor,
             this.mnitToolsBTPEditor,
-            this.mnitToolsTextEditor});
+            this.mnitToolsTextEditor,
+            this.mnitToolsSoundBrowser});
             this.btnTools.Enabled = false;
             this.btnTools.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnTools.Name = "btnTools";
@@ -261,12 +316,33 @@
             this.mnitToolsModelAnimationEditor.Text = "Model Animation Editor";
             this.mnitToolsModelAnimationEditor.Click += new System.EventHandler(this.mnitToolsModelAnimationEditor_Click);
             // 
+            // mnitToolsBTPEditor
+            // 
+            this.mnitToolsBTPEditor.Name = "mnitToolsBTPEditor";
+            this.mnitToolsBTPEditor.Size = new System.Drawing.Size(256, 22);
+            this.mnitToolsBTPEditor.Text = "Texture Pattern (BTP) Editor";
+            this.mnitToolsBTPEditor.Click += new System.EventHandler(this.mnitToolsBTPEditor_Click);
+            // 
             // mnitToolsTextEditor
             // 
             this.mnitToolsTextEditor.Name = "mnitToolsTextEditor";
             this.mnitToolsTextEditor.Size = new System.Drawing.Size(256, 22);
             this.mnitToolsTextEditor.Text = "Text Editor";
             this.mnitToolsTextEditor.Click += new System.EventHandler(this.mnitToolsTextEditor_Click);
+            // 
+            // mnitToolsSoundBrowser
+            // 
+            this.mnitToolsSoundBrowser.Name = "mnitToolsSoundBrowser";
+            this.mnitToolsSoundBrowser.Size = new System.Drawing.Size(256, 22);
+            this.mnitToolsSoundBrowser.Text = "Sound Browser";
+            this.mnitToolsSoundBrowser.Click += new System.EventHandler(this.mnitToolsSoundBrowser_Click);
+            // 
+            // mnitToggleSuitabilityForNSMBeASMPatchingToolStripMenuItem
+            // 
+            this.mnitToggleSuitabilityForNSMBeASMPatchingToolStripMenuItem.Name = "mnitToggleSuitabilityForNSMBeASMPatchingToolStripMenuItem";
+            this.mnitToggleSuitabilityForNSMBeASMPatchingToolStripMenuItem.Size = new System.Drawing.Size(304, 22);
+            this.mnitToggleSuitabilityForNSMBeASMPatchingToolStripMenuItem.Text = "Toggle Suitability for NSMBe ASM Patching";
+            this.mnitToggleSuitabilityForNSMBeASMPatchingToolStripMenuItem.Click += new System.EventHandler(this.mnitToggleSuitabilityForNSMBeASMPatchingToolStripMenuItem_Click);
             // 
             // mnitToolsImageEditor
             // 
@@ -295,7 +371,7 @@
             this.spbStatusProgress});
             this.ssStatusBar.Location = new System.Drawing.Point(0, 410);
             this.ssStatusBar.Name = "ssStatusBar";
-            this.ssStatusBar.Size = new System.Drawing.Size(484, 22);
+            this.ssStatusBar.Size = new System.Drawing.Size(508, 22);
             this.ssStatusBar.TabIndex = 2;
             this.ssStatusBar.Text = "statusStrip1";
             // 
@@ -321,7 +397,7 @@
             this.tbcMainFormTabControl.Location = new System.Drawing.Point(0, 25);
             this.tbcMainFormTabControl.Name = "tbcMainFormTabControl";
             this.tbcMainFormTabControl.SelectedIndex = 0;
-            this.tbcMainFormTabControl.Size = new System.Drawing.Size(484, 385);
+            this.tbcMainFormTabControl.Size = new System.Drawing.Size(508, 385);
             this.tbcMainFormTabControl.TabIndex = 3;
             // 
             // tbpLevels
@@ -330,7 +406,7 @@
             this.tbpLevels.Location = new System.Drawing.Point(4, 22);
             this.tbpLevels.Name = "tbpLevels";
             this.tbpLevels.Padding = new System.Windows.Forms.Padding(3);
-            this.tbpLevels.Size = new System.Drawing.Size(476, 359);
+            this.tbpLevels.Size = new System.Drawing.Size(500, 359);
             this.tbpLevels.TabIndex = 0;
             this.tbpLevels.Text = "Levels";
             this.tbpLevels.UseVisualStyleBackColor = true;
@@ -352,7 +428,7 @@
             // 
             this.splitContainerLevels.Panel2.Controls.Add(this.btnEditCollisionMap);
             this.splitContainerLevels.Panel2.Controls.Add(this.btnEditLevel);
-            this.splitContainerLevels.Size = new System.Drawing.Size(470, 353);
+            this.splitContainerLevels.Size = new System.Drawing.Size(494, 353);
             this.splitContainerLevels.SplitterDistance = 322;
             this.splitContainerLevels.TabIndex = 0;
             // 
@@ -364,7 +440,7 @@
             this.lbxLevels.Location = new System.Drawing.Point(0, 0);
             this.lbxLevels.Margin = new System.Windows.Forms.Padding(0);
             this.lbxLevels.Name = "lbxLevels";
-            this.lbxLevels.Size = new System.Drawing.Size(470, 322);
+            this.lbxLevels.Size = new System.Drawing.Size(494, 322);
             this.lbxLevels.TabIndex = 2;
             this.lbxLevels.SelectedIndexChanged += new System.EventHandler(this.lbxLevels_SelectedIndexChanged);
             this.lbxLevels.DoubleClick += new System.EventHandler(this.lbxLevels_DoubleClick);
@@ -397,7 +473,7 @@
             this.tbpFileSystem.Location = new System.Drawing.Point(4, 22);
             this.tbpFileSystem.Name = "tbpFileSystem";
             this.tbpFileSystem.Padding = new System.Windows.Forms.Padding(3);
-            this.tbpFileSystem.Size = new System.Drawing.Size(476, 359);
+            this.tbpFileSystem.Size = new System.Drawing.Size(500, 359);
             this.tbpFileSystem.TabIndex = 1;
             this.tbpFileSystem.Text = "File System";
             this.tbpFileSystem.UseVisualStyleBackColor = true;
@@ -418,7 +494,7 @@
             // spcFileSystemTab.Panel2
             // 
             this.spcFileSystemTab.Panel2.Controls.Add(this.pnlFileOptions);
-            this.spcFileSystemTab.Size = new System.Drawing.Size(470, 353);
+            this.spcFileSystemTab.Size = new System.Drawing.Size(494, 353);
             this.spcFileSystemTab.SplitterDistance = 297;
             this.spcFileSystemTab.TabIndex = 2;
             // 
@@ -427,7 +503,7 @@
             this.tvFileList.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tvFileList.Location = new System.Drawing.Point(0, 0);
             this.tvFileList.Name = "tvFileList";
-            this.tvFileList.Size = new System.Drawing.Size(470, 297);
+            this.tvFileList.Size = new System.Drawing.Size(494, 297);
             this.tvFileList.TabIndex = 0;
             this.tvFileList.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tvFileList_AfterSelect);
             // 
@@ -444,7 +520,7 @@
             this.pnlFileOptions.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlFileOptions.Location = new System.Drawing.Point(0, 0);
             this.pnlFileOptions.Name = "pnlFileOptions";
-            this.pnlFileOptions.Size = new System.Drawing.Size(470, 52);
+            this.pnlFileOptions.Size = new System.Drawing.Size(494, 52);
             this.pnlFileOptions.TabIndex = 1;
             // 
             // btnLZForceCompression
@@ -535,7 +611,7 @@
             this.tbpARM9Overlays.Location = new System.Drawing.Point(4, 22);
             this.tbpARM9Overlays.Name = "tbpARM9Overlays";
             this.tbpARM9Overlays.Padding = new System.Windows.Forms.Padding(3);
-            this.tbpARM9Overlays.Size = new System.Drawing.Size(476, 359);
+            this.tbpARM9Overlays.Size = new System.Drawing.Size(500, 359);
             this.tbpARM9Overlays.TabIndex = 2;
             this.tbpARM9Overlays.Text = "ARM 9 Overlays";
             this.tbpARM9Overlays.UseVisualStyleBackColor = true;
@@ -558,7 +634,7 @@
             this.spcARM9Overlays.Panel2.Controls.Add(this.btnReplaceOverlay);
             this.spcARM9Overlays.Panel2.Controls.Add(this.btnExtractOverlay);
             this.spcARM9Overlays.Panel2.Controls.Add(this.btnDecompressOverlay);
-            this.spcARM9Overlays.Size = new System.Drawing.Size(470, 353);
+            this.spcARM9Overlays.Size = new System.Drawing.Size(494, 353);
             this.spcARM9Overlays.SplitterDistance = 322;
             this.spcARM9Overlays.TabIndex = 0;
             // 
@@ -567,7 +643,7 @@
             this.tvARM9Overlays.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tvARM9Overlays.Location = new System.Drawing.Point(0, 0);
             this.tvARM9Overlays.Name = "tvARM9Overlays";
-            this.tvARM9Overlays.Size = new System.Drawing.Size(470, 322);
+            this.tvARM9Overlays.Size = new System.Drawing.Size(494, 322);
             this.tvARM9Overlays.TabIndex = 0;
             this.tvARM9Overlays.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tvARM9Overlays_AfterSelect);
             // 
@@ -600,18 +676,16 @@
             this.btnDecompressOverlay.Text = "Decompress Overlay";
             this.btnDecompressOverlay.UseVisualStyleBackColor = true;
             // 
-            // mnitToolsBTPEditor
+            // tssASMHacking001
             // 
-            this.mnitToolsBTPEditor.Name = "mnitToolsBTPEditor";
-            this.mnitToolsBTPEditor.Size = new System.Drawing.Size(256, 22);
-            this.mnitToolsBTPEditor.Text = "Texture Pattern (BTP) Editor";
-            this.mnitToolsBTPEditor.Click += new System.EventHandler(this.mnitToolsBTPEditor_Click);
+            this.tssASMHacking001.Name = "tssASMHacking001";
+            this.tssASMHacking001.Size = new System.Drawing.Size(149, 6);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(484, 432);
+            this.ClientSize = new System.Drawing.Size(508, 432);
             this.Controls.Add(this.tbcMainFormTabControl);
             this.Controls.Add(this.ssStatusBar);
             this.Controls.Add(this.tsToolBar);
@@ -627,18 +701,18 @@
             this.tbpLevels.ResumeLayout(false);
             this.splitContainerLevels.Panel1.ResumeLayout(false);
             this.splitContainerLevels.Panel2.ResumeLayout(false);
-            //((System.ComponentModel.ISupportInitialize)(this.splitContainerLevels)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainerLevels)).EndInit();
             this.splitContainerLevels.ResumeLayout(false);
             this.tbpFileSystem.ResumeLayout(false);
             this.spcFileSystemTab.Panel1.ResumeLayout(false);
             this.spcFileSystemTab.Panel2.ResumeLayout(false);
-            //((System.ComponentModel.ISupportInitialize)(this.spcFileSystemTab)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.spcFileSystemTab)).EndInit();
             this.spcFileSystemTab.ResumeLayout(false);
             this.pnlFileOptions.ResumeLayout(false);
             this.tbpARM9Overlays.ResumeLayout(false);
             this.spcARM9Overlays.Panel1.ResumeLayout(false);
             this.spcARM9Overlays.Panel2.ResumeLayout(false);
-            //((System.ComponentModel.ISupportInitialize)(this.spcARM9Overlays)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.spcARM9Overlays)).EndInit();
             this.spcARM9Overlays.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -696,6 +770,14 @@
         private System.Windows.Forms.ToolStripMenuItem mnitToolsTextEditor;
         private System.Windows.Forms.ToolStripMenuItem mnitToolsCollisionMapEditor;
         private System.Windows.Forms.ToolStripMenuItem mnitToolsBTPEditor;
+        private System.Windows.Forms.ToolStripMenuItem mnitToolsSoundBrowser;
+        private System.Windows.Forms.ToolStripDropDownButton btnASMHacking;
+        private System.Windows.Forms.ToolStripMenuItem mnitASMHackingCompilation;
+        private System.Windows.Forms.ToolStripMenuItem mnitASMHackingCompilationCodeCompiler;
+        private System.Windows.Forms.ToolStripMenuItem mnitASMHackingCompilationFixCodeOffsets;
+        private System.Windows.Forms.ToolStripMenuItem mnitASMHackingGeneration;
+        private System.Windows.Forms.ToolStripMenuItem platformEditorToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator tssASMHacking001;
     }
 }
 

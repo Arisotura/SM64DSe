@@ -1,0 +1,1054 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Drawing.Imaging;
+using System.Runtime.InteropServices;
+using System.Drawing;
+
+namespace SM64DSe.SM64DSFormats
+{
+    public abstract class NitroTexture
+    {
+        public uint m_TextureID, m_PaletteID;
+        public string m_TextureName, m_PaletteName;
+
+        public int m_Width, m_Height;
+        public int m_TexType;
+        public byte m_Colour0Mode;
+        public uint m_DSTexParam;
+
+        public byte[] m_RawTextureData, m_RawPaletteData;
+        public int m_TextureDataLength, m_PaletteDataLength;
+
+        public uint m_EntryOffset, m_PalEntryOffset, m_PalOffset;
+
+        // texture stored as 8bit ARGB
+        protected byte[] m_ARGB;
+
+        public static NitroTexture ReadFromBMD(BMD bmd, uint texID, uint palID)
+        {
+            return ReadFromBMD(bmd.m_File, bmd.m_TexChunksOffset, bmd.m_PalChunksOffset, texID, palID);
+        }
+
+        protected static NitroTexture ReadFromBMD(NitroFile bmd, uint textureChunkOffset, uint paletteChunkOffset, uint texID, uint palID)
+        {
+            uint texentry = textureChunkOffset + (texID * 20);
+            uint palentry = (palID == 0xFFFFFFFF) ? 0xFFFFFFFF : (paletteChunkOffset + (palID * 16));
+
+            string texname = bmd.ReadString(bmd.Read32(texentry), 0);
+            string palname = (palentry == 0xFFFFFFFF) ? "<NO PALETTE>" : bmd.ReadString(bmd.Read32(palentry), 0);
+
+            uint texparam = bmd.Read32(texentry + 0x10);
+            int textype = (int)(texparam >> 26) & 0x7;
+            if (textype == 0)
+                throw new ArgumentException("Texture Type cannot be zero.");
+
+            uint texdataoffset = bmd.Read32(texentry + 0x04);
+            uint texdatasize = bmd.Read32(texentry + 0x08);
+            byte[] texdata = bmd.ReadBlock(texdataoffset, (textype != 5) ? texdatasize : (texdatasize + (texdatasize / 2)));
+
+            uint paldataoffset = 0xFFFFFFFF;
+            uint paldatasize = 0;
+            if (palentry != 0xFFFFFFFF)
+            {
+                paldataoffset = bmd.Read32(palentry + 0x04);
+                paldatasize = bmd.Read32(palentry + 0x08);
+            }
+            byte[] paldata = (paldatasize > 0) ? bmd.ReadBlock(paldataoffset, paldatasize) : null;
+
+            int width = (int)(8 << (int)((texparam >> 20) & 0x7));
+            int height = (int)(8 << (int)((texparam >> 23) & 0x7));
+
+            if ((palentry == 0xFFFFFFFF) && (textype != 7))
+                throw new ArgumentException("BMD decoder: paletted texture with no associated palette entry; WTF");
+
+            byte colour0Mode = (byte)((texparam & 0x20000000) >> 0x1D);
+
+            NitroTexture texture = FromDataAndType(texID, texname, palID, palname, texdata, paldata, width, height, colour0Mode, textype);
+
+            texture.m_EntryOffset = texentry;
+            texture.m_PalEntryOffset = palentry;
+            texture.m_PalOffset = paldataoffset;
+
+            return texture;
+        }
+
+        public static NitroTexture FromDataAndType(uint texID, string texname, uint palID, string palname,
+            byte[] texdata, byte[] paldata, int width, int height, byte colour0Mode, int textype)
+        {
+            switch (textype)
+            {
+                case 1:
+                    return new NitroTexture_A3I5(texID, texname, palID, palname, texdata, paldata, width, height);
+                case 2:
+                    return new NitroTexture_Palette4(texID, texname, palID, palname, texdata, paldata, width, height, colour0Mode);
+                case 3:
+                    return new NitroTexture_Palette16(texID, texname, palID, palname, texdata, paldata, width, height, colour0Mode);
+                case 4:
+                    return new NitroTexture_Palette256(texID, texname, palID, palname, texdata, paldata, width, height, colour0Mode);
+                case 5:
+                    return new NitroTexture_Tex4x4(texID, texname, palID, palname, texdata, paldata, width, height);
+                case 6:
+                    return new NitroTexture_A5I3(texID, texname, palID, palname, texdata, paldata, width, height);
+                case 7:
+                    return new NitroTexture_Direct(texID, texname, texdata, paldata, width, height);
+                default: throw new ArgumentException("Texture type must be 1 - 7");
+            }
+        }
+
+        public static NitroTexture FromBitmapAndType(uint texID, string texname, uint palID, string palname, Bitmap bmp, 
+            int textype)
+        {
+            switch (textype)
+            {
+                case 1:
+                    return new NitroTexture_A3I5(texID, texname, palID, palname, bmp);
+                case 2:
+                    return new NitroTexture_Palette4(texID, texname, palID, palname, bmp);
+                case 3:
+                    return new NitroTexture_Palette16(texID, texname, palID, palname, bmp);
+                case 4:
+                    return new NitroTexture_Palette256(texID, texname, palID, palname, bmp);
+                case 5:
+                    return new NitroTexture_Tex4x4(texID, texname, palID, palname, bmp);
+                case 6:
+                    return new NitroTexture_A5I3(texID, texname, palID, palname, bmp);
+                case 7:
+                    return new NitroTexture_Direct(texID, texname, bmp);
+                default: throw new ArgumentException("Texture type must be 1 - 7");
+            }
+        }
+
+        protected NitroTexture(uint texID, string texname, uint palID, string palname, byte[] tex, byte[] pal,
+            int width, int height, byte colour0Mode, int textype)
+        {
+            m_TextureID = texID;
+            m_TextureName = texname;
+            m_PaletteID = palID;
+            m_PaletteName = palname;
+            m_RawTextureData = tex;
+            m_RawPaletteData = pal;
+            SetDataSize();
+            m_Width = width;
+            m_Height = height;
+            m_Colour0Mode = colour0Mode;
+            m_TexType = textype;
+            m_DSTexParam = CalculateTexImageParams();
+            m_ARGB = new byte[m_Width * m_Height * 4];
+
+            FromRaw(tex, pal);
+        }
+
+        protected NitroTexture(uint texID, string texname, uint palID, string palname, Bitmap bmp, int textype)
+        {
+            m_TextureID = texID;
+            m_TextureName = texname;
+            m_PaletteID = palID;
+            m_PaletteName = palname;
+
+            int dswidth = 0, dsheight = 0, widthPowerOfTwo = 8, heightPowerOfTwo = 8;
+            GetDSWidthAndHeight(bmp.Width, bmp.Height, out dswidth, out dsheight, out widthPowerOfTwo, out heightPowerOfTwo);
+
+            // cheap resizing for textures whose dimensions aren't power-of-two
+            if ((widthPowerOfTwo != bmp.Width) || (heightPowerOfTwo != bmp.Height))
+            {
+                Bitmap newbmp = new Bitmap(widthPowerOfTwo, heightPowerOfTwo);
+                Graphics g = Graphics.FromImage(newbmp);
+                g.DrawImage(bmp, new Rectangle(0, 0, widthPowerOfTwo, heightPowerOfTwo));
+                bmp = newbmp;
+            }
+
+            m_Width = bmp.Width;
+            m_Height = bmp.Height;
+            m_TexType = textype;
+            m_Colour0Mode = SetColour0Mode(bmp);
+            m_DSTexParam = CalculateTexImageParams();
+            m_ARGB = new byte[0];
+
+            FromBitmap(bmp);
+
+            SetDataSize();
+        }
+
+        public byte[] GetARGB()
+        {
+            if (m_ARGB.Length == 0)
+            {
+                FromRaw(m_RawTextureData, m_RawPaletteData);
+            }
+            return m_ARGB;
+        }
+
+        public Bitmap ToBitmap()
+        {
+            Bitmap bmp = new Bitmap(m_Width, m_Height);
+
+            for (int y = 0; y < m_Height; y++)
+            {
+                for (int x = 0; x < m_Width; x++)
+                {
+                    bmp.SetPixel(x, y, Color.FromArgb(m_ARGB[((y * m_Width) + x) * 4 + 3],
+                     m_ARGB[((y * m_Width) + x) * 4 + 2],
+                     m_ARGB[((y * m_Width) + x) * 4 + 1],
+                     m_ARGB[((y * m_Width) + x) * 4]));
+                }
+            }
+
+            return bmp;
+        }
+
+        public static bool BitmapUsesTranslucency(Bitmap bmp)
+        {
+            for (int y = 0; y < bmp.Height; y++)
+            {
+                for (int x = 0; x < bmp.Width; x++)
+                {
+                    int a = bmp.GetPixel(x, y).A;
+                    if (a >= 8 && a <= 248) { return true; }
+                }
+            }
+            return false;
+        }
+
+        public static bool BitmapUsesTransparency(Bitmap bmp)
+        {
+            for (int y = 0; y < bmp.Height; y++)
+            {
+                for (int x = 0; x < bmp.Width; x++)
+                {
+                    int a = bmp.GetPixel(x, y).A;
+                    if (a < 8) { return true; }
+                }
+            }
+            return false;
+        }
+
+        public static int CountColoursInBitmap(Bitmap bmp)
+        {
+            HashSet<int> colours = new HashSet<int>();
+            for (int y = 0; y < bmp.Height; y++)
+            {
+                for (int x = 0; x < bmp.Width; x++)
+                {
+                    colours.Add(bmp.GetPixel(x, y).ToArgb());
+                }
+            }
+            return colours.Count;
+        }
+
+        protected virtual void SetDataSize()
+        {
+            m_TextureDataLength = m_RawTextureData.Length;
+            m_PaletteDataLength = m_RawPaletteData.Length;
+        }
+
+        protected virtual byte SetColour0Mode(Bitmap bmp)
+        {
+            return 0x00;
+        }
+
+        protected uint CalculateTexImageParams()
+        {
+            int dswidth = 0, dsheight = 0, widthPowerOfTwo = 8, heightPowerOfTwo = 8;
+            GetDSWidthAndHeight(m_Width, m_Height, out dswidth, out dsheight, out widthPowerOfTwo, out heightPowerOfTwo);
+            return GetDSTextureParamsPart1(dswidth, dsheight, m_TexType, m_Colour0Mode);
+        }
+
+        protected static void GetDSWidthAndHeight(int texWidth, int texHeight, out int dswidth, out int dsheight,
+            out int widthPowerOfTwo, out int heightPowerOfTwo)
+        {
+            // (for N=0..7: Size=(8 SHL N); ie. 8..1024 texels)
+            widthPowerOfTwo = 8; heightPowerOfTwo = 8;
+            dswidth = 0; dsheight = 0;
+            while (widthPowerOfTwo < texWidth) { widthPowerOfTwo *= 2; dswidth++; }
+            while (heightPowerOfTwo < texHeight) { heightPowerOfTwo *= 2; dsheight++; }
+        }
+
+        protected static uint GetDSTextureParamsPart1(int dswidth, int dsheight, int textype, byte color0mode)
+        {
+            uint dstp = (uint)((dswidth << 20) | (dsheight << 23) |
+                    (textype << 26) | (color0mode << 29));
+            return dstp;
+        }
+
+        protected static ushort[] ByteArrayToUShortArray(byte[] bytes)
+        {
+            ushort[] ushorts = new ushort[bytes.Length / 2];
+            for (int i = 0; i < ushorts.Length; i += 2)
+            {
+                ushorts[i] = (ushort)(bytes[i] | (bytes[i + 1] << 8));
+            }
+            return ushorts;
+        }
+
+        protected abstract void FromRaw(byte[] tex, byte[] pal);
+        protected abstract void FromBitmap(Bitmap bmp);
+
+        public override bool Equals(Object obj)
+        {
+            var tx = obj as NitroTexture;
+            if (tx == null) return false;
+            if (m_TextureID != tx.m_TextureID || m_PaletteID != tx.m_PaletteID) return false;
+            if ((m_TextureName == null) != (tx.m_TextureName == null)) return false;
+            if (m_TextureName != null && !m_TextureName.Equals(tx.m_TextureName)) return false;
+            if ((m_PaletteName == null) != (tx.m_PaletteName == null)) return false;
+            if (m_PaletteName != null && !m_PaletteName.Equals(tx.m_PaletteName)) return false;
+            if (m_Width != tx.m_Width || m_Height != tx.m_Height) return false;
+            if (m_TexType != tx.m_TexType || m_Colour0Mode != tx.m_Colour0Mode || m_DSTexParam != tx.m_DSTexParam) return false;
+            if ((m_RawTextureData == null) != (tx.m_RawTextureData == null)) return false;
+            if (m_RawTextureData != null && !m_RawTextureData.SequenceEqual(tx.m_RawTextureData)) return false;
+            if ((m_RawPaletteData == null) != (tx.m_RawPaletteData == null)) return false;
+            if (m_RawPaletteData != null && !m_RawPaletteData.SequenceEqual(tx.m_RawPaletteData)) return false;
+            if (m_TextureDataLength != tx.m_TextureDataLength || m_PaletteDataLength != tx.m_PaletteDataLength) return false;
+            if ((m_ARGB == null) != (tx.m_ARGB == null)) return false;
+            if (m_ARGB != null && !m_ARGB.SequenceEqual(tx.m_ARGB)) return false;
+            return true;
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 13;
+                hash = hash * 7 + m_TextureID.GetHashCode();
+                hash = hash * 7 + m_PaletteID.GetHashCode();
+                hash = hash * 7 + ((m_TextureName != null) ? m_TextureName.GetHashCode() : -1);
+                hash = hash * 7 + ((m_PaletteName != null) ? m_PaletteName.GetHashCode() : -1);
+                hash = hash * 7 + m_Width.GetHashCode();
+                hash = hash * 7 + m_Height.GetHashCode();
+                hash = hash * 7 + m_TexType.GetHashCode();
+                hash = hash * 7 + m_Colour0Mode.GetHashCode();
+                hash = hash * 7 + m_DSTexParam.GetHashCode();
+                hash = hash * 7 + ((m_RawTextureData != null) ? m_RawTextureData.GetHashCode() : -1);
+                hash = hash * 7 + ((m_RawPaletteData != null) ? m_RawPaletteData.GetHashCode() : -1);
+                hash = hash * 7 + m_TextureDataLength.GetHashCode();
+                hash = hash * 7 + m_PaletteDataLength.GetHashCode();
+                hash = hash * 7 + ((m_ARGB != null) ? m_ARGB.GetHashCode() : -1);
+                return hash;
+            }
+        }
+
+        protected class Palette
+        {
+            private static int ColorComparer(ushort c1, ushort c2)
+            {
+                int r1 = c1 & 0x1F;
+                int g1 = (c1 >> 5) & 0x1F;
+                int b1 = (c1 >> 10) & 0x1F;
+                int r2 = c2 & 0x1F;
+                int g2 = (c2 >> 5) & 0x1F;
+                int b2 = (c2 >> 10) & 0x1F;
+
+                int tdiff = (r2 - r1) + (g2 - g1) + (b2 - b1);
+                if (tdiff == 0)
+                    return 0;
+                else if (tdiff < 0)
+                    return 1;
+                else
+                    return -1;
+            }
+
+            public Palette(Bitmap bmp, Rectangle region, int depth, bool firstColourTransparent = false)
+            {
+                List<ushort> pal = new List<ushort>(depth);
+                m_FirstColourTransparent = firstColourTransparent;
+                if (m_FirstColourTransparent) depth--;
+
+                // 1. get the colors used within the requested region
+                for (int y = region.Top; y < region.Bottom; y++)
+                {
+                    for (int x = region.Left; x < region.Right; x++)
+                    {
+                        ushort col15 = Helper.ColorToBGR15(bmp.GetPixel(x, y));
+                        if (!pal.Contains(col15))
+                            pal.Add(col15);
+                    }
+                }
+
+                // 2. shrink down the palette by removing colors that
+                // are close to others, until it fits within the
+                // requested size
+                pal.Sort(Palette.ColorComparer);
+                int maxdiff = 1;
+                while (pal.Count > depth)
+                {
+                    for (int i = 1; i < pal.Count; )
+                    {
+                        ushort c1 = pal[i - 1];
+                        ushort c2 = pal[i];
+
+                        int r1 = c1 & 0x1F;
+                        int g1 = (c1 >> 5) & 0x1F;
+                        int b1 = (c1 >> 10) & 0x1F;
+                        int r2 = c2 & 0x1F;
+                        int g2 = (c2 >> 5) & 0x1F;
+                        int b2 = (c2 >> 10) & 0x1F;
+
+                        if (Math.Abs(r1 - r2) <= maxdiff && Math.Abs(g1 - g2) <= maxdiff && Math.Abs(b1 - b2) <= maxdiff)
+                        {
+                            ushort cmerged = Helper.BlendColorsBGR15(c1, 1, c2, 1);
+                            pal[i - 1] = cmerged;
+                            pal.RemoveAt(i);
+                        }
+                        else
+                            i++;
+                    }
+
+                    maxdiff++;
+                }
+
+                if (m_FirstColourTransparent) pal.Insert(0, 0x0000);
+
+                m_Palette = pal;
+                m_Referenced = new bool[m_Palette.Count];
+                for (int i = 0; i < m_Palette.Count; i++)
+                    m_Referenced[i] = false;
+            }
+
+            public int FindClosestColorID(ushort c)
+            {
+                int r = c & 0x1F;
+                int g = (c >> 5) & 0x1F;
+                int b = (c >> 10) & 0x1F;
+
+                int maxdiff = 1;
+
+                int startIndex = (m_FirstColourTransparent) ? 1 : 0;
+                for (; ; )
+                {
+                    for (int i = startIndex; i < m_Palette.Count; i++)
+                    {
+                        ushort c1 = m_Palette[i];
+                        int r1 = c1 & 0x1F;
+                        int g1 = (c1 >> 5) & 0x1F;
+                        int b1 = (c1 >> 10) & 0x1F;
+
+                        if (Math.Abs(r1 - r) <= maxdiff && Math.Abs(g1 - g) <= maxdiff && Math.Abs(b1 - b) <= maxdiff)
+                        {
+                            m_Referenced[i] = true;
+                            return i;
+                        }
+                    }
+
+                    maxdiff++;
+                }
+            }
+
+            public byte[] WriteToBytes(int minLength)
+            {
+                int length = ((m_Palette.Count + 3) & ~3) * 2;
+                if (length < minLength) length = minLength;
+
+                byte[] pal = new byte[length];
+                for (int i = 0; i < m_Palette.Count; i++)
+                {
+                    pal[i * 2] = (byte)(m_Palette[i] & 0xFF);
+                    pal[(i * 2) + 1] = (byte)(m_Palette[i] >> 8);
+                }
+                return pal;
+            }
+
+            public static bool AreSimilar(Palette p1, Palette p2)
+            {
+                if (p1.m_Palette.Count > p2.m_Palette.Count)
+                    return false;
+
+                for (int i = 0; i < p1.m_Palette.Count; i++)
+                {
+                    ushort c1 = p1.m_Palette[i];
+                    ushort c2 = p2.m_Palette[i];
+
+                    int r1 = c1 & 0x1F;
+                    int g1 = (c1 >> 5) & 0x1F;
+                    int b1 = (c1 >> 10) & 0x1F;
+                    int r2 = c2 & 0x1F;
+                    int g2 = (c2 >> 5) & 0x1F;
+                    int b2 = (c2 >> 10) & 0x1F;
+
+                    if (Math.Abs(r1 - r2) > 1 || Math.Abs(g1 - g2) > 1 || Math.Abs(b1 - b2) > 1)
+                        return false;
+                }
+
+                return true;
+            }
+
+            public List<ushort> m_Palette;
+            public bool[] m_Referenced;
+            private bool m_FirstColourTransparent;
+        }
+    }
+
+    public class NitroTexture_A3I5 : NitroTexture
+    {
+        public NitroTexture_A3I5(uint texID, string texname, uint palID, string palname, byte[] tex, byte[] pal,
+            int width, int height)
+            : base(texID, texname, palID, palname, tex, pal, width, height, 0, 1) { }
+
+        public NitroTexture_A3I5(uint texID, string texname, uint palID, string palname, Bitmap bmp)
+            : base(texID, texname, palID, palname, bmp, 1) { }
+
+        protected override void FromRaw(byte[] tex, byte[] pal)
+        {
+            for (uint _in = 0, _out = 0; _in < m_TextureDataLength; _in++, _out += 4)
+            {
+                byte texel = tex[_in];
+                ushort color = Helper.BytesToUShort16(pal, ((texel & 0x1F) << 1));
+
+                byte red = (byte)((color & 0x001F) << 3);
+                byte green = (byte)((color & 0x03E0) >> 2);
+                byte blue = (byte)((color & 0x7C00) >> 7);
+                byte _alpha = (byte)(((texel & 0xE0) >> 3) + ((texel & 0xE0) >> 6));
+                byte alpha = (byte)((_alpha << 3) | (_alpha >> 2));
+
+                m_ARGB[_out] = blue;
+                m_ARGB[_out + 1] = green;
+                m_ARGB[_out + 2] = red;
+                m_ARGB[_out + 3] = alpha;
+            }
+        }
+
+        protected override void FromBitmap(Bitmap bmp)
+        {
+            m_RawTextureData = new byte[bmp.Width * bmp.Height];
+            Palette _pal = new Palette(bmp, new Rectangle(0, 0, bmp.Width, bmp.Height), 32);
+            int alphamask = 0xE0;
+
+            for (int y = 0; y < bmp.Height; y++)
+            {
+                for (int x = 0; x < bmp.Width; x++)
+                {
+                    Color c = bmp.GetPixel(x, y);
+                    ushort bgr15 = Helper.ColorToBGR15(c);
+                    int a = c.A & alphamask;
+
+                    byte val = (byte)(_pal.FindClosestColorID(bgr15) | a);
+                    m_RawTextureData[(y * bmp.Width) + x] = val;
+                }
+            }
+
+            m_RawPaletteData = _pal.WriteToBytes(16);
+        }
+    }
+
+    public class NitroTexture_Palette4 : NitroTexture
+    {
+        public NitroTexture_Palette4(uint texID, string texname, uint palID, string palname, byte[] tex, byte[] pal,
+            int width, int height, byte colour0Mode)
+            : base(texID, texname, palID, palname, tex, pal, width, height, colour0Mode, 2) { }
+
+        public NitroTexture_Palette4(uint texID, string texname, uint palID, string palname, Bitmap bmp)
+            : base(texID, texname, palID, palname, bmp, 2) { }
+
+        protected override void FromRaw(byte[] tex, byte[] pal)
+        {
+            byte zeroAlpha = (byte)((m_Colour0Mode > 0) ? 0x00 : 0xFF);
+            for (int _in = 0, _out = 0; _in < m_TextureDataLength; _in++, _out += 16)
+            {
+                byte texels = tex[_in];
+
+                ushort color = Helper.BytesToUShort16(pal, ((texels << 1) & 0x6));
+                byte red = (byte)((color & 0x001F) << 3);
+                byte green = (byte)((color & 0x03E0) >> 2);
+                byte blue = (byte)((color & 0x7C00) >> 7);
+
+                m_ARGB[_out] = blue;
+                m_ARGB[_out + 1] = green;
+                m_ARGB[_out + 2] = red;
+                m_ARGB[_out + 3] = (byte)(((texels & 0x03) != 0) ? (byte)0xFF : zeroAlpha);
+
+                color = Helper.BytesToUShort16(pal, ((texels >> 1) & 0x6));
+                red = (byte)((color & 0x001F) << 3);
+                green = (byte)((color & 0x03E0) >> 2);
+                blue = (byte)((color & 0x7C00) >> 7);
+
+                m_ARGB[_out + 4] = blue;
+                m_ARGB[_out + 5] = green;
+                m_ARGB[_out + 6] = red;
+                m_ARGB[_out + 7] = (byte)(((texels & 0x0C) != 0) ? (byte)0xFF : zeroAlpha);
+
+                color = Helper.BytesToUShort16(pal, ((texels >> 3) & 0x6));
+                red = (byte)((color & 0x001F) << 3);
+                green = (byte)((color & 0x03E0) >> 2);
+                blue = (byte)((color & 0x7C00) >> 7);
+
+                m_ARGB[_out + 8] = blue;
+                m_ARGB[_out + 9] = green;
+                m_ARGB[_out + 10] = red;
+                m_ARGB[_out + 11] = (byte)(((texels & 0x30) != 0) ? (byte)0xFF : zeroAlpha);
+
+                color = Helper.BytesToUShort16(pal, ((texels >> 5) & 0x6));
+                red = (byte)((color & 0x001F) << 3);
+                green = (byte)((color & 0x03E0) >> 2);
+                blue = (byte)((color & 0x7C00) >> 7);
+
+                m_ARGB[_out + 12] = blue;
+                m_ARGB[_out + 13] = green;
+                m_ARGB[_out + 14] = red;
+                m_ARGB[_out + 15] = (byte)(((texels & 0xC0) != 0) ? (byte)0xFF : zeroAlpha);
+            }
+        }
+
+        protected override void FromBitmap(Bitmap bmp)
+        {
+            m_RawTextureData = new byte[(bmp.Width * bmp.Height) / 4];
+
+            Palette txpal = new Palette(bmp, new Rectangle(0, 0, bmp.Width, bmp.Height), 4, (m_Colour0Mode > 0));
+
+            for (int y = 0; y < bmp.Height; y++)
+            {
+                for (int x = 0, _out = 0; x < bmp.Width; x += 4, _out++)
+                {
+                    for (int t = 0; t < 4; t++)
+                    {
+                        Color c = bmp.GetPixel(x + t, y);
+                        ushort bgr15 = Helper.ColorToBGR15(c);
+
+                        byte val = (byte)((c.A < 8) ? 0 : txpal.FindClosestColorID(bgr15));
+                        m_RawTextureData[(y * (bmp.Width / 4)) + _out] |= (byte)((val & 0x03) << (t * 2));
+                    }
+                }
+            }
+
+            m_RawPaletteData = txpal.WriteToBytes(8);
+        }
+
+        protected override byte SetColour0Mode(Bitmap bmp)
+        {
+            return (byte)((BitmapUsesTransparency(bmp)) ? 0x01 : 0x00);
+        }
+    }
+
+    public class NitroTexture_Palette16 : NitroTexture
+    {
+        public NitroTexture_Palette16(uint texID, string texname, uint palID, string palname, byte[] tex, byte[] pal,
+            int width, int height, byte colour0Mode)
+            : base(texID, texname, palID, palname, tex, pal, width, height, colour0Mode, 3) { }
+
+        public NitroTexture_Palette16(uint texID, string texname, uint palID, string palname, Bitmap bmp)
+            : base(texID, texname, palID, palname, bmp, 3) { }
+
+        protected override void FromRaw(byte[] tex, byte[] pal)
+        {
+            byte zeroAlpha = (byte)((m_Colour0Mode > 0) ? 0x00 : 0xFF);
+            for (int _in = 0, _out = 0; _in < m_TextureDataLength; _in++, _out += 8)
+            {
+                byte texels = tex[_in];
+
+                ushort color = Helper.BytesToUShort16(pal, ((texels << 1) & 0x1E));
+                byte red = (byte)((color & 0x001F) << 3);
+                byte green = (byte)((color & 0x03E0) >> 2);
+                byte blue = (byte)((color & 0x7C00) >> 7);
+
+                m_ARGB[_out] = blue;
+                m_ARGB[_out + 1] = green;
+                m_ARGB[_out + 2] = red;
+                m_ARGB[_out + 3] = (byte)(((texels & 0x0F) != 0) ? (byte)0xFF : zeroAlpha);
+
+                color = Helper.BytesToUShort16(pal, ((texels >> 3) & 0x1E));
+                red = (byte)((color & 0x001F) << 3);
+                green = (byte)((color & 0x03E0) >> 2);
+                blue = (byte)((color & 0x7C00) >> 7);
+
+                m_ARGB[_out + 4] = blue;
+                m_ARGB[_out + 5] = green;
+                m_ARGB[_out + 6] = red;
+                m_ARGB[_out + 7] = (byte)(((texels & 0xF0) != 0) ? (byte)0xFF : zeroAlpha);
+            }
+        }
+
+        protected override void FromBitmap(Bitmap bmp)
+        {
+            m_RawTextureData = new byte[(bmp.Width * bmp.Height) / 2];
+
+            Palette txpal = new Palette(bmp, new Rectangle(0, 0, bmp.Width, bmp.Height), 16, (m_Colour0Mode > 0));
+
+            for (int y = 0; y < bmp.Height; y++)
+            {
+                for (int x = 0, _out = 0; x < bmp.Width; x += 2, _out++)
+                {
+                    for (int t = 0; t < 2; t++)
+                    {
+                        Color c = bmp.GetPixel(x + t, y);
+                        ushort bgr15 = Helper.ColorToBGR15(c);
+
+                        byte val = (byte)((c.A < 8) ? 0 : txpal.FindClosestColorID(bgr15));
+                        m_RawTextureData[(y * (bmp.Width / 2)) + _out] |= (byte)((val & 0x0F) << (t * 4));
+                    }
+                }
+            }
+
+            m_RawPaletteData = txpal.WriteToBytes(8);
+        }
+
+        protected override byte SetColour0Mode(Bitmap bmp)
+        {
+            return (byte)((BitmapUsesTransparency(bmp)) ? 0x01 : 0x00);
+        }
+    }
+
+    public class NitroTexture_Palette256 : NitroTexture
+    {
+        public NitroTexture_Palette256(uint texID, string texname, uint palID, string palname, byte[] tex, byte[] pal,
+            int width, int height, byte colour0Mode)
+            : base(texID, texname, palID, palname, tex, pal, width, height, colour0Mode, 4) { }
+
+        public NitroTexture_Palette256(uint texID, string texname, uint palID, string palname, Bitmap bmp)
+            : base(texID, texname, palID, palname, bmp, 4) { }
+
+        protected override void FromRaw(byte[] tex, byte[] pal)
+        {
+            byte zeroAlpha = (byte)((m_Colour0Mode > 0) ? 0x00 : 0xFF);
+            for (int _in = 0, _out = 0; _in < m_TextureDataLength; _in++, _out += 4)
+            {
+                byte texel = tex[_in];
+
+                ushort color = Helper.BytesToUShort16(pal, (texel << 1));
+                byte red = (byte)((color & 0x001F) << 3);
+                byte green = (byte)((color & 0x03E0) >> 2);
+                byte blue = (byte)((color & 0x7C00) >> 7);
+
+                m_ARGB[_out] = blue;
+                m_ARGB[_out + 1] = green;
+                m_ARGB[_out + 2] = red;
+                m_ARGB[_out + 3] = (byte)((texel != 0) ? (byte)0xFF : zeroAlpha);
+            }
+        }
+
+        protected override void FromBitmap(Bitmap bmp)
+        {
+            m_RawTextureData = new byte[m_Width * m_Height];
+
+            Palette txpal = new Palette(bmp, new Rectangle(0, 0, m_Width, m_Height), 256, (m_Colour0Mode > 0));
+
+            for (int y = 0; y < m_Height; y++)
+            {
+                for (int x = 0; x < m_Width; x++)
+                {
+                    Color c = bmp.GetPixel(x, y);
+                    ushort bgr15 = Helper.ColorToBGR15(c);
+
+                    byte val = (byte)((c.A < 8) ? 0 : txpal.FindClosestColorID(bgr15));
+                    m_RawTextureData[(y * m_Width) + x] = val;
+                }
+            }
+
+            m_RawPaletteData = txpal.WriteToBytes(16);
+        }
+
+        protected override byte SetColour0Mode(Bitmap bmp)
+        {
+            return (byte)((BitmapUsesTransparency(bmp)) ? 0x01 : 0x00);
+        }
+    }
+
+    public class NitroTexture_Tex4x4 : NitroTexture
+    {
+        public NitroTexture_Tex4x4(uint texID, string texname, uint palID, string palname, byte[] tex, byte[] pal,
+            int width, int height)
+            : base(texID, texname, palID, palname, tex, pal, width, height, 0, 5) { }
+
+        public NitroTexture_Tex4x4(uint texID, string texname, uint palID, string palname, Bitmap bmp)
+            : base(texID, texname, palID, palname, bmp, 5) { }
+
+        protected override void FromRaw(byte[] tex, byte[] pal)
+        {
+            int yout = 0, xout = 0;
+
+            for (int _in = 0; _in < m_TextureDataLength; _in += 4)
+            {
+                uint blox = Helper.BytesToUInt32(tex, _in);
+                ushort palidx_data = Helper.BytesToUShort16(tex, m_TextureDataLength + (_in >> 1));
+
+                for (int y = 0; y < 4; y++)
+                {
+                    for (int x = 0; x < 4; x++)
+                    {
+                        byte texel = (byte)(blox & 0x3);
+                        blox >>= 2;
+
+                        int pal_offset = (int)((palidx_data & 0x3FFF) << 2);
+                        ushort color_mode = (ushort)(palidx_data >> 14);
+                        uint color = 0xFFFFFFFF;
+
+                        switch (texel)
+                        {
+                            case 0: color = Helper.BytesToUShort16(pal, pal_offset, 0); break;
+                            case 1: color = Helper.BytesToUShort16(pal, pal_offset + 2, 0); break;
+                            case 2:
+                                {
+                                    switch (color_mode)
+                                    {
+                                        case 0:
+                                        case 2: color = Helper.BytesToUShort16(pal, pal_offset + 4, 0); break;
+                                        case 1:
+                                            {
+                                                ushort c0 = Helper.BytesToUShort16(pal, pal_offset, 0);
+                                                ushort c1 = Helper.BytesToUShort16(pal, pal_offset + 2, 0);
+                                                color = Helper.BlendColorsBGR15(c0, 1, c1, 1);
+                                            }
+                                            break;
+                                        case 3:
+                                            {
+                                                ushort c0 = Helper.BytesToUShort16(pal, pal_offset, 0);
+                                                ushort c1 = Helper.BytesToUShort16(pal, pal_offset + 2, 0);
+                                                color = Helper.BlendColorsBGR15(c0, 5, c1, 3);
+                                            }
+                                            break;
+                                    }
+                                }
+                                break;
+                            case 3:
+                                {
+                                    switch (color_mode)
+                                    {
+                                        case 0:
+                                        case 1: color = 0xFFFFFFFF; break;
+                                        case 2: color = Helper.BytesToUShort16(pal, pal_offset + 6, 0); break;
+                                        case 3:
+                                            {
+                                                ushort c0 = Helper.BytesToUShort16(pal, pal_offset, 0);
+                                                ushort c1 = Helper.BytesToUShort16(pal, pal_offset + 2, 0);
+                                                color = Helper.BlendColorsBGR15(c0, 3, c1, 5);
+                                            }
+                                            break;
+                                    }
+                                }
+                                break;
+                        }
+
+                        int _out = (int)(((yout * m_Width) + xout) * 4);
+                        int yoff = (int)(y * m_Width * 4);
+                        int xoff = (int)(x * 4);
+
+                        if (color == 0xFFFFFFFF)
+                        {
+                            m_ARGB[_out + yoff + xoff] = 0;
+                            m_ARGB[_out + yoff + xoff + 1] = 0;
+                            m_ARGB[_out + yoff + xoff + 2] = 0;
+                            m_ARGB[_out + yoff + xoff + 3] = 0;
+                        }
+                        else
+                        {
+                            byte red = (byte)((color & 0x001F) << 3);
+                            byte green = (byte)((color & 0x03E0) >> 2);
+                            byte blue = (byte)((color & 0x7C00) >> 7);
+
+                            m_ARGB[_out + yoff + xoff] = blue;
+                            m_ARGB[_out + yoff + xoff + 1] = green;
+                            m_ARGB[_out + yoff + xoff + 2] = red;
+                            m_ARGB[_out + yoff + xoff + 3] = 0xFF;
+                        }
+                    }
+                }
+
+                xout += 4;
+                if (xout >= m_Width)
+                {
+                    xout = 0;
+                    yout += 4;
+                }
+            }
+        }
+
+        protected override void SetDataSize()
+        {
+            m_TextureDataLength = m_RawTextureData.Length - (m_RawTextureData.Length / 3);
+            m_PaletteDataLength = m_RawPaletteData.Length;
+        }
+
+        protected override void FromBitmap(Bitmap bmp)
+        {
+            m_RawTextureData = new byte[((m_Width * m_Height) / 16) * 6];
+            List<Palette> pallist = new List<Palette>();
+            List<ushort> paldata = new List<ushort>();
+
+            int texoffset = 0;
+            int palidxoffset = ((m_Width * m_Height) / 16) * 4;
+
+            for (int y = 0; y < m_Height; y += 4)
+            {
+                for (int x = 0; x < m_Width; x += 4)
+                {
+                    bool transp = false;
+
+                    for (int y2 = 0; y2 < 4; y2++)
+                    {
+                        for (int x2 = 0; x2 < 4; x2++)
+                        {
+                            Color c = bmp.GetPixel(x + x2, y + y2);
+
+                            if (c.A < 8)
+                                transp = true;
+                        }
+                    }
+
+                    Palette txpal = new Palette(bmp, new Rectangle(x, y, 4, 4), transp ? 3 : 4);
+                    uint texel = 0;
+                    ushort palidx = (ushort)(transp ? 0x0000 : 0x8000);
+
+                    for (int y2 = 0; y2 < 4; y2++)
+                    {
+                        for (int x2 = 0; x2 < 4; x2++)
+                        {
+                            int px = 0;
+                            Color c = bmp.GetPixel(x + x2, y + y2);
+                            ushort bgr15 = Helper.ColorToBGR15(c);
+
+                            if (transp && c.A < 8)
+                                px = 3;
+                            else
+                                px = txpal.FindClosestColorID(bgr15);
+
+                            texel |= (uint)(px << ((2 * x2) + (8 * y2)));
+                        }
+                    }
+
+                    uint paloffset = 0; bool palfound = false;
+                    for (int i = 0; i < pallist.Count; i++)
+                    {
+                        if (Palette.AreSimilar(txpal, pallist[i]))
+                        {
+                            palfound = true;
+                            break;
+                        }
+
+                        paloffset += (uint)pallist[i].m_Palette.Count;
+                        if ((paloffset & 1) != 0) paloffset++;
+                    }
+
+                    paloffset /= 2;
+                    palidx |= (ushort)(paloffset & 0x3FFF);
+
+                    if (!palfound)
+                    {
+                        pallist.Add(txpal);
+
+                        foreach (ushort col in txpal.m_Palette)
+                            paldata.Add(col);
+                        if ((paldata.Count & 1) != 0)
+                            paldata.Add(0x7C1F);
+                    }
+
+                    m_RawTextureData[texoffset] = (byte)(texel & 0xFF);
+                    m_RawTextureData[texoffset + 1] = (byte)((texel >> 8) & 0xFF);
+                    m_RawTextureData[texoffset + 2] = (byte)((texel >> 16) & 0xFF);
+                    m_RawTextureData[texoffset + 3] = (byte)(texel >> 24);
+                    texoffset += 4;
+                    m_RawTextureData[palidxoffset] = (byte)(palidx & 0xFF);
+                    m_RawTextureData[palidxoffset + 1] = (byte)(palidx >> 8);
+                    palidxoffset += 2;
+                }
+            }
+
+            m_RawPaletteData = new byte[((paldata.Count + 3) & ~3) * 2];
+            if (m_RawPaletteData.Length < 16) Array.Resize(ref m_RawPaletteData, 16);
+            for (int i = 0; i < paldata.Count; i++)
+            {
+                m_RawPaletteData[i * 2] = (byte)(paldata[i] & 0xFF);
+                m_RawPaletteData[(i * 2) + 1] = (byte)(paldata[i] >> 8);
+            }
+        }
+    }
+
+    public class NitroTexture_A5I3 : NitroTexture
+    {
+        public NitroTexture_A5I3(uint texID, string texname, uint palID, string palname, byte[] tex, byte[] pal,
+            int width, int height)
+            : base(texID, texname, palID, palname, tex, pal, width, height, 0, 6) { }
+
+        public NitroTexture_A5I3(uint texID, string texname, uint palID, string palname, Bitmap bmp)
+            : base(texID, texname, palID, palname, bmp, 6) { }
+
+        protected override void FromRaw(byte[] tex, byte[] pal)
+        {
+            for (int _in = 0, _out = 0; _in < m_TextureDataLength; _in++, _out += 4)
+            {
+                byte texel = tex[_in];
+                ushort color = Helper.BytesToUShort16(pal, ((texel & 0x07) << 1));
+
+                byte red = (byte)((color & 0x001F) << 3);
+                byte green = (byte)((color & 0x03E0) >> 2);
+                byte blue = (byte)((color & 0x7C00) >> 7);
+                byte alpha = (byte)((texel & 0xF8) | ((texel & 0xF8) >> 5));
+
+                m_ARGB[_out] = blue;
+                m_ARGB[_out + 1] = green;
+                m_ARGB[_out + 2] = red;
+                m_ARGB[_out + 3] = alpha;
+            }
+        }
+
+        protected override void FromBitmap(Bitmap bmp)
+        {
+            m_RawTextureData = new byte[bmp.Width * bmp.Height];
+            Palette _pal = new Palette(bmp, new Rectangle(0, 0, bmp.Width, bmp.Height), 32);
+            int alphamask = 0xF8;
+
+            for (int y = 0; y < bmp.Height; y++)
+            {
+                for (int x = 0; x < bmp.Width; x++)
+                {
+                    Color c = bmp.GetPixel(x, y);
+                    ushort bgr15 = Helper.ColorToBGR15(c);
+                    int a = c.A & alphamask;
+
+                    byte val = (byte)(_pal.FindClosestColorID(bgr15) | a);
+                    m_RawTextureData[(y * bmp.Width) + x] = val;
+                }
+            }
+
+            m_RawPaletteData = _pal.WriteToBytes(16);
+        }
+    }
+
+    public class NitroTexture_Direct : NitroTexture
+    {
+        public NitroTexture_Direct(uint texID, string texname, byte[] tex, byte[] pal,
+            int width, int height)
+            : base(texID, texname, 0xFFFFFFFF, null, tex, pal, width, height, 0, 7) { }
+
+        public NitroTexture_Direct(uint texID, string texname, Bitmap bmp)
+            : base(texID, texname, 0xFFFFFFFF, null, bmp, 7) { }
+
+        protected override void FromRaw(byte[] tex, byte[] pal)
+        {
+            for (int _in = 0, _out = 0; _in < m_TextureDataLength; _in += 2, _out += 4)
+            {
+                ushort color = Helper.BytesToUShort16(tex, _in);
+                byte red = (byte)((color & 0x001F) << 3);
+                byte green = (byte)((color & 0x03E0) >> 2);
+                byte blue = (byte)((color & 0x7C00) >> 7);
+
+                m_ARGB[_out] = blue;
+                m_ARGB[_out + 1] = green;
+                m_ARGB[_out + 2] = red;
+                m_ARGB[_out + 3] = (byte)(((color & 0x8000) != 0) ? (byte)0xFF : 0x00);
+            }
+        }
+
+        protected override void SetDataSize()
+        {
+            m_TextureDataLength = m_RawTextureData.Length;
+            m_PaletteDataLength = 0;
+        }
+
+        protected override void FromBitmap(Bitmap bmp)
+        {
+            m_RawTextureData = new byte[(m_Width * m_Height) * 2];
+
+            for (int y = 0; y < m_Height; y++)
+            {
+                for (int x = 0; x < m_Width; x++)
+                {
+                    Color c = bmp.GetPixel(x, y);
+                    ushort bgr15 = Helper.ColorToBGR15(c);
+                    if (c.A > 0) bgr15 |= 0x8000;
+
+                    m_RawTextureData[(((y * m_Width) + x) * 2)] = (byte)(bgr15 & 0xFF);
+                    m_RawTextureData[(((y * m_Width) + x) * 2) + 1] = (byte)(bgr15 >> 8);
+                }
+            }
+        }
+    }
+}

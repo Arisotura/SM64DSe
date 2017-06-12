@@ -110,7 +110,7 @@ namespace SM64DSe
                         ex.Message + "\n" + 
                         ex.StackTrace,
                         Program.AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
-
+                    Console.WriteLine(ex.StackTrace);
                     Program.m_ROM.EndRW(false);
                     Program.m_ROMPath = "";
                     return;
@@ -129,8 +129,30 @@ namespace SM64DSe
             this.tvARM9Overlays.Nodes.Clear();
             ROMFileSelect.LoadOverlayList(this.tvARM9Overlays);
 
+            btnASMHacking.Enabled = true;
             btnTools.Enabled = true;
             btnMore.Enabled = true;
+
+            EnableOrDisableASMHackingCompilationAndGenerationFeatures();
+        }
+
+        private void EnableOrDisableASMHackingCompilationAndGenerationFeatures()
+        {
+            if (!Properties.Settings.Default.EnableASMHackingCompilationAndGeneration)
+            {
+                btnASMHacking.DropDownItems.Remove(mnitASMHackingCompilation);
+                btnASMHacking.DropDownItems.Remove(mnitASMHackingGeneration);
+                btnASMHacking.DropDownItems.Remove(tssASMHacking001);
+            }
+            else
+            {
+                if (btnASMHacking.DropDownItems.IndexOf(mnitASMHackingCompilation) < 0)
+                {
+                    btnASMHacking.DropDownItems.Insert(0, mnitASMHackingCompilation);
+                    btnASMHacking.DropDownItems.Insert(1, mnitASMHackingGeneration);
+                    btnASMHacking.DropDownItems.Insert(2, tssASMHacking001);
+                }
+            }
         }
 
         public MainForm(string[] args)
@@ -141,7 +163,7 @@ namespace SM64DSe
             Program.m_ROMPath = "";
             Program.m_LevelEditors = new List<LevelEditorForm>();
 
-            btnMore.DropDownItems.Add("Dump object info", null, btnDumpObjInfo_Click);
+            btnMore.DropDownItems.Add("Dump Object Info", null, btnDumpObjInfo_Click);
 
             slStatusLabel.Text = "Ready";
             ObjectDatabase.Initialize();
@@ -282,6 +304,7 @@ namespace SM64DSe
         private void btnEditorSettings_Click(object sender, EventArgs e)
         {
             new SettingsForm().ShowDialog(this);
+            EnableOrDisableASMHackingCompilationAndGenerationFeatures();
         }
 
         private void btnHalp_Click(object sender, EventArgs e)
@@ -295,7 +318,7 @@ namespace SM64DSe
                 "- Treeki: the overlay decompression (Jap77), the object list and other help\n" +
                 "- Dirbaio: other help\n" +
                 "- blank: help with generating collision\n" + 
-                "- mibts: BCA optimisation, level editor enhancements and other help\n" + 
+                "- mibts: ASM hacking template v2, BCA optimisation, level editor enhancements and other help\n" + 
                 "- Fiachra Murray: current developer and maintainer\n" + 
                 "\n" +
                 Program.AppTitle + " is free software. If you paid for it, notify Mega-Mario about it.\n" +
@@ -382,9 +405,27 @@ namespace SM64DSe
         private void tvFileList_AfterSelect(object sender, TreeViewEventArgs e)
         {
             if (e.Node == null || e.Node.Tag == null)
-                m_SelectedFile = "";
+                m_SelectedFile = null;
             else
                 m_SelectedFile = e.Node.Tag.ToString();
+
+            if(m_SelectedFile != null)
+            {
+                string status;
+                if (!m_SelectedFile.StartsWith("ARCHIVE"))
+                {
+                    status = m_SelectedFile.Last() == '/' ?
+                        String.Format("Type [Directory], ID [0x{0:X4}]", Program.m_ROM.GetDirIDFromName(m_SelectedFile.TrimEnd('/'))) :
+                        String.Format("Type [File], ID [0x{0:X4}], Overlay 0 ID [0x{1:X4}]",
+                            Program.m_ROM.GetFileIDFromName(m_SelectedFile),
+                            Program.m_ROM.GetFileEntries()[Program.m_ROM.GetFileIDFromName(m_SelectedFile)].InternalID);
+                }
+                else
+                {
+                    status = null;
+                }
+                slStatusLabel.Text = status;
+            }
         }
 
         private void btnExtractRaw_Click(object sender, EventArgs e)
@@ -482,7 +523,7 @@ namespace SM64DSe
 
         private void btnExtractOverlay_Click(object sender, EventArgs e)
         {
-            if (m_SelectedOverlay == null || m_SelectedOverlay.Equals(""))
+            if (m_SelectedOverlay == null)
                 return;
 
             SaveFileDialog sfd = new SaveFileDialog();
@@ -496,7 +537,7 @@ namespace SM64DSe
 
         private void btnReplaceOverlay_Click(object sender, EventArgs e)
         {
-            if (m_SelectedOverlay == null || m_SelectedOverlay.Equals(""))
+            if (m_SelectedOverlay == null)
                 return;
 
             OpenFileDialog ofd = new OpenFileDialog();
@@ -513,7 +554,7 @@ namespace SM64DSe
         private void tvARM9Overlays_AfterSelect(object sender, TreeViewEventArgs e)
         {
             if (e.Node == null || e.Node.Tag == null)
-                m_SelectedOverlay = "";
+                m_SelectedOverlay = null;
             else
                 m_SelectedOverlay = e.Node.Tag.ToString();
         }
@@ -577,6 +618,26 @@ namespace SM64DSe
         private void mnitToolsBTPEditor_Click(object sender, EventArgs e)
         {
             new TextureEditorForm().Show();
+        }
+
+        private void mnitToolsSoundBrowser_Click(object sender, EventArgs e)
+        {
+            new SoundViewForm().Show();
+        }
+
+        private void mnitASMHackingCompilationCodeCompiler_Click(object sender, EventArgs e)
+        {
+            new CodeCompilerForm().Show();
+        }
+
+        private void mnitASMHackingCompilationFixCodeOffsets_Click(object sender, EventArgs e)
+        {
+            new CodeFixerForm().Show();
+        }
+
+        private void platformEditorToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            new Templates.PlatformTemplateForm().Show();
         }
     }
 }

@@ -100,8 +100,13 @@ namespace SM64DSe
 
         public void SetInitializer(uint address, uint size)
         {
+            bool autorw = !m_ROM.CanRW();
+            if (autorw) m_ROM.BeginRW();
+
             m_ROM.Write32(m_OVTEntryAddr + 0x10, address);
             m_ROM.Write32(m_OVTEntryAddr + 0x14, address + size);
+
+            if (autorw) m_ROM.EndRW();
         }
 
         public void Update() { m_OVTEntryAddr = m_ROM.GetOverlayEntryOffset(m_ID); }

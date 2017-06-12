@@ -37,20 +37,34 @@ namespace SM64DSe
         private void SettingsForm_Load(object sender, EventArgs e)
         {
             cbAutoUpdateODB.Checked = Properties.Settings.Default.AutoUpdateODB;
+            
             chkUseSimpleModelAndCollisionMapImporters.Checked = Properties.Settings.Default.UseSimpleModelAndCollisionMapImporters;
+            chkRememberLastUsedModelImportationSettings.Enabled = Properties.Settings.Default.UseSimpleModelAndCollisionMapImporters;
+            chkRememberLastUsedCollisionTypeAssignments.Enabled = Properties.Settings.Default.UseSimpleModelAndCollisionMapImporters;
             chkRememberLastUsedModelImportationSettings.Checked = Properties.Settings.Default.RememberLastUsedModelImportationSettings;
             chkRememberLastUsedCollisionTypeAssignments.Checked = Properties.Settings.Default.RememberMaterialCollisionTypeAssignments;
             chkDisableTextureSizeWarning.Checked = Properties.Settings.Default.DisableTextureSizeWarning;
+            
+            chkEnableASMHackingCompilationAndGeneration.Checked = Properties.Settings.Default.EnableASMHackingCompilationAndGeneration;
         }
 
         private void btnOk_Click(object sender, EventArgs e)
         {
             Properties.Settings.Default.AutoUpdateODB = cbAutoUpdateODB.Checked;
+            
             Properties.Settings.Default.UseSimpleModelAndCollisionMapImporters = chkUseSimpleModelAndCollisionMapImporters.Checked;
             Properties.Settings.Default.RememberLastUsedModelImportationSettings = chkRememberLastUsedModelImportationSettings.Checked;
             Properties.Settings.Default.RememberMaterialCollisionTypeAssignments = chkRememberLastUsedCollisionTypeAssignments.Checked;
             Properties.Settings.Default.DisableTextureSizeWarning = chkDisableTextureSizeWarning.Checked;
+            
+            Properties.Settings.Default.EnableASMHackingCompilationAndGeneration = chkEnableASMHackingCompilationAndGeneration.Checked;
             Properties.Settings.Default.Save();
+        }
+
+        private void chkUseSimpleModelAndCollisionMapImporters_CheckedChanged(object sender, EventArgs e)
+        {
+            chkRememberLastUsedModelImportationSettings.Enabled = chkUseSimpleModelAndCollisionMapImporters.Checked;
+            chkRememberLastUsedCollisionTypeAssignments.Enabled = chkUseSimpleModelAndCollisionMapImporters.Checked;
         }
     }
 }

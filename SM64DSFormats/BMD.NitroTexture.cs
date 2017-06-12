@@ -5,9 +5,18 @@ using System.Text;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using System.Drawing;
+using QuickGraph;
 
 namespace SM64DSe.SM64DSFormats
 {
+    using Pal3To4Edge = TaggedEdge<NitroTexture.Palette, int>;
+    using Pal3To4Map = BidirectionalGraph<NitroTexture.Palette, 
+        TaggedEdge<NitroTexture.Palette, int>>;
+
+    using Pal2To4Edge = TaggedEdge<NitroTexture.Palette, NitroTexture_Tex4x4.Pal2To4Tag>;
+    using Pal2To4Map = BidirectionalGraph<NitroTexture.Palette,
+        TaggedEdge<NitroTexture.Palette, NitroTexture_Tex4x4.Pal2To4Tag>>;
+
     public abstract class NitroTexture
     {
         public uint m_TextureID, m_PaletteID;
@@ -329,7 +338,7 @@ namespace SM64DSe.SM64DSFormats
             }
         }
 
-        protected class Palette
+        public class Palette
         {
             private static int ColorComparer(ushort c1, ushort c2)
             {
@@ -347,6 +356,13 @@ namespace SM64DSe.SM64DSFormats
                     return 1;
                 else
                     return -1;
+            }
+
+            public Palette(Palette pal)
+            {
+                m_Palette = pal.m_Palette.ToList();
+                m_FirstColourTransparent = pal.m_FirstColourTransparent;
+            
             }
 
             public Palette(Bitmap bmp, Rectangle region, int depth, bool firstColourTransparent = false)
@@ -370,7 +386,7 @@ namespace SM64DSe.SM64DSFormats
                 // are close to others, until it fits within the
                 // requested size
                 pal.Sort(Palette.ColorComparer);
-                int maxdiff = 1;
+                int maxdiff = 0;
                 while (pal.Count > depth)
                 {
                     for (int i = 1; i < pal.Count; )
@@ -401,20 +417,119 @@ namespace SM64DSe.SM64DSFormats
                 if (m_FirstColourTransparent) pal.Insert(0, 0x0000);
 
                 m_Palette = pal;
-                m_Referenced = new bool[m_Palette.Count];
-                for (int i = 0; i < m_Palette.Count; i++)
-                    m_Referenced[i] = false;
             }
 
-            public int FindClosestColorID(ushort c)
+            public int GetBestColorMode(bool transp)
+            {
+                if (m_Palette.Count <= 2)
+                    return transp ? 1 : 3;
+
+                int[][] rgbs = Array.ConvertAll(m_Palette.ToArray(), col => new int[] { col & 0x1f, col >> 5 & 0x1f, col >> 10 & 0x1f });
+
+                if (!transp)
+                {
+                    for (int i = 0; i < m_Palette.Count; ++i)
+                        for (int j = 0; j < m_Palette.Count - 1; ++j)
+                            for (int k = 0; k < m_Palette.Count - 2; ++k)
+                            {
+                                //get a permutation
+                                int iR = i, jR = j, kR = k, lR = 0;
+                                if (jR >= iR) ++jR;
+                                if (kR >= Math.Min(iR, jR)) ++kR;
+                                if (kR >= Math.Max(iR, jR)) ++kR;
+                                int[] ijkInOrder = new int[] { iR, jR, kR }; Array.Sort(ijkInOrder);
+                                if (lR >= ijkInOrder[0]) ++lR;
+                                if (lR >= ijkInOrder[1]) ++lR;
+                                if (lR >= ijkInOrder[2]) ++lR;
+
+                                bool canUseColMode3_a = true;
+                                bool canUseColMode3_b = true; //this is to help check both (3x+5y)/8 and (5x+3y)/8 with a 3-color pallete.
+                                for (int comp = 0; comp < 3; ++comp)
+                                {
+                                    if (rgbs[kR][comp] != (rgbs[iR][comp] * 5 + rgbs[jR][comp] * 3) / 8 || m_Palette.Count == 4 &&
+                                        rgbs[lR][comp] != (rgbs[iR][comp] * 3 + rgbs[jR][comp] * 5) / 8)
+                                        canUseColMode3_a = false;
+                                    if (m_Palette.Count != 3 || rgbs[kR][comp] != (rgbs[iR][comp] * 3 + rgbs[jR][comp] * 5) / 8)
+                                        canUseColMode3_b = false;
+                                }
+                                    
+
+                                if (canUseColMode3_a || canUseColMode3_b)
+                                {
+                                    if(lR < kR)
+                                    {
+                                        int temp = kR;
+                                        kR = lR;
+                                        lR = temp;
+                                    }
+                                    if (m_Palette.Count == 4)
+                                        m_Palette.RemoveAt(lR);
+                                    m_Palette.RemoveAt(kR);
+                                    return 3;
+                                }
+                            }
+                }
+                if (m_Palette.Count == 4)
+                    return 2;
+
+                for (int i = 0; i < 3; ++i)
+                    for (int j = 0; j < 2; ++j)
+                    {
+                        int iR = i, jR = j, kR = 0;
+                        if (jR >= iR) ++jR;
+                        if (kR >= Math.Min(iR, jR)) ++kR;
+                        if (kR >= Math.Max(iR, jR)) ++kR;
+
+                        bool canUseColMode1 = true;
+                        for (int comp = 0; comp < 3; ++comp)
+                            if (rgbs[kR][comp] != (rgbs[iR][comp] + rgbs[jR][comp]) / 2)
+                                canUseColMode1 = false;
+
+                        if(canUseColMode1)
+                        {
+                            m_Palette.RemoveAt(kR);
+                            return 1;
+                        }
+                    }
+
+                return transp ? 0 : 2;
+            }
+
+            public int FindClosestColorID(ushort c, int color_mode = -1)
             {
                 int r = c & 0x1F;
                 int g = (c >> 5) & 0x1F;
                 int b = (c >> 10) & 0x1F;
 
-                int maxdiff = 1;
+                int maxdiff = 0;
 
                 int startIndex = (m_FirstColourTransparent) ? 1 : 0;
+                if(m_Palette.Count > 1 && (color_mode == 1 || color_mode == 3))
+                {
+                    ushort r0 = (ushort)(m_Palette[0] >>  0 & 0x1f);
+                    ushort g0 = (ushort)(m_Palette[0] >>  5 & 0x1f);
+                    ushort b0 = (ushort)(m_Palette[0] >> 10 & 0x1f);
+ 
+                    ushort r1 = (ushort)(m_Palette[1] >>  0 & 0x1f);
+                    ushort g1 = (ushort)(m_Palette[1] >>  5 & 0x1f);
+                    ushort b1 = (ushort)(m_Palette[1] >> 10 & 0x1f);
+
+                    if (color_mode == 1)
+                    {
+                        m_Palette.Add((ushort)((r0 + r1) / 2 << 0 |
+                                               (g0 + g1) / 2 << 5 |
+                                               (b0 + b1) / 2 << 10));
+                    }
+                    if (color_mode == 3)
+                    {
+                        m_Palette.Add((ushort)((r0 * 5 + r1 * 3) / 8 << 0 |
+                                               (g0 * 5 + g1 * 3) / 8 << 5 |
+                                               (b0 * 5 + b1 * 3) / 8 << 10));
+                        m_Palette.Add((ushort)((r0 * 3 + r1 * 5) / 8 << 0 |
+                                               (g0 * 3 + g1 * 5) / 8 << 5 |
+                                               (b0 * 3 + b1 * 5) / 8 << 10));
+                    }
+                }
                 for (; ; )
                 {
                     for (int i = startIndex; i < m_Palette.Count; i++)
@@ -426,7 +541,14 @@ namespace SM64DSe.SM64DSFormats
 
                         if (Math.Abs(r1 - r) <= maxdiff && Math.Abs(g1 - g) <= maxdiff && Math.Abs(b1 - b) <= maxdiff)
                         {
-                            m_Referenced[i] = true;
+                            if(m_Palette.Count > 1)
+                            {
+                                if (color_mode == 1)
+                                    m_Palette.RemoveAt(2);
+                                if (color_mode == 3)
+                                    m_Palette.RemoveRange(2, 2);
+                            }
+                            
                             return i;
                         }
                     }
@@ -449,33 +571,50 @@ namespace SM64DSe.SM64DSFormats
                 return pal;
             }
 
-            public static bool AreSimilar(Palette p1, Palette p2)
+            public static bool AreSimilar(Palette p1, Palette p2, out uint offset)
             {
+                offset = 0;
                 if (p1.m_Palette.Count > p2.m_Palette.Count)
                     return false;
 
+                bool[] mapped = new bool[p1.m_Palette.Count];
+
                 for (int i = 0; i < p1.m_Palette.Count; i++)
                 {
-                    ushort c1 = p1.m_Palette[i];
-                    ushort c2 = p2.m_Palette[i];
+                    for(int j = 0; j < p1.m_Palette.Count; ++j)
+                    {
+                        ushort c1 = p1.m_Palette[i];
+                        ushort c2 = p2.m_Palette[j + (int)offset];
 
-                    int r1 = c1 & 0x1F;
-                    int g1 = (c1 >> 5) & 0x1F;
-                    int b1 = (c1 >> 10) & 0x1F;
-                    int r2 = c2 & 0x1F;
-                    int g2 = (c2 >> 5) & 0x1F;
-                    int b2 = (c2 >> 10) & 0x1F;
+                        if(c1 == c2)
+                        {
+                            mapped[i] = true;
+                            break;
+                        }
 
-                    if (Math.Abs(r1 - r2) > 1 || Math.Abs(g1 - g2) > 1 || Math.Abs(b1 - b2) > 1)
-                        return false;
+                        if (p1.m_Palette.Count == 2 && p2.m_Palette.Count == 4 && offset == 0)
+                        {
+                            offset = 2;
+                            j = -1;
+                        }
+                    }
                 }
 
-                return true;
+                return Array.TrueForAll(mapped, b => b);
             }
 
             public List<ushort> m_Palette;
-            public bool[] m_Referenced;
             private bool m_FirstColourTransparent;
+        }
+
+        protected class PaletteEqualityComparer : IEqualityComparer<Palette>
+        {
+            public bool Equals(Palette x, Palette y) { uint dummy;  return Palette.AreSimilar(x, y, out dummy); }
+            public  int GetHashCode(Palette x) {
+                return x.m_Palette[0] ^
+                       (x.m_Palette.Count > 1 ? x.m_Palette[1] << 15 : 0) ^
+                       (x.m_Palette.Count > 2 ? x.m_Palette[2] << 17 : 0) ^
+                       (x.m_Palette.Count > 3 ? x.m_Palette[3] << 2 : 0); }
         }
     }
 
@@ -857,11 +996,208 @@ namespace SM64DSe.SM64DSFormats
             m_PaletteDataLength = m_RawPaletteData.Length;
         }
 
+        protected struct Mapping3ColTo4Col
+        {
+            public int m_OtherIndex;
+            public int m_LastColIndex;
+            public Mapping3ColTo4Col(int otherID, int lastColID)
+            {
+                m_OtherIndex = otherID;
+                m_LastColIndex = lastColID;
+            }
+        }
+
+        
+        protected void Map3ColPalTo4ColPal(List<Palette> pal3Color, List<Palette> pal4Color)
+        {
+            Pal3To4Map graph = new Pal3To4Map();
+            graph.AddVertexRange(pal3Color);
+            graph.AddVertexRange(pal4Color);
+            //Generate the mapping graph
+            foreach (Palette pal3 in pal3Color)
+                foreach (Palette pal4 in pal4Color)
+                {
+                    int firstNope = pal4.m_Palette.FindIndex(x => !pal3.m_Palette.Contains(x));
+                    int lastNope = pal4.m_Palette.FindLastIndex(x => !pal3.m_Palette.Contains(x));
+                    if (firstNope == lastNope)
+                        graph.AddEdge(new Pal3To4Edge(pal3, pal4, firstNope));
+                }
+
+            //remove obvious duplicates
+            foreach (Pal3To4Edge edge in graph.Edges.ToList())
+            {
+                if (graph.Degree(edge.Source) > 1 && graph.Degree(edge.Target) > 1)
+                    graph.RemoveEdge(edge);
+            }
+            //finish the mapping so it's 1-to-1
+            foreach (Pal3To4Edge edge in graph.Edges.ToList())
+            {
+                if (graph.Degree(edge.Source) > 1 || graph.Degree(edge.Target) > 1)
+                    graph.RemoveEdge(edge);
+            }
+            foreach (Palette vert in graph.Vertices.Where(x => x.m_Palette.Count == 3))
+            {
+                if(graph.Degree(vert) > 0)
+                {
+                    Pal3To4Edge edge = graph.OutEdge(vert, 0);
+                    ushort temp = edge.Target.m_Palette[edge.Tag];
+                    edge.Target.m_Palette[edge.Tag] = edge.Target.m_Palette[3];
+                    edge.Target.m_Palette[3] = temp;
+                }
+                else
+                {
+                    pal4Color.Add(new Palette(vert));
+                    pal4Color.Last().m_Palette.Add(0x8000); //a new color: "Color.DONT_CARE"
+                }
+            }
+        }
+
+        public struct Pal2To4Tag
+        {
+            public int m_3rdColorIndex;
+            public int m_Offset;
+            public ushort m_LastColor;
+        }
+        protected void Map2ColPalTo4ColPal(List<Palette> pal2Color, List<Palette> pal4Color)
+        {
+            Pal2To4Map graph = new Pal2To4Map();
+            graph.AddVertexRange(pal2Color);
+            graph.AddVertexRange(pal4Color);
+            //thirdColorIndex: index to the color that should be the third one. The 4th one cannot be moved.
+            //offset: where the pallete is found in the 4-color pallete; 0 or 2.
+            //lastColor: the 4th color could be Color.DONT_CARE, so this is what it really should be.
+            //           Used only if offset == 2.
+            List<int> threeInts = new List<int>{ 0, 1, 2 };
+            foreach (Palette pal2 in pal2Color)
+                foreach (Palette pal4 in pal4Color)
+                {
+                    int firstYep = pal4.m_Palette.FindIndex(x => pal2.m_Palette.Contains(x) || x == 0x8000);
+                    int lastYep = pal4.m_Palette.FindLastIndex(x => pal2.m_Palette.Contains(x) || x == 0x8000);
+                    if(firstYep != lastYep) //which will be false also when they're both -1 (nothing found)
+                    {
+                        Pal2To4Tag tag;
+                        if(lastYep == 3)
+                        {
+                            tag.m_3rdColorIndex = firstYep;
+                            tag.m_Offset = 2;
+                            tag.m_LastColor = pal2.m_Palette.Find(x => x != pal4.m_Palette[firstYep]);
+                        }
+                        else
+                        {
+                            tag.m_3rdColorIndex = threeInts.Find(x => x != firstYep && x != lastYep);
+                            tag.m_Offset = 0;
+                            tag.m_LastColor = 0x8000;
+                        }
+                        graph.AddEdge(new Pal2To4Edge(pal2, pal4, tag));
+                    }
+                }
+            
+            foreach (Pal2To4Edge edge in graph.Edges.ToList())
+            {
+                if (edge.Tag.m_Offset == 2 && graph.Degree(edge.Source) > 1 &&
+                    graph.InEdges(edge.Target).ToList().Exists(x => x.Tag.m_Offset == 2 &&
+                                                               x.Tag.m_3rdColorIndex == edge.Tag.m_3rdColorIndex &&
+                                                               x.Tag.m_LastColor != edge.Tag.m_LastColor))
+                {
+                    graph.RemoveEdge(edge);
+                }
+            }
+            foreach (Pal2To4Edge edge in graph.Edges.ToList())
+            {
+                if (edge.Tag.m_Offset == 2 &&
+                    graph.InEdges(edge.Target).ToList().Exists(x => x.Tag.m_Offset == 2 &&
+                                                               x.Tag.m_3rdColorIndex == edge.Tag.m_3rdColorIndex &&
+                                                               x.Tag.m_LastColor != edge.Tag.m_LastColor))
+                {
+                    graph.RemoveEdge(edge);
+                }
+            }
+            //now each target vertex has only 3 "groups" of edges, where each group has at most
+            //an edge with offset 0 and an edge with offset 2.
+            foreach (Palette pal4 in graph.Vertices.Where(x => x.m_Palette.Count == 4))
+            {
+                if (graph.InEdges(pal4).Count() == 0)
+                    continue;
+
+                List<IGrouping<int, Pal2To4Edge>> groups =
+                    graph.InEdges(pal4).GroupBy(x => x.Tag.m_3rdColorIndex).ToList();
+                List<int> groupsToDelete = groups.ConvertAll(x => x.Key);
+                List<int> weights = new List<int>();
+                foreach (IGrouping<int, Pal2To4Edge> group in groups)
+                {
+                    List<Pal2To4Edge> elemList = group.ToList();
+                    int weight = elemList.Count(x => graph.Degree(x.Source) == 1) * 2; //how much do we NOT want to delete the group
+                    if (elemList.Count > 1)
+                        weight += 1; //bigger group is obviously heavier.
+                    if(elemList.Count > 1 &&
+                        graph.Degree(elemList[0].Source) == 2 &&
+                        graph.Degree(elemList[1].Source) == 2)
+                    {
+                        Pal2To4Edge edge0 = graph.OutEdges(elemList[0].Source).ToList().Find(x => x != elemList[0]);
+                        Pal2To4Edge edge1 = graph.OutEdges(elemList[1].Source).ToList().Find(x => x != elemList[1]);
+                        if (edge0.Source == edge1.Source && (edge0.Tag.m_3rdColorIndex != edge1.Tag.m_3rdColorIndex ||
+                            edge0.Tag.m_Offset == edge1.Tag.m_Offset))
+                            weight += 2;
+                    }
+                    weights.Add(weight);
+                }
+
+                int safeIndex = weights.IndexOf(weights.Max());
+                groupsToDelete.RemoveAt(safeIndex);
+                foreach (int groupKey in groupsToDelete)
+                {
+                    List<Pal2To4Edge> edges = graph.InEdges(pal4).Where(x => x.Tag.m_3rdColorIndex == groupKey).ToList();
+                    for(int i = edges.Count() - 1; i >= 0; --i)
+                        graph.RemoveEdge(edges[i]);
+                }
+            }
+            
+            //finish the mapping so it's many-to-1
+            foreach (Pal2To4Edge edge in graph.Edges.ToList())
+            {
+                if (graph.Degree(edge.Source) > 1)
+                    graph.RemoveEdge(edge);
+            }
+
+            foreach (Palette vert in graph.Vertices.Where(x => x.m_Palette.Count == 2))
+            {
+                if (graph.Degree(vert) > 0)
+                {
+                    Pal2To4Edge edge = graph.OutEdge(vert, 0);
+                    ushort temp = edge.Target.m_Palette[edge.Tag.m_3rdColorIndex];
+                    edge.Target.m_Palette[edge.Tag.m_3rdColorIndex] = edge.Target.m_Palette[2];
+                    edge.Target.m_Palette[2] = temp;
+                    if (edge.Tag.m_Offset == 2)
+                        edge.Target.m_Palette[3] = edge.Tag.m_LastColor; //they would equal already if that was a 4-color palette.
+
+                    if(graph.Degree(edge.Target) > 1)
+                    {
+                        Pal2To4Edge otherEdge = graph.InEdges(edge.Target).ToList().Find(x => x.Source != edge.Source);
+                        Pal2To4Tag tag = otherEdge.Tag;
+                        tag.m_3rdColorIndex = 2; //Avoid the double swap when two 2-color palettes can both fit in a 4-color palette.
+                        otherEdge.Tag = tag;
+                    }
+                }
+                else
+                {
+                    if (pal4Color.Count == 0 || pal4Color.Last().m_Palette.Count == 0)
+                        pal4Color.Add(new Palette(vert));
+                    else
+                        pal4Color.Last().m_Palette.AddRange(vert.m_Palette);
+                }
+            }
+        }
         protected override void FromBitmap(Bitmap bmp)
         {
             m_RawTextureData = new byte[((m_Width * m_Height) / 16) * 6];
-            List<Palette> pallist = new List<Palette>();
+            Palette[] pallist = new Palette[(m_Height / 4) * (m_Width / 4)];
+            int[] colorModes = new int[(m_Height / 4) * (m_Width / 4)];
             List<ushort> paldata = new List<ushort>();
+
+            List<Palette> pal4Color = new List<Palette>();
+            List<Palette> pal3Color = new List<Palette>();
+            List<Palette> pal2Color = new List<Palette>();
+            List<Palette> pal1Color = new List<Palette>();
 
             int texoffset = 0;
             int palidxoffset = ((m_Width * m_Height) / 16) * 4;
@@ -884,50 +1220,72 @@ namespace SM64DSe.SM64DSFormats
                     }
 
                     Palette txpal = new Palette(bmp, new Rectangle(x, y, 4, 4), transp ? 3 : 4);
+                    colorModes[(y / 4) * (m_Width / 4) + (x / 4)] = txpal.GetBestColorMode(transp);
+                    int size = txpal.m_Palette.Count;
+                    List<Palette> correctList = 
+                        new List<Palette>[]{pal1Color, pal2Color, pal3Color, pal4Color}[size - 1];
+                    correctList.Add(txpal);
+                    pallist[(y / 4) * (m_Width / 4) + (x / 4)] = new Palette(txpal);
+                }
+            }
+            pal4Color = new HashSet<Palette>(pal4Color, new PaletteEqualityComparer()).ToList(); //remove the duplicates
+            pal3Color = new HashSet<Palette>(pal3Color, new PaletteEqualityComparer()).ToList();
+            pal2Color = new HashSet<Palette>(pal2Color, new PaletteEqualityComparer()).ToList();
+            Map3ColPalTo4ColPal(pal3Color, pal4Color);
+            Map2ColPalTo4ColPal(pal2Color, pal4Color);
+            foreach (Palette pal in pal4Color)
+                paldata.AddRange(pal.m_Palette);
+            foreach (Palette pal in pal1Color)
+            {
+                int index = paldata.FindIndex(x => x == pal.m_Palette[0] || x == 0x8000);
+                if (index != -1)
+                    paldata[index] = pal.m_Palette[0];
+                else
+                    paldata.Add(pal.m_Palette[0]);
+            }
+
+            if (paldata.Count % 2 == 1)
+                paldata.Add(0x8000); //just in case a single color palette got placed at the end
+
+            for (int y = 0; y < m_Height / 4; ++y)
+            {
+                for (int x = 0; x < m_Width / 4; ++x)
+                {
+
+                    Palette txpal = pallist[y * (m_Width / 4) + x];
                     uint texel = 0;
-                    ushort palidx = (ushort)(transp ? 0x0000 : 0x8000);
+                    int color_mode = colorModes[y * (m_Width / 4) + x];
+                    ushort palidx = (ushort)(color_mode << 14);
+                    int realPalSize = txpal.m_Palette.Count;
+                    if (txpal.m_Palette.Count == 1 || txpal.m_Palette.Count == 3 && color_mode == 2)
+                        txpal.m_Palette.Add(0x8000);
+
+                    int index = -1;
+                    for(int i = 0; i < paldata.Count - (txpal.m_Palette.Count - 1); i += 2)
+                    {
+                        index = paldata.GetRange(i, txpal.m_Palette.Count).Count(p =>
+                            txpal.m_Palette.Exists(q => q == p) && p != 0x8000) >= realPalSize ? i : -1;
+                        if (index != -1)
+                            break;
+                    }
+                    txpal.m_Palette = paldata.GetRange(index, txpal.m_Palette.Count);
+                    palidx |= (ushort)(index / 2);
 
                     for (int y2 = 0; y2 < 4; y2++)
                     {
                         for (int x2 = 0; x2 < 4; x2++)
                         {
                             int px = 0;
-                            Color c = bmp.GetPixel(x + x2, y + y2);
+                            Color c = bmp.GetPixel(4 * x + x2, 4 * y + y2);
                             ushort bgr15 = Helper.ColorToBGR15(c);
 
-                            if (transp && c.A < 8)
+                            if (color_mode < 2 && c.A < 8)
                                 px = 3;
                             else
-                                px = txpal.FindClosestColorID(bgr15);
+                                px = txpal.FindClosestColorID(bgr15, color_mode);
 
                             texel |= (uint)(px << ((2 * x2) + (8 * y2)));
                         }
-                    }
-
-                    uint paloffset = 0; bool palfound = false;
-                    for (int i = 0; i < pallist.Count; i++)
-                    {
-                        if (Palette.AreSimilar(txpal, pallist[i]))
-                        {
-                            palfound = true;
-                            break;
-                        }
-
-                        paloffset += (uint)pallist[i].m_Palette.Count;
-                        if ((paloffset & 1) != 0) paloffset++;
-                    }
-
-                    paloffset /= 2;
-                    palidx |= (ushort)(paloffset & 0x3FFF);
-
-                    if (!palfound)
-                    {
-                        pallist.Add(txpal);
-
-                        foreach (ushort col in txpal.m_Palette)
-                            paldata.Add(col);
-                        if ((paldata.Count & 1) != 0)
-                            paldata.Add(0x7C1F);
                     }
 
                     m_RawTextureData[texoffset] = (byte)(texel & 0xFF);

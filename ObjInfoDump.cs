@@ -37,7 +37,7 @@ namespace SM64DSe
            
             wr.Write("<?php\n$objinfo = array\n(\n");
             
-            for (int i = 0; i < 0x146; i++)
+            for (int i = 0; i < LevelObject.NUM_OBJ_TYPES; i++)
             {
                 wr.Write("\tarray\n\t(\n");
 

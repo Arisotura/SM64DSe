@@ -8,123 +8,210 @@ using System.Text;
 using System.Windows.Forms;
 using System.Xml;
 using System.IO;
+using SM64DSe.SM64DSFormats;
 
 namespace SM64DSe
 {
     public partial class CLPS_Form : Form
     {
+        enum Columns
+        {
+            TEXTURE = 0,
+            WATER,
+            VIEW_ID,
+            BEHAV_1,
+            CAM_BEHAV,
+            BEHAV_2,
+            CAM_THROUGH,
+            TOXIC,
+            UNK_26,
+            PAD_1,
+            WIND_ID,
+            PAD_2
+        }
+        struct ColStruct
+        {
+            public readonly string m_Name;
+            public readonly int m_Shift;
+            public readonly ulong m_And;
+            public readonly string[] m_TypeNames;
+            public ColStruct(string name, int shift, ulong and, string[] typeNames)
+            {
+                m_Name = name;
+                m_Shift = shift;
+                m_And = and;
+                m_TypeNames = typeNames;
+            }
 
-        LevelEditorForm _owner;
-        uint clps_addr = 0;
-        ushort clps_num = 0;
-        uint clps_size = 0;
-        byte[][] entries;
-        BiDictionaryOneToOne<string, byte[]> GLOBAL_CLPS_TYPES;
+            public ulong GetFlag(ulong flags) { return flags >> m_Shift & m_And; }
+            public void SetFlag(ref ulong flags, ulong val)
+                { flags = flags & ~(m_And << m_Shift) | (val & m_And) << m_Shift; }
+        }
+        ColStruct[] columns = new ColStruct[12]
+        {
+            new ColStruct ("Texture"     ,  0, 0x1fuL, new string[]{"",
+                                                                    "Path-Textured ",
+                                                                    "Grassy ",
+                                                                    "Weirdly Textured ",
+                                                                    "Rocky ",
+                                                                    "Wooden ",
+                                                                    "Snowy ",
+                                                                    "Icy ",
+                                                                    "Sandy ",
+                                                                    "Flowery ",
+                                                                    "Weirdly Textured ",
+                                                                    "Weirdly Textured ",
+                                                                    "Grate-Meshed ",
+                                                                    "Weirdly Textured ",
+                                                                    "Weirdly Textured ",
+                                                                    "Weirdly Textured ",
+                                                                    "Weirdly Textured ",
+                                                                    "Weirdly Textured ",
+                                                                    "Weirdly Textured ",
+                                                                    "Weirdly Textured ",
+                                                                    "Weirdly Textured ",
+                                                                    "Weirdly Textured ",
+                                                                    "Weirdly Textured ",
+                                                                    "Weirdly Textured ",
+                                                                    "Weirdly Textured ",
+                                                                    "Weirdly Textured ",
+                                                                    "Weirdly Textured ",
+                                                                    "Weirdly Textured ",
+                                                                    "Weirdly Textured ",
+                                                                    "Weirdly Textured ",
+                                                                    "Weirdly Textured ",
+                                                                    "Weirdly Textured ",
+                                                                    "Weirdly Textured ",}),
+            new ColStruct ("Water"       ,  5, 0x01uL, new string[]{"",
+                                                                    "Water-Defining "}),
+            new ColStruct ("View ID"     ,  6, 0x3fuL, new string[]{}),
+            new ColStruct ("Traction"    , 12, 0x07uL, new string[]{"",
+                                                                    "Unslippable ",
+                                                                    "Unslippable ",
+                                                                    "Slippery-Sloped ",
+                                                                    "Slippery ",
+                                                                    "Slippery Unwalljumpable ",
+                                                                    "Weird-Traction ",
+                                                                    "Weird-Traction "}),
+            new ColStruct ("Camera Type" , 15, 0x0fuL, new string[]{"Normal ",
+                                                                    "Go-Behind ",
+                                                                    "Zoom-Out-And-Go-Behind ",
+                                                                    "Go-Behind ",
+                                                                    "Go-Behind ",
+                                                                    "Weird ",
+                                                                    "Normal ",
+                                                                    "Go-Behind ",
+                                                                    "Go-Behind ",
+                                                                    "8-Directional ",
+                                                                    "Non-Rotating ",
+                                                                    "Close-Up-And-Personal ",
+                                                                    "Go-Behind ",
+                                                                    "Go-Behind ",
+                                                                    "Go-Behind ",
+                                                                    "Go-Behind "}),
+            new ColStruct ("Behavior"    , 19, 0x1fuL, new string[]{"Surface ",
+                                                                    "Lava ",
+                                                                    "Weird Surface ",
+                                                                    "Hanging Mesh ",
+                                                                    "Death Plane ",
+                                                                    "Death Plane ",
+                                                                    "Jump-Limiting Surface ",
+                                                                    "Slow Quicksand ",
+                                                                    "Slow Quicksand ",
+                                                                    "Instant Quicksand ",
+                                                                    "Weird Surface ",
+                                                                    "Weird Surface ",
+                                                                    "Weird Surface ",
+                                                                    "Weird Surface ",
+                                                                    "Weird Surface ",
+                                                                    "Start Line ",
+                                                                    "Finish Line ",
+                                                                    "Vanish-Luigi-Transparent Surface ",
+                                                                    "Get-Off-Of-Me Surface ",
+                                                                    "Gust Plane ",
+                                                                    "Weird Surface ",
+                                                                    "Weird Surface ",
+                                                                    "Weird Surface ",
+                                                                    "Weird Surface ",
+                                                                    "Weird Surface ",
+                                                                    "Weird Surface ",
+                                                                    "Weird Surface ",
+                                                                    "Weird Surface ",
+                                                                    "Weird Surface ",
+                                                                    "Weird Surface ",
+                                                                    "Weird Surface ",
+                                                                    "Weird Surface "}),
+            new ColStruct ("Camera Through"        , 24, 0x01uL, new string[]{"",
+                                                                    "Go-Through " }),
+            new ColStruct ("Toxic"       , 25, 0x01uL, new string[]{"",
+                                                                    "Toxic "}),
+            new ColStruct ("Unk << 26"   , 26, 0x01uL, new string[]{}),
+            new ColStruct ("Pad << 27"   , 27, 0x1fuL, new string[]{}),
+            new ColStruct ("Wind Path ID", 32, 0xffuL, new string[]{}),
+            new ColStruct ("Pad << 40"   , 40, 0xffffffuL, new string[]{}),
+        };
 
+        CLPS m_CLPS;
 
-        public CLPS_Form(LevelEditorForm _owner)
+        public CLPS_Form(CLPS CLPS)
         {
             InitializeComponent();
 
-            this._owner = _owner;
+            this.m_CLPS = CLPS;
 
             for (int i = 0; i < 52; i++)
                 cbxLevels.Items.Add(i + " - " + Strings.LevelNames[i]);
 
-            loadGlobalCLPSTypes();
-
-            loadCLPSData();
+            LoadCLPSData();
         }
-
-        private void loadCLPSData()
+        
+        private void LoadCLPSData()
         {
-            clps_addr = _owner.m_Overlay.ReadPointer(0x60);
-            clps_num = _owner.m_Overlay.Read16(clps_addr + 0x06);
-            clps_size = (uint)(8 + (clps_num * 8));
-            txtNumEntries.Text = "" + clps_num;
-            entries = new byte[clps_num][];
+            txtNumEntries.Text = "" + m_CLPS.Count;
 
-            gridCLPSData.ColumnCount = 8;
-            gridCLPSData.RowCount = clps_num;
-            gridCLPSData.Columns[0].Width = 32;
-            uint entry = clps_addr + 0x08;
+            gridCLPSData.RowCount = m_CLPS.Count;
 
-            // Set column widths
-            for (int i = 0; i < 8; i++)
-                gridCLPSData.Columns[i].Width = 32;
+            if (gridCLPSData.ColumnCount != columns.Length + 1)
+            {
+                gridCLPSData.ColumnCount = columns.Length;
+                
+                // Set column widths
+                gridCLPSData.RowHeadersWidth = 54;
+                for (int i = 0; i < columns.Length; i++)
+                {
+                    gridCLPSData.Columns[i].Width = 54;
+                    gridCLPSData.Columns[i].HeaderText = columns[i].m_Name;
+                }
 
-            DataGridViewComboBoxColumn cmb = new DataGridViewComboBoxColumn();
-            cmb.HeaderText = "Type/Description";
-            cmb.Items.Add("Other/Unknown");
-            cmb.Width = 160;
-            foreach (string name in GLOBAL_CLPS_TYPES.GetFirstToSecond().Keys)
-                cmb.Items.Add(name);
-            gridCLPSData.Columns.Add(cmb);
+                DataGridViewTextBoxColumn cmb = new DataGridViewTextBoxColumn();
+                cmb.HeaderText = "Type/Description";
+                cmb.ReadOnly = true;
+                cmb.Width = 500;
+                gridCLPSData.Columns.Add(cmb);
+            }
 
-            for (int i = 0; i < clps_num; i++)
+            for (int i = 0; i < m_CLPS.Count; i++)
             {
                 gridCLPSData.Rows[i].HeaderCell.Value = "" + i;
-                entries[i] = new byte[8];
-                for (int j = 0; j < 8; j++)
+                for (int j = 0; j < columns.Length; j++)
                 {
-                    entries[i][j] = _owner.m_Overlay.Read8((uint)(entry + (j)));
-                    gridCLPSData.Rows[i].Cells[j].Value = entries[i][j];
+                    gridCLPSData.Rows[i].Cells[j].Value = columns[j].GetFlag(m_CLPS[i].flags);
                 }
 
                 // Fill in Type/Description column
-                if (GLOBAL_CLPS_TYPES.GetSecondToFirst().ContainsKey(entries[i]))
-                    gridCLPSData.Rows[i].Cells[8].Value = GLOBAL_CLPS_TYPES.GetSecondToFirst()[entries[i]];
-                else
-                    gridCLPSData.Rows[i].Cells[8].Value = cmb.Items[0];// Other/Unknown
-
-                entry += 8;
-            }
-
-        }
-
-        /* Reads in the list of known Global Collision Type values
-         */
-        private void loadGlobalCLPSTypes()
-        {
-            GLOBAL_CLPS_TYPES = new BiDictionaryOneToOne<string, byte[]>(new ByteArrayComparer());
-            string entryName = "";
-            byte[] entryValue = new byte[8];
-            int valueCount = 0;
-
-            // Create an XML reader for this file.
-            using (XmlReader reader = XmlReader.Create(Path.Combine(Application.StartupPath, "CLPS_Types.xml")))
-            {
-                reader.MoveToContent();
-
-                while (reader.Read())
-                {
-                    if (reader.NodeType.Equals(XmlNodeType.Element))
-                    {
-                        switch (reader.LocalName)
-                        {
-                            case "Entry":
-                                entryName = reader.GetAttribute("name");
-                                break;
-                            case "Value":
-                                entryValue = new byte[8];
-                                valueCount = 0;
-                                break;
-                            case "Byte":
-                                entryValue[valueCount] = Byte.Parse(reader.ReadElementContentAsString());
-                                valueCount++;
-                                break;
-                        }
-                    }
-                    else if (reader.NodeType.Equals(XmlNodeType.EndElement))
-                    {
-                        switch (reader.LocalName)
-                        {
-                            case "Entry":
-                                GLOBAL_CLPS_TYPES.Add(entryName, entryValue);
-                                break;
-                        }
-                    }
-                }
+                gridCLPSData.Rows[i].Cells[columns.Length].Value =
+                    columns[(int)Columns.WATER].m_TypeNames[m_CLPS[i].m_Water] +
+                    columns[(int)Columns.TOXIC].m_TypeNames[m_CLPS[i].m_Toxic] +
+                    (m_CLPS[i].m_WindID != 0xff ? "Windy " : "") +
+                    columns[(int)Columns.TEXTURE].m_TypeNames[m_CLPS[i].m_Texture] +
+                    columns[(int)Columns.BEHAV_1].m_TypeNames[m_CLPS[i].m_Traction] +
+                    columns[(int)Columns.BEHAV_2].m_TypeNames[m_CLPS[i].m_Behav] +
+                    "w/ " +
+                    columns[(int)Columns.CAM_THROUGH].m_TypeNames[m_CLPS[i].m_CamThrough] +
+                    columns[(int)Columns.CAM_BEHAV].m_TypeNames[m_CLPS[i].m_CamBehav] +
+                    "Camera" +
+                    (m_CLPS[i].m_ViewID != 0x3f ? ", View ID " + m_CLPS[i].m_ViewID.ToString() : "") +
+                    (m_CLPS[i].m_WindID != 0xff ? ", Wind Path ID " + m_CLPS[i].m_WindID.ToString() : "");
             }
 
         }
@@ -133,35 +220,32 @@ namespace SM64DSe
         {
             try
             {
-                if (e.ColumnIndex != 8)
+                if (e.ColumnIndex != columns.Length)
                 {
-                    _owner.m_Overlay.Write8((uint)((clps_addr + 8) + (8 * e.RowIndex) + e.ColumnIndex),
-                        (byte)int.Parse(gridCLPSData.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString()));
+                    ulong clps = m_CLPS[e.RowIndex].flags;
+
+                    columns[e.ColumnIndex].SetFlag(ref clps,
+                        ulong.Parse(gridCLPSData.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString()));
+
+                    CLPS.Entry temp = new CLPS.Entry();
+                    temp.flags = clps;
+                    m_CLPS[e.RowIndex] = temp;
                 }
                 else
                 {
-                    string entryName = gridCLPSData.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString();
-                    if (entryName.Equals("Other/Unknown"))
-                        return;
-                    byte[] entryValue = GLOBAL_CLPS_TYPES.GetFirstToSecond()[entryName];
-                    int rowIndex = e.RowIndex;
-                    for (int i = 0; i < 8; i++)
-                    {
-                        // Update entry in overlay CLPS table
-                        _owner.m_Overlay.Write8((uint)((clps_addr + 8) + (8 * rowIndex) + i),
-                        (byte)entryValue[i]);
-                    }
+                    return;
                 }
 
-                loadCLPSData();
+                LoadCLPSData();
             }
-            catch
+            catch (Exception ex)
             {
-                MessageBox.Show("Please enter a valid number between 0 - 255.");
+                new ExceptionMessageBox(ex).ShowDialog();
+                return;
             }
         }
 
-        private void copyCLPS(int sourceLevel)
+        private void CopyCLPS(int sourceLevel)
         {
             NitroOverlay otherOVL = new NitroOverlay(Program.m_ROM, Program.m_ROM.GetLevelOverlayID(sourceLevel));
 
@@ -169,124 +253,37 @@ namespace SM64DSe
             ushort other_clps_num = otherOVL.Read16(other_clps_addr + 0x06);
             uint other_clps_size = (uint)(8 + (other_clps_num * 8));
 
-            uint clps_addr = _owner.m_Overlay.ReadPointer(0x60);
-            ushort clps_num = _owner.m_Overlay.Read16(clps_addr + 0x06);
-            uint clps_size = (uint)(8 + (clps_num * 8));
-
-            byte[] CLPS_data = otherOVL.ReadBlock(other_clps_addr, other_clps_size);
-
-            // Make or remove room for other CLPS table
-            if (clps_size < other_clps_size)
+            m_CLPS = new CLPS();
+            for(int i = 0; i < other_clps_num; ++i)
             {
-                AddSpace(clps_addr + clps_size, other_clps_size - clps_size);
-            }
-            else if (clps_size > other_clps_size)
-            {
-                RemoveSpace(clps_addr + clps_size - (clps_size - other_clps_size), clps_size - other_clps_size);
+                ulong flags   = otherOVL.Read32((uint)(other_clps_addr + 8 + 8 * i + 0));
+                flags |= (ulong)otherOVL.Read32((uint)(other_clps_addr + 8 + 8 * i + 4)) << 32;
+                CLPS.Entry clps = new CLPS.Entry();
+                clps.flags = flags;
+                m_CLPS.Add(clps);
             }
 
-            // Write CLPS table from overlay
-            _owner.m_Overlay.WriteBlock(clps_addr, CLPS_data);
-
-            loadCLPSData();
-        }
-
-        private void AddSpace(uint offset, uint amount)
-        {
-            if ((_owner.m_Overlay.GetSize() + amount) > NitroROM.LEVEL_OVERLAY_SIZE)
-                throw new Exception("This level has reached the level size limit. Cannot add more data.");
-
-            // move the data
-            byte[] block = _owner.m_Overlay.ReadBlock(offset, (uint)(_owner.m_Overlay.GetSize() - offset));
-            _owner.m_Overlay.WriteBlock(offset + amount, block);
-
-            // write zeroes in the newly created space
-            for (int i = 0; i < amount; i++)
-                _owner.m_Overlay.Write8((uint)(offset + i), 0);
-
-            // update the pointers
-            for (int i = 0; i < _owner.m_PointerList.Count; i++)
-            {
-                LevelEditorForm.PointerReference ptrref = _owner.m_PointerList[i];
-                if (ptrref.m_ReferenceAddr >= offset)
-                    ptrref.m_ReferenceAddr += amount;
-                if (ptrref.m_PointerAddr >= offset)
-                {
-                    ptrref.m_PointerAddr += amount;
-                    _owner.m_Overlay.WritePointer(ptrref.m_ReferenceAddr, ptrref.m_PointerAddr);
-                }
-                _owner.m_PointerList[i] = ptrref;
-            }
-
-            // update the objects 'n' all
-            UpdateObjectOffsets(offset, amount);
-        }
-
-        private void RemoveSpace(uint offset, uint amount)
-        {
-            // move the data
-            byte[] block = _owner.m_Overlay.ReadBlock(offset + amount, (uint)(_owner.m_Overlay.GetSize() - offset - amount));
-            _owner.m_Overlay.WriteBlock(offset, block);
-            _owner.m_Overlay.SetSize(_owner.m_Overlay.GetSize() - amount);
-
-            // update the pointers
-            for (int i = 0; i < _owner.m_PointerList.Count; i++)
-            {
-                LevelEditorForm.PointerReference ptrref = _owner.m_PointerList[i];
-                if (ptrref.m_ReferenceAddr >= (offset + amount))
-                    ptrref.m_ReferenceAddr -= amount;
-                if (ptrref.m_PointerAddr >= (offset + amount))
-                {
-                    ptrref.m_PointerAddr -= amount;
-                    _owner.m_Overlay.WritePointer(ptrref.m_ReferenceAddr, ptrref.m_PointerAddr);
-                }
-                _owner.m_PointerList[i] = ptrref;
-            }
-
-            // update the objects 'n' all
-            UpdateObjectOffsets(offset + amount, (uint)-amount);
-        }
-
-        public void UpdateObjectOffsets(uint start, uint delta)
-        {
-            foreach (LevelObject obj in _owner.m_LevelObjects.Values)
-                if (obj.m_Offset >= start) obj.m_Offset += delta;
-
-            for (int a = 0; a < _owner.m_TexAnims.Length; a++)
-            {
-                foreach (LevelTexAnim anim in _owner.m_TexAnims[a])
-                {
-                    if (anim.m_Offset >= start) anim.m_Offset += delta;
-                    if (anim.m_ScaleTblOffset >= start) anim.m_ScaleTblOffset += delta;
-                    if (anim.m_RotTblOffset >= start) anim.m_RotTblOffset += delta;
-                    if (anim.m_TransTblOffset >= start) anim.m_TransTblOffset += delta;
-                    if (anim.m_MatNameOffset >= start) anim.m_MatNameOffset += delta;
-                }
-            }
+            LoadCLPSData();
         }
 
         private void btnCopy_Click(object sender, EventArgs e)
         {
             if (cbxLevels.SelectedIndex != -1)
-                copyCLPS(cbxLevels.SelectedIndex);
+                CopyCLPS(cbxLevels.SelectedIndex);
         }
 
         private void btnAdd_Click(object sender, EventArgs e)
         {
+            CLPS.Entry clps = new CLPS.Entry();
+            clps.flags = 0x000000ff00000fc0;
+
             if (gridCLPSData.SelectedRows.Count == 0)
-            {
-                // Make room for a new entry at end
-                AddSpace(clps_addr + clps_size, 8);
-            }
+                m_CLPS.Add(clps);
             else
-            {
-                // Make room after selected row
-                AddSpace((uint)(clps_addr + 8 + (8 * gridCLPSData.SelectedRows[0].Index) + 8), 8);
-            }
-            // Update the number of entries
-            _owner.m_Overlay.Write16(clps_addr + 0x06, (ushort)(_owner.m_Overlay.Read16(clps_addr + 0x06) + 1));
+                m_CLPS.m_Entries.Insert(gridCLPSData.SelectedRows[0].Index, clps);
+            
             // Reload data
-            loadCLPSData();
+            LoadCLPSData();
         }
 
         private void btnRemove_Click(object sender, EventArgs e)
@@ -295,12 +292,9 @@ namespace SM64DSe
                 MessageBox.Show("Please select a row to delete.");
             else
             {
-                // Remove selected row
-                RemoveSpace((uint)(clps_addr + 8 + (8 * gridCLPSData.SelectedRows[0].Index)), 8);
-                // Update the number of entries
-                _owner.m_Overlay.Write16(clps_addr + 0x06, (ushort)(_owner.m_Overlay.Read16(clps_addr + 0x06) - 1));
+                m_CLPS.m_Entries.RemoveAt(gridCLPSData.SelectedRows[0].Index);
                 // Reload data
-                loadCLPSData();
+                LoadCLPSData();
             }
         }
 
@@ -310,12 +304,11 @@ namespace SM64DSe
                 MessageBox.Show("Please select a row to move.");
             else if (gridCLPSData.SelectedRows[0].Index != 0)
             {
-                byte[] rowA = _owner.m_Overlay.ReadBlock((uint)(clps_addr + 8 + (8 * gridCLPSData.SelectedRows[0].Index)), 8);
-                byte[] rowB = _owner.m_Overlay.ReadBlock((uint)(clps_addr + 8 + (8 * (gridCLPSData.SelectedRows[0].Index - 1))), 8);
-                _owner.m_Overlay.WriteBlock((uint)(clps_addr + 8 + (8 * gridCLPSData.SelectedRows[0].Index)), rowB);
-                _owner.m_Overlay.WriteBlock((uint)(clps_addr + 8 + (8 * (gridCLPSData.SelectedRows[0].Index - 1))), rowA);
+                CLPS.Entry temp = m_CLPS[gridCLPSData.SelectedRows[0].Index];
+                m_CLPS[gridCLPSData.SelectedRows[0].Index] = m_CLPS[gridCLPSData.SelectedRows[0].Index - 1];
+                m_CLPS[gridCLPSData.SelectedRows[0].Index - 1] = temp;
             }
-            loadCLPSData();
+            LoadCLPSData();
         }
 
         private void btnShiftDown_Click(object sender, EventArgs e)
@@ -324,12 +317,11 @@ namespace SM64DSe
                 MessageBox.Show("Please select a row to move.");
             else if (gridCLPSData.SelectedRows[0].Index != gridCLPSData.Rows.Count - 1)
             {
-                byte[] rowA = _owner.m_Overlay.ReadBlock((uint)(clps_addr + 8 + (8 * gridCLPSData.SelectedRows[0].Index)), 8);
-                byte[] rowB = _owner.m_Overlay.ReadBlock((uint)(clps_addr + 8 + (8 * (gridCLPSData.SelectedRows[0].Index + 1))), 8);
-                _owner.m_Overlay.WriteBlock((uint)(clps_addr + 8 + (8 * gridCLPSData.SelectedRows[0].Index)), rowB);
-                _owner.m_Overlay.WriteBlock((uint)(clps_addr + 8 + (8 * (gridCLPSData.SelectedRows[0].Index + 1))), rowA);
+                CLPS.Entry temp = m_CLPS[gridCLPSData.SelectedRows[0].Index];
+                m_CLPS[gridCLPSData.SelectedRows[0].Index] = m_CLPS[gridCLPSData.SelectedRows[0].Index + 1];
+                m_CLPS[gridCLPSData.SelectedRows[0].Index + 1] = temp;
             }
-            loadCLPSData();
+            LoadCLPSData();
         }
     }
 }

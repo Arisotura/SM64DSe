@@ -35,6 +35,8 @@ namespace SM64DSe
         public static readonly CultureInfo USA = new CultureInfo("en-US");
         public static readonly MD5CryptoServiceProvider m_MD5 = new MD5CryptoServiceProvider();
         public static readonly Color LIGHT_RED = Color.FromArgb(230, 100, 100);
+        
+        private static readonly DateTime FirstOfJanuary1970 = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
         public static ushort ColorToBGR15(Color color)
         {
@@ -177,32 +179,15 @@ namespace SM64DSe
             return ret;
         }
 
-        /*
-         * Uses SharpDX's method to decompose Matrix4 into Scale, Rotation (Quaternion) and Translation, then converts the Quaternion 
-         * to Euler angles. See credits below.
-         */
-        public static void DecomposeSRTMatrix1(Matrix4 matrix, out Vector3 scale, out Vector3 rotation, out Vector3 translation)
-        {
-            scale = Vector3.Zero;
-            rotation = Vector3.Zero;
-            translation = Vector3.Zero;
-            Quaternion quat = new Quaternion();
-
-            Decompose(matrix, out scale, out quat, out translation);
-            rotation = FromQ2_Rad(quat, false);
-        }
-
-        /*
-         * Uses OpenTK's Matrix4 methods to extract Scale, Rotation (Quaternion) and Translation, then converts the Quaternion 
-         * to Euler angles. See credits below.
-         */
         public static void DecomposeSRTMatrix2(Matrix4 matrix, out Vector3 scale, out Vector3 rotation, out Vector3 translation)
         {
-            scale = matrix.ExtractScale();
-            translation = matrix.ExtractTranslation();
-            Quaternion quat = matrix.ExtractRotation();
-
-            rotation = FromQ2_Rad(quat, false);
+            Quaternion quat;
+            Decompose(matrix, out scale, out quat, out translation);
+            matrix.Row0 = new Vector4(Vector3.Divide(matrix.Row0.Xyz, scale.X), 0);
+            matrix.Row1 = new Vector4(Vector3.Divide(matrix.Row1.Xyz, scale.Y), 0);
+            matrix.Row2 = new Vector4(Vector3.Divide(matrix.Row2.Xyz, scale.Z), 0);
+            matrix.Row3 = new Vector4(0, 0, 0, 1);
+            rotation = FromRotMatToEulerZYXInt(matrix);
         }
 
         /*
@@ -316,76 +301,29 @@ namespace SM64DSe
             }
         }
 
-        /*
-         * Below six methods taken from user 'Vlad' at:
-         * https://stackoverflow.com/questions/12088610/conversion-between-euler-quaternion-like-in-unity3d-engine
-         * 
-         * Used to convert a Quaternion to Euler angles.
-         */
+        public const float Tau = 2.0f * (float)Math.PI;
+        public const float Deg2Rad = (float)(Tau / 360.0f);
+        public const float Rad2Deg = (float)(360.0f / Tau);
 
-        public const float Deg2Rad = (float)((Math.PI * 2.0f) / 360.0f);
-        public const float Rad2Deg = (float)(360.0f / (Math.PI * 2.0f));
-
-        public static Vector3 FromQ2_Deg(Quaternion q1, bool normalise = false)
+        public static Vector3 FromRotMatToEulerZYXInt(Matrix4 mat)
         {
-            float sqw = q1.W * q1.W;
-            float sqx = q1.X * q1.X;
-            float sqy = q1.Y * q1.Y;
-            float sqz = q1.Z * q1.Z;
-            float unit = sqx + sqy + sqz + sqw; // if normalised is one, otherwise is correction factor
-            float test = q1.X * q1.W - q1.Y * q1.Z;
-            Vector3 v;
+            //x''', y''', z''' are stored in rows of mat
+            Vector3 angles = new Vector3(0, 0, 0);
 
-            if (test > 0.4995f * unit)
-            { // singularity at north pole
-                v.Y = (float)(2f * Math.Atan2(q1.Y, q1.X));
-                v.X = (float)(Math.PI / 2);
-                v.Z = 0;
-                return (normalise) ? NormalizeAnglesDeg(v * Rad2Deg) : (v * Rad2Deg);
+            angles.Y = (float)-Math.Asin(mat.Row0.Z);
+            if(Math.Abs(angles.Y) * 0x10000 / Tau > (float)0x4000 - 0.5)
+            {
+                angles.Z = 0;
+                angles.X = (float)Math.Atan2(-mat.Row2.Y, mat.Row1.Y);
             }
-            if (test < -0.4995f * unit)
-            { // singularity at south pole
-                v.Y = (float)(-2f * Math.Atan2(q1.Y, q1.X));
-                v.X = (float)(-Math.PI / 2.0f);
-                v.Z = 0;
-                return (normalise) ? NormalizeAnglesDeg(v * Rad2Deg) : (v * Rad2Deg);
+            else
+            {
+                angles.Z = (float)Math.Atan2(mat.Row0.Y, mat.Row0.X);
+                angles.X = (float)Math.Atan2(mat.Row1.Z, mat.Row2.Z);
             }
-            Quaternion q = new Quaternion(q1.W, q1.Z, q1.X, q1.Y);
-            v.Y = (float)Math.Atan2(2f * q.X * q.W + 2f * q.Y * q.Z, 1 - 2f * (q.Z * q.Z + q.W * q.W));     // Yaw
-            v.X = (float)Math.Asin(2f * (q.X * q.Z - q.W * q.Y));                             // Pitch
-            v.Z = (float)Math.Atan2(2f * q.X * q.Y + 2f * q.Z * q.W, 1 - 2f * (q.Y * q.Y + q.Z * q.Z));      // Roll
-            return (normalise) ? NormalizeAnglesDeg(v * Rad2Deg) : (v * Rad2Deg);
-        }
 
-        public static Vector3 FromQ2_Rad(Quaternion q1, bool normalise = false)
-        {
-            float sqw = q1.W * q1.W;
-            float sqx = q1.X * q1.X;
-            float sqy = q1.Y * q1.Y;
-            float sqz = q1.Z * q1.Z;
-            float unit = sqx + sqy + sqz + sqw; // if normalised is one, otherwise is correction factor
-            float test = q1.X * q1.W - q1.Y * q1.Z;
-            Vector3 v;
-
-            if (test > 0.4995f * unit)
-            { // singularity at north pole
-                v.Y = (float)(2f * Math.Atan2(q1.Y, q1.X));
-                v.X = (float)(Math.PI / 2);
-                v.Z = 0;
-                return (normalise) ? NormalizeAnglesRad(v) : v;
-            }
-            if (test < -0.4995f * unit)
-            { // singularity at south pole
-                v.Y = (float)(-2f * Math.Atan2(q1.Y, q1.X));
-                v.X = (float)(-Math.PI / 2.0f);
-                v.Z = 0;
-                return (normalise) ? NormalizeAnglesRad(v) : v;
-            }
-            Quaternion q = new Quaternion(q1.W, q1.Z, q1.X, q1.Y);
-            v.Y = (float)Math.Atan2(2f * q.X * q.W + 2f * q.Y * q.Z, 1 - 2f * (q.Z * q.Z + q.W * q.W));     // Yaw
-            v.X = (float)Math.Asin(2f * (q.X * q.Z - q.W * q.Y));                             // Pitch
-            v.Z = (float)Math.Atan2(2f * q.X * q.Y + 2f * q.Z * q.W, 1 - 2f * (q.Y * q.Y + q.Z * q.Z));      // Roll
-            return (normalise) ? NormalizeAnglesRad(v) : v;
+            //Whew!
+            return angles;
         }
 
         static Vector3 NormalizeAnglesDeg(Vector3 angles)
@@ -558,6 +496,67 @@ namespace SM64DSe
             return ret;
         }
 
+        public static void AlignWriter(BinaryWriter binWriter, uint multiple)
+        {
+            if ((binWriter.BaseStream.Position & 3) != 0x00)
+            {
+                binWriter.Write(new byte[(multiple - binWriter.BaseStream.Position % multiple) % multiple]);
+            }
+        }
+
+        public static void WritePosAndRestore(BinaryWriter binWriter, uint address, uint adder)
+        {
+            uint oldPos = (uint)binWriter.BaseStream.Position;
+            binWriter.BaseStream.Position = address;
+            binWriter.Write(oldPos + adder);
+            binWriter.BaseStream.Position = oldPos;
+        }
+        
+        public static IEnumerable<T> ArrayOf<T>(T value, int size)
+        {
+            for (int i = 0; i < size; ++i)
+                yield return value;
+        }
+
+        public static int FindSubList<T>(List<T> list, List<T> subList)
+        {
+            for (int i = 0; i <= list.Count - subList.Count; ++i)
+            {
+                if (list.GetRange(i, subList.Count).SequenceEqual(subList))
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        public static int FindLastSubList<T>(List<T> list, List<T> subList)
+        {
+            int index = -1;
+            for (int i = 0; i <= list.Count - subList.Count; ++i)
+                if (list.GetRange(i, subList.Count).SequenceEqual(subList))
+                    index = i;
+            return index;
+        }
+
+        public static void ResizeList<T>(List<T> list, int size, T filler = default(T))
+        {
+            if (size < list.Count)
+                list.RemoveRange(size, list.Count - size);
+            else if (size > list.Count)
+                list.AddRange(ArrayOf(filler, size - list.Count));
+        }
+
+        public static List<int> FloatListTo20_12IntList(List<float> floatList)
+        {
+            return floatList.ConvertAll(z => (int)Math.Floor(z * 4096.0f + 0.5f)).ToList();
+        }
+
+        public static List<int> FloatListToRotationIntList(List<float> floatList)
+        {
+            return floatList.ConvertAll(z => (int)Math.Floor(z / 360.0f * 4096.0f + 0.5f)).ToList();
+        }
+
         public static bool TryParseFloat(TextBox textBox, out float result)
         {
             if (!TryParseFloat(textBox.Text, out result))
@@ -617,9 +616,19 @@ namespace SM64DSe
             }
         }
 
-        public static bool TryParseInt(string value, ref int result)
+        private static bool TryParseInt(string value, ref int result)
         {
             return (int.TryParse(value, out result));
+        }
+
+        public static long CurrentTimeMillis()
+        {
+            return (long)((DateTime.UtcNow - FirstOfJanuary1970).TotalMilliseconds);
+        }
+
+        public static bool IsOpenGLAvailable()
+        {
+            return (OpenTK.Graphics.GraphicsContext.CurrentContext != null);
         }
     }
 

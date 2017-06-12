@@ -31,6 +31,7 @@ using System.IO;
 using System.Globalization;
 using System.Xml;
 using SM64DSe.ImportExport;
+using SM64DSe.SM64DSFormats;
 using SM64DSe.ImportExport.LevelImportExport;
 
 
@@ -40,30 +41,6 @@ namespace SM64DSe
     {
         private static Color k_SelectionColor = Color.FromArgb(255, 255, 128);
         private static Color k_HoverColor = Color.FromArgb(255, 255, 192);
-
-        public Dictionary<ushort, bool> m_ObjAvailable;
-        private void GetObjectsAvailable()
-        {
-            m_ObjAvailable.Clear();
-
-            for (int i = 0; i < 326; i++)
-            {
-                ObjectDatabase.ObjectInfo objinfo = ObjectDatabase.m_ObjectInfo[i];
-
-                bool available = true;
-                if (objinfo.m_BankRequirement == 1)
-                {
-                    if (m_LevelSettings.ObjectBanks[objinfo.m_NumBank] != objinfo.m_BankSetting)
-                        available = false;
-                }
-                else if (objinfo.m_BankRequirement == 2)
-                    available = false;
-
-                m_ObjAvailable.Add((ushort)i, available);
-            }
-
-            m_ObjAvailable.Add(511, true);
-        }
 
         private void ClampRotation(ref float val, float twopi)
         {
@@ -106,256 +83,16 @@ namespace SM64DSe
             }
         }
 
-        private int m_EntranceID = 0;
-        private int m_PathNodeID = 0;
-        private int m_MinimapTileIDNum = 0;
-        private void ReadObjectTable(uint offset, int area)
-        {
-            AddPointer(offset + 0x4);
-            uint subtbl_num = m_Overlay.Read32(offset);
-            uint subtbl_offset = m_Overlay.ReadPointer(offset + 0x4);
-            for (uint st = 0; st < subtbl_num; st++)
-            {
-                uint curoffset = subtbl_offset + (st * 8);
-                AddPointer(curoffset + 0x4);
-
-                byte flags = m_Overlay.Read8(curoffset);
-                byte entries_num = m_Overlay.Read8(curoffset + 0x1);
-                uint entries_offset = m_Overlay.ReadPointer(curoffset + 0x4);
-
-                byte type = (byte)(flags & 0x1F);
-                byte layer = (byte)(flags >> 5);
-
-                switch (type)
-                {
-                    case 0:
-                        for (byte e = 0; e < entries_num; e++)
-                        {
-                            LevelObject obj = new StandardObject(m_Overlay, (uint)(entries_offset + (e * 16)), m_LevelObjects.Count, layer, area);
-                            m_LevelObjects.Add(obj.m_UniqueID, obj);
-                        }
-                        break;
-
-                    case 1:
-                        for (byte e = 0; e < entries_num; e++)
-                        {
-                            LevelObject obj = new EntranceObject(m_Overlay, (uint)(entries_offset + (e * 16)), m_LevelObjects.Count, layer, m_EntranceID++);
-                            m_LevelObjects.Add(obj.m_UniqueID, obj);
-                        }
-                        break;
-
-                    case 2: // Path Node
-                        for (byte e = 0; e < entries_num; e++)
-                        {
-                            LevelObject obj = new PathPointObject(m_Overlay, (uint)(entries_offset + (e * 6)), m_LevelObjects.Count, m_PathNodeID++);
-                            m_LevelObjects.Add(obj.m_UniqueID, obj);
-                        }
-                        break;
-
-                    case 3: // Path
-                        for (byte e = 0; e < entries_num; e++)
-                        {
-                            LevelObject obj = new PathObject(m_Overlay, (uint)(entries_offset + (e * 6)), m_LevelObjects.Count);
-                            m_LevelObjects.Add(obj.m_UniqueID, obj);
-                        }
-                        break;
-
-                    case 4:
-                        for (byte e = 0; e < entries_num; e++)
-                        {
-                            LevelObject obj = new ViewObject(m_Overlay, (uint)(entries_offset + (e * 14)), m_LevelObjects.Count);
-                            m_LevelObjects.Add(obj.m_UniqueID, obj);
-                        }
-                        break;
-
-                    case 5:
-                        for (byte e = 0; e < entries_num; e++)
-                        {
-                            LevelObject obj = new SimpleObject(m_Overlay, (uint)(entries_offset + (e * 8)), m_LevelObjects.Count, layer, area);
-                            m_LevelObjects.Add(obj.m_UniqueID, obj);
-                        }
-                        break;
-
-                    case 6:
-                        for (byte e = 0; e < entries_num; e++)
-                        {
-                            LevelObject obj = new TpSrcObject(m_Overlay, (uint)(entries_offset + (e * 8)), m_LevelObjects.Count, layer);
-                            m_LevelObjects.Add(obj.m_UniqueID, obj);
-                        }
-                        break;
-
-                    case 7:
-                        for (byte e = 0; e < entries_num; e++)
-                        {
-                            LevelObject obj = new TpDstObject(m_Overlay, (uint)(entries_offset + (e * 8)), m_LevelObjects.Count, layer);
-                            m_LevelObjects.Add(obj.m_UniqueID, obj);
-                        }
-                        break;
-
-                    case 8:
-                        // Fog
-                        for (byte e = 0; e < entries_num; e++)
-                        {
-                            LevelObject obj = new FogObject(m_Overlay, (uint)(entries_offset + (e * 8)), m_LevelObjects.Count, layer, area);
-                            m_LevelObjects.Add(obj.m_UniqueID, obj);
-                        }
-                        break;
-
-                    case 9:
-                        for (byte e = 0; e < entries_num; e++)
-                        {
-                            LevelObject obj = new DoorObject(m_Overlay, (uint)(entries_offset + (e * 12)), m_LevelObjects.Count, layer);
-                            m_LevelObjects.Add(obj.m_UniqueID, obj);
-                        }
-                        break;
-
-                    case 10:
-                        for (byte e = 0; e < entries_num; e++)
-                        {
-                            LevelObject obj = new ExitObject(m_Overlay, (uint)(entries_offset + (e * 14)), m_LevelObjects.Count, layer);
-                            m_LevelObjects.Add(obj.m_UniqueID, obj);
-                        }
-                        break;
-
-                    case 11:
-                        for (byte e = 0; e < entries_num; e++)
-                        {
-                            LevelObject obj = new MinimapTileIDObject(m_Overlay, (uint)(entries_offset + (e * 2)), m_LevelObjects.Count, layer, m_MinimapTileIDNum++);
-                            m_LevelObjects.Add(obj.m_UniqueID, obj);
-                        }
-                        // This is still used by Minimap Editor
-                        m_MinimapFileIDs = new ushort[entries_num];
-                        for (byte e = 0; e < entries_num; e++)
-                            m_MinimapFileIDs[e] = m_Overlay.Read16((uint)(entries_offset + (e * 2)));
-
-                        break;
-
-                    case 12:
-                        // per-area minimap scale factors
-                        for (byte e = 0; e < entries_num; e++)
-                        {
-                            LevelObject obj = new MinimapScaleObject(m_Overlay, (uint)(entries_offset + (e * 2)), m_LevelObjects.Count, layer, area);
-                            m_LevelObjects.Add(obj.m_UniqueID, obj);
-                        }
-                        break;
-
-                    case 14:
-                        // ??? Unknown
-                        for (byte e = 0; e < entries_num; e++)
-                        {
-                            LevelObject obj = new Type14Object(m_Overlay, (uint)(entries_offset + (e * 4)), m_LevelObjects.Count, layer, area);
-                            m_LevelObjects.Add(obj.m_UniqueID, obj);
-                        }
-                        break;
-                }
-            }
-
-            IEnumerable<LevelObject> pathNodes = m_LevelObjects.Values.Where(obj => (obj.m_Type) == 2);
-            IEnumerable<LevelObject> paths = m_LevelObjects.Values.Where(obj => (obj.m_Type) == 3);
-            AlignPathNodes(paths.ToList<LevelObject>(), pathNodes.ToList<LevelObject>());
-        }
-
-        public void ReadTextureAnimations(uint offset, int area)
-        {
-            AddPointer(offset + 0x4);
-            AddPointer(offset + 0x8);
-            AddPointer(offset + 0xC);
-            AddPointer(offset + 0x14);
-
-            uint numanim = m_Overlay.Read32(offset + 0x10);
-            uint animaddr = m_Overlay.ReadPointer(offset + 0x14);
-            for (uint i = 0; i < numanim; i++)
-            {
-                AddPointer(animaddr + 0x4);
-
-                m_TexAnims[area].Add(new LevelTexAnim(m_Overlay, offset, animaddr, m_TexAnims[area].Count, area));
-
-                animaddr += 0x1C;
-            }
-        }
-
         private void LoadLevelData()
         {
-            m_PointerList = new List<PointerReference>();
-            AddPointer(0x60);
-            AddPointer(0x64);
-            AddPointer(0x70);
+            m_Level = new Level(m_LevelID);
 
-            m_LevelSettings = new LevelSettings(m_Overlay);
-
-            // read object lists
-
-            m_NumAreas = m_Overlay.Read8(0x74);
-            uint objlistptr = m_Overlay.ReadPointer(0x70);
-
-            m_LevelObjects = new Dictionary<uint, LevelObject>();
-            m_TexAnims = new List<LevelTexAnim>[m_NumAreas];
-            for (int a = 0; a < m_NumAreas; a++)
-            {
-                m_TexAnims[a] = new List<LevelTexAnim>();
-            }
-
-            ReadObjectTable(m_Overlay.ReadPointer(0x64), 0);
-            for (byte a = 0; a < m_NumAreas; a++)
-            {
-                // read object tables
-                uint addr = (uint)(objlistptr + (a * 12));
-                if (m_Overlay.Read32(addr) != 0)
-                {
-                    AddPointer(addr);
-                    ReadObjectTable(m_Overlay.ReadPointer(addr), a);
-                }
-
-                // read texture animation
-                addr += 4;
-                if (m_Overlay.Read32(addr) != 0)
-                {
-                    AddPointer(addr);
-                    ReadTextureAnimations(m_Overlay.ReadPointer(addr), a);
-                }
-
-            }
+            AlignPathNodes();
 
             m_LevelModel = null;
-            m_LevelCollMap = new KCL(m_ROM.GetFileFromInternalID(m_LevelSettings.KCLFileID));
-            //MessageBox.Show(KCL.OctreeNode.maxkids.ToString());
+            m_LevelCollMap = new KCL(m_ROM.GetFileFromInternalID(m_Level.m_LevelSettings.KCLFileID));
 
             m_SkyboxModel = null;
-
-            //m_LevelModified = false;
-            m_ObjAvailable = new Dictionary<ushort, bool>();
-            GetObjectsAvailable();
-
-            // Check if the level contains addresses not aligned to 4 byte boundaries but don't attempt fix
-            m_PointerList = m_PointerList.OrderBy(o => o.m_PointerAddr).ToList();
-            bool checkCorrupt = CheckCorrupt(false);
-
-            if (checkCorrupt)
-            {
-                DialogResult result = MessageBox.Show("This level contains addresses that are not aligned to 4 byte boundaries and therefore may not work in-game." +
-                    "\n\nDo you want to attempt to fix these issues?\n\nChanges will not be saved.", "Warning", MessageBoxButtons.YesNo);
-                // Check if the level contains addresses not aligned to 4 byte boundaries and do attempt fix
-                if (result == DialogResult.Yes)
-                    CheckCorrupt(true);
-            }
-        }
-
-        public bool CheckCorrupt(bool attemptFix, int startIndex = 0)
-        {
-            for (int i = startIndex; i < m_PointerList.Count; i++)
-            {
-                int pointerModFour = (int)(m_PointerList[i].m_PointerAddr % 4);
-                if (pointerModFour != 0)
-                {
-                    if (attemptFix)
-                    {
-                        AddSpace(m_PointerList[i].m_PointerAddr, (uint)(4 - pointerModFour));
-                        CheckCorrupt(attemptFix, i + 1);
-                    }
-                    return true;
-                }
-            }
-            return false;
         }
 
         public LevelEditorForm(NitroROM rom, int levelid)
@@ -368,12 +105,7 @@ namespace SM64DSe
 
             m_ROM = rom;
             m_LevelID = levelid;
-
-            m_Overlay = new NitroOverlay(m_ROM, m_ROM.GetLevelOverlayID(m_LevelID));
-
-            // dump overlay
-            //System.IO.File.WriteAllBytes(string.Format("level{0}_overlay.bin", m_LevelID), m_Overlay.m_Data);
-
+            
             m_GLLoaded = false;
 
             btnStar1.Checked = true;
@@ -381,7 +113,7 @@ namespace SM64DSe
             m_ShowCommonLayer = true;
             m_AuxLayerNum = 1;
             btnEditObjects.Checked = true;
-            m_EditMode = 1;
+            m_EditMode = EditMode.OBJECTS;
 
             m_Hovered = 0xFFFFFFFF;
             m_LastHovered = 0xFFFFFFFF;
@@ -393,6 +125,8 @@ namespace SM64DSe
             m_ObjectBeingPlaced = 0xFFFF;
             m_ShiftPressed = false;
 
+            btnMakeOverlay.Visible = Properties.Settings.Default.EnableASMHackingCompilationAndGeneration;
+
             slStatusLabel.Text = "Ready";
         }
 
@@ -400,7 +134,7 @@ namespace SM64DSe
         public void UpdateSkybox(int id)
         {
             if (id == -1)
-                id = m_LevelSettings.Background;
+                id = m_Level.m_LevelSettings.Background;
 
             if (m_SkyboxModel != null)
                 ModelCache.RemoveModel(m_SkyboxModel);
@@ -432,7 +166,7 @@ namespace SM64DSe
             if (m_LevelModel != null)
                 m_LevelModel.Release();
 
-            m_LevelModel = new BMD(m_ROM.GetFileFromInternalID(m_LevelSettings.BMDFileID));
+            m_LevelModel = new BMD(m_ROM.GetFileFromInternalID(m_Level.m_LevelSettings.BMDFileID));
             m_LevelModel.PrepareToRender();
 
             m_LevelModelDLs = new int[m_LevelModel.m_ModelChunks.Length, 3];
@@ -513,7 +247,7 @@ namespace SM64DSe
 
             if (mode == RenderMode.Picking)
             {
-                IEnumerable<LevelObject> objects = m_LevelObjects.Values.Where(obj => (obj.m_UniqueID >> 28) == m_EditMode && obj.m_Layer == layer);
+                IEnumerable<LevelObject> objects = m_Level.m_LevelObjects.Values.Where(obj => (obj.m_UniqueID >> 28) == (int)m_EditMode && obj.m_Layer == layer);
                 foreach (LevelObject obj in objects)
                 {
                     GL.Color4(Color.FromArgb((int)obj.m_UniqueID));
@@ -522,7 +256,7 @@ namespace SM64DSe
             }
             else
             {
-                IEnumerable<LevelObject> objects = m_LevelObjects.Values.Where(obj => obj.m_Layer == layer);
+                IEnumerable<LevelObject> objects = m_Level.m_LevelObjects.Values.Where(obj => obj.m_Layer == layer);
                 foreach (LevelObject obj in objects)
                     obj.Render(mode);
             }
@@ -610,6 +344,13 @@ namespace SM64DSe
             GL.EndList();
         }
 
+        private void AlignPathNodes()
+        {
+            IEnumerable<LevelObject> pathNodes = m_Level.GetAllObjectsByType(LevelObject.Type.PATH_NODE);
+            IEnumerable<LevelObject> paths = m_Level.GetAllObjectsByType(LevelObject.Type.PATH);
+            AlignPathNodes(paths.ToList<LevelObject>(), pathNodes.ToList<LevelObject>());
+        }
+
         private void AlignPathNodes(List<LevelObject> paths, List<LevelObject> nodes)
         {
             // Aligns the path nodes to point to the next node in their path to make direction clear
@@ -626,26 +367,18 @@ namespace SM64DSe
                     // Render each node as an arrow that points to next node
                     for (int i = startNode; i <= endNode; i++)
                     {
-                        int next = 0;
-                        if (i != endNode)
-                            next = i + 1;
-                        else
-                            next = startNode;
-                        try
+                        int next = (i != endNode) ? (i + 1) : startNode;
+
+                        if (nodes[i] == null) continue;
+
+                        float opposite = nodes[next].Position.X - nodes[i].Position.X;
+                        float adjacent = nodes[next].Position.Z - nodes[i].Position.Z;
+                        float rotY = MathHelper.RadiansToDegrees((float)Math.Atan(opposite / adjacent));
+                        if (adjacent >= 0)
                         {
-                            float opposite = nodes[next].Position.X - nodes[i].Position.X;
-                            float adjacent = nodes[next].Position.Z - nodes[i].Position.Z;
-                            float rotY = MathHelper.RadiansToDegrees((float)Math.Atan(opposite / adjacent));
-                            if (adjacent >= 0)
-                            {
-                                rotY += 180;
-                            }
-                            ((PathPointObject)nodes[i]).m_Renderer = new ColourArrowRenderer(Color.FromArgb(0, 255, 255), Color.FromArgb(0, 64, 64), false, 0f, rotY, 0f);
+                            rotY += 180;
                         }
-                        catch
-                        {
-                            // Object has been deleted
-                        }
+                        ((PathPointObject)nodes[i]).m_Renderer = new ColourArrowRenderer(Color.FromArgb(0, 255, 255), Color.FromArgb(0, 64, 64), false, 0f, rotY, 0f);
                     }
                 }
             }
@@ -653,9 +386,7 @@ namespace SM64DSe
 
         public void RefreshObjects(int layer)
         {
-            IEnumerable<LevelObject> pathNodes = m_LevelObjects.Values.Where(obj => (obj.m_Type) == 2 && (obj.m_Layer) == layer);
-            IEnumerable<LevelObject> paths = m_LevelObjects.Values.Where(obj => (obj.m_Type) == 3 && (obj.m_Layer) == layer);
-            AlignPathNodes(paths.ToList<LevelObject>(), pathNodes.ToList<LevelObject>());
+            AlignPathNodes();
 
             RenderObjectLists(RenderMode.Opaque, layer);
             RenderObjectLists(RenderMode.Translucent, layer);
@@ -679,114 +410,117 @@ namespace SM64DSe
 
             switch (m_EditMode)
             {
-                case 0:
+                case EditMode.MODEL:
                     {
                         btnImportModel.Visible = true;
                         btnExportLevelModel.Visible = true;
-                        //btnAddTexAnim.Visible = true;
-                        //btnRemoveSel.Visible = true;
                         btnImportOtherModel.Visible = Properties.Settings.Default.UseSimpleModelAndCollisionMapImporters;
                         btnExportOtherModel.Visible = Properties.Settings.Default.UseSimpleModelAndCollisionMapImporters;
 
-                        /*TreeNode node0 = tvObjectList.Nodes.Add("Texture animations");
-                        for (int a = 0; a < m_TexAnims.Length; a++)
-                            foreach (LevelTexAnim anim in m_TexAnims[a])
-                                node0.Nodes.Add(anim.m_UniqueID.ToString("X8"), anim.GetDescription()).Tag = anim.m_UniqueID;*/
-                        tvObjectList.Nodes.Add("lol", "(nothing available for now)");
+                        tvObjectList.Nodes.Add("model", "(nothing available for now)");
                     }
                     break;
 
-                case 1:
+                case EditMode.OBJECTS:
                     {
                         btnAddObject.Visible = true;
                         btnRemoveSel.Visible = true;
+                        btnRemoveAll.Visible = true;
                         btnReplaceObjModel.Visible = true;
                         btnExportObjectModel.Visible = true;
                         btnOffsetAllCoords.Visible = true;
 
-                        TreeNode node0 = tvObjectList.Nodes.Add("parent0", "Objects");
+                        TreeNode objectNode = new TreeNode("Objects");
+                        objectNode.Name = "object";
 
-                        IEnumerable<LevelObject> objects = m_LevelObjects.Values.Where(obj =>
+                        IEnumerable<LevelObject> objects = m_Level.m_LevelObjects.Values.Where(obj =>
                             ((m_ShowCommonLayer && obj.m_Layer == 0) || (m_AuxLayerNum != 0 && obj.m_Layer == m_AuxLayerNum)) &&
                             (obj.m_UniqueID >> 28) == 1);
                         foreach (LevelObject obj in objects)
-                            node0.Nodes.Add(obj.m_UniqueID.ToString("X8"), obj.GetDescription()).Tag = obj.m_UniqueID;
+                            objectNode.Nodes.Add(obj.m_UniqueID.ToString("X8"), obj.GetDescription()).Tag = obj.m_UniqueID;
+
+                        tvObjectList.Nodes.Add(objectNode);
                     }
                     break;
 
-                case 2:
+                case EditMode.WARPS:
                     {
                         btnAddWarp.Visible = true;
                         btnRemoveSel.Visible = true;
+                        btnRemoveAll.Visible = true;
 
-                        TreeNode node0 = tvObjectList.Nodes.Add("parent0", "Entrances");
-                        TreeNode node1 = tvObjectList.Nodes.Add("parent1", "Exits");
-                        TreeNode node2 = tvObjectList.Nodes.Add("parent2", "Doors");
-                        TreeNode node3 = tvObjectList.Nodes.Add("parent3", "Teleport sources");
-                        TreeNode node4 = tvObjectList.Nodes.Add("parent4", "Teleport destinations");
+                        TreeNode node0 = tvObjectList.Nodes.Add("entrance", "Entrances");
+                        TreeNode node1 = tvObjectList.Nodes.Add("exit", "Exits");
+                        TreeNode node2 = tvObjectList.Nodes.Add("door", "Doors");
+                        TreeNode node3 = tvObjectList.Nodes.Add("teleport_source", "Teleport sources");
+                        TreeNode node4 = tvObjectList.Nodes.Add("teleport_destination", "Teleport destinations");
 
-                        IEnumerable<LevelObject> objects = m_LevelObjects.Values.Where(obj =>
+                        IEnumerable<LevelObject> objects = m_Level.m_LevelObjects.Values.Where(obj =>
                             ((m_ShowCommonLayer && obj.m_Layer == 0) || (m_AuxLayerNum != 0 && obj.m_Layer == m_AuxLayerNum)) &&
                             (obj.m_UniqueID >> 28) == 2);
                         foreach (LevelObject obj in objects)
                         {
                             switch (obj.m_Type)
                             {
-                                case 1: node0.Nodes.Add(obj.m_UniqueID.ToString("X8"), obj.GetDescription()).Tag = obj.m_UniqueID; break;
-                                case 10: node1.Nodes.Add(obj.m_UniqueID.ToString("X8"), obj.GetDescription()).Tag = obj.m_UniqueID; break;
-                                case 9: node2.Nodes.Add(obj.m_UniqueID.ToString("X8"), obj.GetDescription()).Tag = obj.m_UniqueID; break;
-                                case 6: node3.Nodes.Add(obj.m_UniqueID.ToString("X8"), obj.GetDescription()).Tag = obj.m_UniqueID; break;
-                                case 7: node4.Nodes.Add(obj.m_UniqueID.ToString("X8"), obj.GetDescription()).Tag = obj.m_UniqueID; break;
+                                case LevelObject.Type.ENTRANCE: node0.Nodes.Add(obj.m_UniqueID.ToString("X8"), obj.GetDescription()).Tag = obj.m_UniqueID; break;
+                                case LevelObject.Type.EXIT: node1.Nodes.Add(obj.m_UniqueID.ToString("X8"), obj.GetDescription()).Tag = obj.m_UniqueID; break;
+                                case LevelObject.Type.DOOR: node2.Nodes.Add(obj.m_UniqueID.ToString("X8"), obj.GetDescription()).Tag = obj.m_UniqueID; break;
+                                case LevelObject.Type.TELEPORT_SOURCE: node3.Nodes.Add(obj.m_UniqueID.ToString("X8"), obj.GetDescription()).Tag = obj.m_UniqueID; break;
+                                case LevelObject.Type.TELEPORT_DESTINATION: node4.Nodes.Add(obj.m_UniqueID.ToString("X8"), obj.GetDescription()).Tag = obj.m_UniqueID; break;
                             }
                         }
                     }
                     break;
 
-                case 3:
+                case EditMode.PATHS:
                     {
                         btnAddPathNodes.Visible = true;
                         btnAddPath.Visible = true;
                         btnRemoveSel.Visible = true;
+                        btnRemoveAll.Visible = true;
 
-                        TreeNode node0 = tvObjectList.Nodes.Add("parent0", "Paths");
+                        TreeNode pathsNode = new TreeNode("Paths");
+                        pathsNode.Name = "path";
+                        TreeNode pathNodesNode = new TreeNode("Path Nodes");
+                        pathNodesNode.Name = "path_node";
 
-                        IEnumerable<LevelObject> paths = m_LevelObjects.Values.Where(obj => (obj.m_Type) == 3);
+                        IEnumerable<LevelObject> paths = m_Level.GetAllObjectsByType(LevelObject.Type.PATH);
                         for (int i = 0; i < paths.Count(); i++)
                         {
-                            node0.Nodes.Add(paths.ElementAt(i).m_UniqueID.ToString("X8"), paths.ElementAt(i).GetDescription() + " " + i).Tag = paths.ElementAt(i).m_UniqueID;
-                            tvObjectList.Nodes.Add("parent" + (i + 1), "Path " + i + " Nodes");
+                            pathsNode.Nodes.Add(paths.ElementAt(i).m_UniqueID.ToString("X8"), paths.ElementAt(i).GetDescription() + " " + i.ToString("D4")).Tag = 
+                                paths.ElementAt(i).m_UniqueID;
                         }
 
-                        IEnumerable<LevelObject> pathNodes = m_LevelObjects.Values.Where(obj => (obj.m_Type) == 2);
-                        //TreeNode node1 = tvObjectList.Nodes.Add("parent1", "Path Nodes");
-                        for (int i = 0; i < paths.Count(); i++)
+                        IEnumerable<LevelObject> pathNodes = m_Level.GetAllObjectsByType(LevelObject.Type.PATH_NODE)
+                            .OrderBy(obj => ((PathPointObject)obj).m_NodeID);
+                        for (int i = 0; i < pathNodes.Count(); i++)
                         {
-                            int start = paths.ElementAt(i).Parameters[0];
-                            int end = start + paths.ElementAt(i).Parameters[1];
-                            // Need to add by Node ID
-                            for (int j = start; j < end; j++)
-                            {
-                                PathPointObject node = (PathPointObject)pathNodes.Where(obj => ((PathPointObject)obj).m_NodeID == j).ElementAt(0);
-                                tvObjectList.Nodes[i + 1].Nodes.
-                                    Add(node.m_UniqueID.ToString("X8"), node.GetDescription() + " " + j).Tag = node.m_UniqueID;
-                            }
+                            LevelObject node = pathNodes.ElementAt(i);
+                            pathNodesNode.Nodes.Add(node.m_UniqueID.ToString("X8"), node.GetDescription() + " " + i.ToString("D4")).Tag = 
+                                node.m_UniqueID;
                         }
+
+                        tvObjectList.Nodes.Add(pathsNode);
+                        tvObjectList.Nodes.Add(pathNodesNode);
 
                         btnAddPathNodes.DropDownItems.Clear();
                         for (int i = 0; i < paths.Count(); i++)
-                            btnAddPathNodes.DropDownItems.Add("Add Node to Path " + i);
+                        {
+                            btnAddPathNodes.DropDownItems.Add("Add Node to Path " + i).Tag = i.ToString();
+                        }
                     }
                     break;
 
-                case 4:
+                case EditMode.VIEWS:
                     {
                         btnAddView.Visible = true;
                         btnRemoveSel.Visible = true;
+                        btnRemoveAll.Visible = true;
 
                         if (!m_ShowCommonLayer) break;
-                        TreeNode node0 = tvObjectList.Nodes.Add("parent0", "Views");
+                        TreeNode node0 = tvObjectList.Nodes.Add("view", "Views");
 
-                        IEnumerable<LevelObject> objects = m_LevelObjects.Values.Where(obj => (obj.m_UniqueID >> 28) == 4);
+                        IEnumerable<LevelObject> objects = m_Level.m_LevelObjects.Values.Where(obj => (obj.m_UniqueID >> 28) == 4);
                         foreach (LevelObject obj in objects)
                         {
                             node0.Nodes.Add(obj.m_UniqueID.ToString("X8"), obj.GetDescription()).Tag = obj.m_UniqueID;
@@ -794,26 +528,27 @@ namespace SM64DSe
                     }
                     break;
 
-                case 5:
+                case EditMode.MISC:
                     {
                         btnAddMisc.Visible = true;
                         btnRemoveSel.Visible = true;
+                        btnRemoveAll.Visible = true;
 
                         if (!m_ShowCommonLayer) break;
-                        TreeNode node0 = tvObjectList.Nodes.Add("parent0", "Minimap Scales");
-                        TreeNode node1 = tvObjectList.Nodes.Add("parent1", "Fog");
-                        TreeNode node2 = tvObjectList.Nodes.Add("parent2", "Type 14 Object");
-                        TreeNode node3 = tvObjectList.Nodes.Add("parent3", "Minimap Tile ID");
+                        TreeNode minimapScaleNode = tvObjectList.Nodes.Add("minimap_scale", "Minimap Scales");
+                        TreeNode fogNode = tvObjectList.Nodes.Add("fog", "Fog");
+                        TreeNode type14Node = tvObjectList.Nodes.Add("type_14", "Type 14 Object");
+                        TreeNode minimapTileIDNode = tvObjectList.Nodes.Add("minimap_tile_id", "Minimap Tile ID");
 
-                        IEnumerable<LevelObject> objects = m_LevelObjects.Values.Where(obj => (obj.m_UniqueID >> 28) == 5);
+                        IEnumerable<LevelObject> objects = m_Level.m_LevelObjects.Values.Where(obj => (obj.m_UniqueID >> 28) == 5);
                         foreach (LevelObject obj in objects)
                         {
                             switch (obj.m_Type)
                             {
-                                case 8: node1.Nodes.Add(obj.m_UniqueID.ToString("X8"), obj.GetDescription()).Tag = obj.m_UniqueID; break;
-                                case 11: node3.Nodes.Add(obj.m_UniqueID.ToString("X8"), obj.GetDescription()).Tag = obj.m_UniqueID; break;
-                                case 12: node0.Nodes.Add(obj.m_UniqueID.ToString("X8"), obj.GetDescription()).Tag = obj.m_UniqueID; break;
-                                case 14: node2.Nodes.Add(obj.m_UniqueID.ToString("X8"), obj.GetDescription()).Tag = obj.m_UniqueID; break;
+                                case LevelObject.Type.FOG: fogNode.Nodes.Add(obj.m_UniqueID.ToString("X8"), obj.GetDescription()).Tag = obj.m_UniqueID; break;
+                                case LevelObject.Type.MINIMAP_TILE_ID: minimapTileIDNode.Nodes.Add(obj.m_UniqueID.ToString("X8"), obj.GetDescription()).Tag = obj.m_UniqueID; break;
+                                case LevelObject.Type.MINIMAP_SCALE: minimapScaleNode.Nodes.Add(obj.m_UniqueID.ToString("X8"), obj.GetDescription()).Tag = obj.m_UniqueID; break;
+                                case LevelObject.Type.UNKNOWN_14: type14Node.Nodes.Add(obj.m_UniqueID.ToString("X8"), obj.GetDescription()).Tag = obj.m_UniqueID; break;
                             }
                         }
                     }
@@ -839,366 +574,106 @@ namespace SM64DSe
 
         private NitroROM m_ROM;
         public int m_LevelID;
-        public NitroOverlay m_Overlay;
-
 
         public struct PointerReference
         {
             public PointerReference(uint _ref, uint _ptr) { m_ReferenceAddr = _ref; m_PointerAddr = _ptr; }
-            public uint m_ReferenceAddr; // where the pointer is stored
-            public uint m_PointerAddr; // where the pointer points
-        }
-        public List<PointerReference> m_PointerList;
-
-        public void AddPointer(uint _ref)
-        {
-            uint _ptr = m_Overlay.ReadPointer(_ref);
-            m_PointerList.Add(new PointerReference(_ref, _ptr));
+            public uint m_ReferenceAddr; // address at which the pointer is stored
+            public uint m_PointerAddr; // address to which the pointer points
         }
 
-        public void RemovePointer(uint _ref)
+        private LevelObject AddObject(LevelObject.Type type, ushort id, int layer, int area)
         {
-            for (int i = 0; i < m_PointerList.Count; )
-            {
-                if (m_PointerList[i].m_ReferenceAddr == _ref)
-                    m_PointerList.RemoveAt(i);
-                else
-                    i++;
-            }
-        }
-
-        public void RemovePointerByPointerAddress(uint _ptr)
-        {
-            for (int i = 0; i < m_PointerList.Count; )
-            {
-                if (m_PointerList[i].m_PointerAddr == _ptr)
-                    m_PointerList.RemoveAt(i);
-                else
-                    i++;
-            }
-        }
-
-        public void UpdateObjectOffsets(uint start, uint delta)
-        {
-            foreach (LevelObject obj in m_LevelObjects.Values)
-                if (obj.m_Offset >= start) obj.m_Offset += delta;
-
-            for (int a = 0; a < m_TexAnims.Length; a++)
-            {
-                foreach (LevelTexAnim anim in m_TexAnims[a])
-                {
-                    if (anim.m_TexAnimHeaderOffset >= start) anim.m_TexAnimHeaderOffset = (uint)(anim.m_TexAnimHeaderOffset + delta);
-                    if (anim.m_Offset >= start) anim.m_Offset = (uint)(anim.m_Offset + delta);
-                    if (anim.m_ScaleTblOffset >= start) anim.m_ScaleTblOffset = (uint)(anim.m_ScaleTblOffset + delta);
-                    if (anim.m_RotTblOffset >= start) anim.m_RotTblOffset = (uint)(anim.m_RotTblOffset + delta);
-                    if (anim.m_TransTblOffset >= start) anim.m_TransTblOffset = (uint)(anim.m_TransTblOffset + delta);
-                    if (anim.m_MatNameOffset >= start) anim.m_MatNameOffset = (uint)(anim.m_MatNameOffset + delta);
-                    if (anim.m_BaseScaleTblAddr >= start) anim.m_BaseScaleTblAddr = (uint)(anim.m_BaseScaleTblAddr + delta);
-                    if (anim.m_BaseRotTblAddr >= start) anim.m_BaseRotTblAddr = (uint)(anim.m_BaseRotTblAddr + delta);
-                    if (anim.m_BaseTransTblAddr >= start) anim.m_BaseTransTblAddr = (uint)(anim.m_BaseTransTblAddr + delta);
-                }
-            }
-        }
-
-        public void AddSpace(uint offset, uint amount)
-        {
-            if ((m_Overlay.GetSize() + amount) > NitroROM.LEVEL_OVERLAY_SIZE)
-                throw new Exception("This level has reached the level size limit. Cannot add more data.");
-
-            // move the data
-            byte[] block = m_Overlay.ReadBlock(offset, (uint)(m_Overlay.GetSize() - offset));
-            m_Overlay.WriteBlock(offset + amount, block);
-
-            // write zeroes in the newly created space
-            for (int i = 0; i < amount; i++)
-                m_Overlay.Write8((uint)(offset + i), 0);
-
-            // update the pointers
-            for (int i = 0; i < m_PointerList.Count; i++)
-            {
-                PointerReference ptrref = m_PointerList[i];
-                if (ptrref.m_ReferenceAddr >= offset)
-                    ptrref.m_ReferenceAddr += amount;
-                if (ptrref.m_PointerAddr >= offset)
-                {
-                    ptrref.m_PointerAddr += amount;
-                    m_Overlay.WritePointer(ptrref.m_ReferenceAddr, ptrref.m_PointerAddr);
-                }
-                m_PointerList[i] = ptrref;
-            }
-
-            // update the objects 'n' all
-            UpdateObjectOffsets(offset, amount);
-        }
-
-        public void RemoveSpace(uint offset, uint amount)
-        {
-            // move the data
-            byte[] block = m_Overlay.ReadBlock(offset + amount, (uint)(m_Overlay.GetSize() - offset - amount));
-            m_Overlay.WriteBlock(offset, block);
-            m_Overlay.SetSize(m_Overlay.GetSize() - amount);
-
-            // update the pointers
-            for (int i = 0; i < m_PointerList.Count; i++)
-            {
-                PointerReference ptrref = m_PointerList[i];
-                if (ptrref.m_ReferenceAddr >= (offset + amount))
-                    ptrref.m_ReferenceAddr -= amount;
-                if (ptrref.m_PointerAddr >= (offset + amount))
-                {
-                    ptrref.m_PointerAddr -= amount;
-                    m_Overlay.WritePointer(ptrref.m_ReferenceAddr, ptrref.m_PointerAddr);
-                }
-                m_PointerList[i] = ptrref;
-            }
-
-            // update the objects 'n' all
-            UpdateObjectOffsets(offset + amount, (uint)-amount);
-        }
-
-        private uint AddObjectSlot(int type, int layer, int area, int off = -1)
-        {
-            int[] sizes = { 16, 16, 6, 6, 14, 8, 8, 8, 8, 12, 14, 2, 2, 0, 4 };
-            int size = sizes[type];
-
-            uint tableptr;
-            if (type == 0 || type == 5)
-            {
-                uint areaptr = (uint)(m_Overlay.ReadPointer(0x70) + (area * 12));
-                tableptr = m_Overlay.ReadPointer(areaptr);
-
-                if (tableptr == 0xFFFFFFFF)
-                {
-                    tableptr = (uint)((m_Overlay.GetSize() + 3) & ~3);
-                    AddSpace(m_Overlay.GetSize(), tableptr - m_Overlay.GetSize());
-                    m_Overlay.WritePointer(areaptr, tableptr);
-                    AddPointer(areaptr);
-                    m_Overlay.Write32(tableptr, 1);
-                    m_Overlay.WritePointer(tableptr + 4, tableptr + 8);
-                    AddPointer(tableptr + 4);
-                    m_Overlay.Write8(tableptr + 8, (byte)(type | (layer << 5)));
-                    m_Overlay.Write8(tableptr + 9, 1);
-                    m_Overlay.Write16(tableptr + 10, 0);
-                    m_Overlay.WritePointer(tableptr + 12, tableptr + 16);
-                    AddPointer(tableptr + 12);
-
-                    for (int i = 0; i < ((size + 3) & ~3); i++)
-                        m_Overlay.Write8((uint)((tableptr + 16) + i), 0x00);
-
-                    return tableptr + 16;
-                }
-            }
-            else
-                tableptr = m_Overlay.ReadPointer(0x64);
-
-            uint numentries = m_Overlay.Read32(tableptr);// Number of object tables in object table list
-            for (uint i = 0; i < numentries; i++)
-            {
-                uint curptr = (uint)(m_Overlay.ReadPointer(tableptr + 4) + (i * 8));// Start offset of current object table
-
-                byte type_layer = m_Overlay.Read8(curptr);
-                if ((type_layer & 0x1F) != type) continue;
-                if ((type_layer >> 5) != layer) continue;
-
-                byte numobjs = m_Overlay.Read8(curptr + 1);
-                if (numobjs == 255) continue;
-
-                uint endptr = (uint)(m_Overlay.ReadPointer(curptr + 4) + (numobjs * size));
-                uint new_obj_addr = (off == -1) ? endptr : (uint)off;
-
-                // Need to make sure that following addresses remain 4 byte aligned
-                uint endptr_AlignedNextFour = (uint)((endptr + 3) & ~3);
-                uint endptrPlusSize_AlignedNextFour = (uint)(((endptr + (uint)size) + 3) & ~3);
-                uint endptr_AlignedNextFour_PlusSize = endptr_AlignedNextFour + (uint)size;
-                int padding = (int)endptr_AlignedNextFour_PlusSize - (int)endptrPlusSize_AlignedNextFour;
-
-                AddSpace(new_obj_addr, (uint)size);
-
-                if (((-1) * padding) > 0)
-                    AddSpace(endptr + (uint)size, (uint)((-1) * padding));
-                else if (((-1) * padding) < 0)
-                    RemoveSpace(endptr + (uint)size, (uint)(padding));
-
-                m_Overlay.Write8(curptr + 1, (byte)(numobjs + 1));
-
-                return new_obj_addr;
-            }
-            // If a new table needs created for this object type
-            uint tableendptr = (uint)(m_Overlay.ReadPointer(tableptr + 4) + (numentries * 8));
-            AddSpace(tableendptr, 8);
-            m_Overlay.Write32(tableptr, numentries + 1);
-
-            uint objaddr = (uint)((m_Overlay.GetSize() + 3) & ~3);
-            m_Overlay.Write8(tableendptr, (byte)(type | (layer << 5)));
-            m_Overlay.Write8(tableendptr + 1, 1);
-            m_Overlay.Write16(tableendptr + 2, 0);
-            m_Overlay.WritePointer(tableendptr + 4, objaddr);
-            AddPointer(tableendptr + 4);
-
-            for (int i = 0; i < ((size + 3) & ~3); i++)
-                m_Overlay.Write8((uint)(objaddr + i), 0x00);
-
-            return objaddr;
-        }
-
-        private void RemoveObjectSlot(LevelObject obj)
-        {
-            int type = obj.m_Type;
-            int[] sizes = { 16, 16, 6, 6, 14, 8, 8, 8, 8, 12, 14, 2, 2, 0, 4 };
-            int size = sizes[type];
-
-            uint tableptr;
-            if (type == 0 || type == 5)
-            {
-                uint areaptr = (uint)(m_Overlay.ReadPointer(0x70) + (obj.m_Area * 12));
-                tableptr = m_Overlay.ReadPointer(areaptr);
-            }
-            else
-                tableptr = m_Overlay.ReadPointer(0x64);
-
-            uint numentries = m_Overlay.Read32(tableptr);
-            for (uint i = 0; i < numentries; i++)
-            {
-                uint curptr = (uint)(m_Overlay.ReadPointer(tableptr + 4) + (i * 8));
-
-                int tbltype = m_Overlay.Read8(curptr) & 0x1F;
-                if (tbltype != type) continue;
-
-                int numobjs = m_Overlay.Read8(curptr + 1);
-                uint tblstart = m_Overlay.ReadPointer(curptr + 4);
-                uint tblend = (uint)(tblstart + (numobjs * sizes[tbltype]));
-
-                if (obj.m_Offset < tblstart || obj.m_Offset >= tblend)
-                    continue;
-
-                RemoveSpace(obj.m_Offset, (uint)size);
-
-                // If needed, add or remove padding at end of table to ensure following addresses are 4 byte aligned
-                uint oldTblEndAlignedFour = (uint)((tblend + 3) & ~3);
-                uint currentTblEnd = (uint)(((tblend - (uint)size) + 3) & ~3);
-                uint currentTblEndAlignedFour = oldTblEndAlignedFour - (uint)size;
-                int padding = (int)(currentTblEndAlignedFour - currentTblEnd);
-
-                if (padding > 0)
-                    RemoveSpace(currentTblEnd, (uint)padding);
-                else if (padding < 0)
-                    AddSpace(currentTblEndAlignedFour, (uint)((-1) * padding));
-
-                if (numobjs > 1)
-                {
-                    m_Overlay.Write8(curptr + 1, (byte)(numobjs - 1));
-                    return;
-                }
-
-                RemovePointer(curptr + 4);
-                RemoveSpace(curptr, 8);
-                if (numentries > 1 || (type != 0 && type != 5))
-                {
-                    m_Overlay.Write32(tableptr, (uint)(numentries - 1));
-                    return;
-                }
-
-                RemovePointer(tableptr + 4);
-                RemoveSpace(tableptr, 8);
-                uint areaptr = (uint)(m_Overlay.ReadPointer(0x70) + (obj.m_Area * 12));
-                RemovePointer(areaptr);
-                m_Overlay.WritePointer(areaptr, 0xFFFFFFFF);
-
-                return;
-            }
-        }
-
-        private LevelObject AddObject(int type, ushort id, int layer, int area, int off = -1)
-        {
-            int[] sizes = { 16, 16, 6, 6, 14, 8, 8, 8, 8, 12, 14, 2, 2, 0, 4 };
-            int size = sizes[type];
-
-            uint offset = (off == -1) ? AddObjectSlot(type, layer, area) : AddObjectSlot(type, layer, area, off);
-
-            // write the object ID before creating the object so that it is created
-            // with the right renderer and settings
-            if (type == 0 || type == 5)
-                m_Overlay.Write16(offset, id);
-
-            uint uniqueid = m_LevelObjects.Keys.DefaultIfEmpty((uint)m_LevelObjects.Count).First(uid => m_LevelObjects.Keys.Count(uid2 => (uid2 & 0x0FFFFFFF) == ((uid & 0x0FFFFFFF) + 1)) == 0);
-            uniqueid = (uniqueid & 0x0FFFFFFF) + 1;
-
             LevelObject obj = null;
-            string parentnode = "parent0";
+            string parentnode = null;
             switch (type)
             {
-                case 0: obj = new StandardObject(m_Overlay, offset, (int)uniqueid, layer, area); break;
-                case 1:
-                    {
-                        int maxid = m_LevelObjects.Values.Where(obj2 => obj2.m_Type == 1).Max(obj2 => ((EntranceObject)obj2).m_EntranceID);
-                        obj = new EntranceObject(m_Overlay, offset, (int)uniqueid, layer, maxid + 1);
-                    }
+                case LevelObject.Type.STANDARD:
+                    parentnode = "object";
+                    obj = m_Level.AddStandardObject(id, layer, area);
                     break;
-                case 2:
-                    {
-                        parentnode = "parent" + (1 + m_CurrentPathID);
-                        // Calculate the Node ID using the parent path's start offset and length
-                        IEnumerable<LevelObject> paths = m_LevelObjects.Values.Where(obj0 => (obj0.m_Type) == 3);
-                        int nodeID = ((PathObject)paths.ElementAt(m_CurrentPathID)).Parameters[0] +
-                            ((PathObject)paths.ElementAt(m_CurrentPathID)).Parameters[1];
+                case LevelObject.Type.ENTRANCE:
+                    parentnode = "entrance";
+                    obj = m_Level.AddEntranceObject(layer);
+                    break;
+                case LevelObject.Type.PATH_NODE:
+                    parentnode = "path_node";
 
-                        obj = new PathPointObject(m_Overlay, offset, (int)uniqueid, nodeID);
-                    }
+                    IEnumerable<LevelObject> paths = m_Level.GetAllObjectsByType(LevelObject.Type.PATH);
+                    PathObject path = (PathObject)paths.ElementAt(m_CurrentPathID);
+
+                    obj = m_Level.AddPathPointObject(path);
                     break;
-                case 3: parentnode = "parent0"; obj = new PathObject(m_Overlay, offset, (int)uniqueid); break;
-                case 4: obj = new ViewObject(m_Overlay, offset, (int)uniqueid); break;
-                case 5: obj = new SimpleObject(m_Overlay, offset, (int)uniqueid, layer, area); break;
-                case 6: parentnode = "parent3"; obj = new TpSrcObject(m_Overlay, offset, (int)uniqueid, layer); break;
-                case 7: parentnode = "parent4"; obj = new TpDstObject(m_Overlay, offset, (int)uniqueid, layer); break;
-                case 8: parentnode = "parent1"; obj = new FogObject(m_Overlay, offset, (int)uniqueid, layer, area); break;
-                case 9: parentnode = "parent2"; obj = new DoorObject(m_Overlay, offset, (int)uniqueid, layer); break;
-                case 10: parentnode = "parent1"; obj = new ExitObject(m_Overlay, offset, (int)uniqueid, layer); break;
-                case 11: parentnode = "parent3"; obj = new MinimapTileIDObject(m_Overlay, offset, (int)uniqueid, layer, area); break;
-                case 12: parentnode = "parent0"; obj = new MinimapScaleObject(m_Overlay, offset, (int)uniqueid, layer, area); break;
-                case 14: parentnode = "parent2"; obj = new Type14Object(m_Overlay, offset, (int)uniqueid, layer, area); break;
+                case LevelObject.Type.PATH: parentnode = "path"; obj = m_Level.AddPathObject(); break;
+                case LevelObject.Type.VIEW: parentnode = "view";  obj = m_Level.AddViewObject(); break;
+                case LevelObject.Type.SIMPLE:
+                    parentnode = "object";
+                    obj = m_Level.AddSimpleObject(id, layer, area);
+                    break;
+                case LevelObject.Type.TELEPORT_SOURCE: parentnode = "teleport_source"; obj = m_Level.AddTpSrcObject(layer); break;
+                case LevelObject.Type.TELEPORT_DESTINATION: parentnode = "teleport_destination"; obj = m_Level.AddTpDstObject(layer); break;
+                case LevelObject.Type.FOG: parentnode = "fog"; obj = m_Level.AddFogObject(layer, area); break;
+                case LevelObject.Type.DOOR: parentnode = "door"; obj = m_Level.AddDoorObject(layer); break;
+                case LevelObject.Type.EXIT: parentnode = "exit"; obj = m_Level.AddExitObject(layer); break;
+                case LevelObject.Type.MINIMAP_TILE_ID: parentnode = "minimap_tile_id"; obj = m_Level.AddMinimapTileIDObject(layer, area); break;
+                case LevelObject.Type.MINIMAP_SCALE: parentnode = "minimap_scale"; obj = m_Level.AddMinimapScaleObject(layer, area); break;
+                case LevelObject.Type.UNKNOWN_14: parentnode = "type_14"; obj = m_Level.AddType14Object(layer, area); break;
             }
 
             if (obj != null)
             {
-                m_LevelObjects.Add(obj.m_UniqueID, obj);
-                tvObjectList.Nodes[parentnode].Nodes.Add(obj.m_UniqueID.ToString("X8"), obj.GetDescription()).Tag = obj.m_UniqueID;
+                tvObjectList.Nodes[parentnode].Nodes.Add(
+                    obj.m_UniqueID.ToString("X8"), obj.GetDescription()).Tag = obj.m_UniqueID;
             }
 
             return obj;
         }
 
-        private void RemoveObject(LevelObject obj)
+        private void RemoveObject(LevelObject obj, bool bulk = false)
         {
-            if (!m_LevelObjects.ContainsKey(obj.m_UniqueID)) return;
-
-            RemoveObjectSlot(obj);
-            obj.Release();
-            m_LevelObjects.Remove(obj.m_UniqueID);
-            tvObjectList.Nodes.Find(obj.m_UniqueID.ToString("X8"), true)[0].Parent.Nodes.RemoveByKey(obj.m_UniqueID.ToString("X8"));
-
-            if (obj.m_Type == 1)
+            if (m_Level.RemoveObject(obj))
             {
-                IEnumerable<LevelObject> toupdate = m_LevelObjects.Values.Where(obj2 => obj2.m_Type == 1 && ((EntranceObject)obj2).m_EntranceID > ((EntranceObject)obj).m_EntranceID);
-                foreach (LevelObject entrance in toupdate)
+                TreeNode[] objectNode = tvObjectList.Nodes.Find(obj.m_UniqueID.ToString("X8"), true);
+                if (objectNode.Length > 0)
+                    objectNode[0].Parent.Nodes.RemoveByKey(obj.m_UniqueID.ToString("X8"));
+
+                if (!bulk)
                 {
-                    ((EntranceObject)entrance).m_EntranceID--;
-                    tvObjectList.Nodes.Find(entrance.m_UniqueID.ToString("X8"), true)[0].Text = entrance.GetDescription();
+                    if (obj.m_Type == LevelObject.Type.ENTRANCE)
+                    {
+                        IEnumerable<LevelObject> toupdate = m_Level.GetAllObjectsByType(LevelObject.Type.ENTRANCE)
+                            .Where(obj2 => ((EntranceObject)obj2).m_EntranceID > ((EntranceObject)obj).m_EntranceID);
+                        foreach (LevelObject entrance in toupdate)
+                        {
+                            tvObjectList.Nodes.Find(entrance.m_UniqueID.ToString("X8"), true)[0].Text = entrance.GetDescription();
+                        }
+                    }
+                    else if (obj.m_Type == LevelObject.Type.PATH_NODE || obj.m_Type == LevelObject.Type.PATH)
+                    {
+                        PopulateObjectList();
+                    }
                 }
             }
         }
 
-        private void RelocateObject(LevelObject obj, int layer, int area)
+        private void RemoveObjects(List<LevelObject> objs)
         {
-            RemoveObjectSlot(obj);
-            obj.m_Offset = AddObjectSlot(obj.m_Type, layer, area);
+            if (objs != null)
+            {
+                for (int i = objs.Count - 1; i >= 0; i--)
+                {
+                    RemoveObject(objs[i], true);
+                }
+                PopulateObjectList();
+            }
         }
 
         private void CopyObject(LevelObject objectToCopy)
         {
-            int type = objectToCopy.m_Type;
+            LevelObject.Type type = objectToCopy.m_Type;
             ushort id = objectToCopy.ID;
-            if (type == 0 && IsSimpleObject(id))
-                type = 5;
+            if (type == LevelObject.Type.STANDARD && IsSimpleObject(id))
+                type = LevelObject.Type.SIMPLE;
 
             LevelObject obj = AddObject(type, id, objectToCopy.m_Layer, objectToCopy.m_Area);
             obj.Position = objectToCopy.Position;
@@ -1218,20 +693,11 @@ namespace SM64DSe
             RefreshObjects(m_SelectedObject.m_Layer);
         }
 
-        //private bool m_LevelModified;
-
-        // level data
-        public LevelSettings m_LevelSettings;
-        public int m_NumAreas;
-        public Dictionary<uint, LevelObject> m_LevelObjects;
-        public List<LevelTexAnim>[] m_TexAnims;
-
-        //public uint m_MinimapFileIDsOffset;
-        public ushort[] m_MinimapFileIDs;
-
-        private bool m_GLLoaded;
+        public Level m_Level;
 
         // 3D view settings
+        private bool m_GLLoaded;
+
         private const float k_zNear = 0.01f;
         private const float k_zFar = 1000f;
         private const float k_FOV = (float)(70f * Math.PI) / 180f;
@@ -1254,7 +720,7 @@ namespace SM64DSe
 
         private bool m_ShowCommonLayer;
         private int m_AuxLayerNum;
-        private int m_EditMode;
+        private EditMode m_EditMode;
 
         private MouseButtons m_MouseDown;
         private Point m_LastMouseClick, m_LastMouseMove;
@@ -1279,8 +745,6 @@ namespace SM64DSe
         private int m_SelectHiliteDL;
         private int m_HoverHiliteDL;
 
-        private ROMFileSelect m_ROMFileSelect = new ROMFileSelect();
-
         private Vector3 m_GridSize;
         private Vector3 m_GridOffset;
 
@@ -1289,6 +753,21 @@ namespace SM64DSe
 
         private Vector3 m_SelObjPrevPos;
         private Vector3 m_SelObjTotalMov;
+
+        private ROMFileSelect m_ROMFileSelect = new ROMFileSelect();
+        private OpenFileDialog m_OpenFileDialogue = new OpenFileDialog();
+        private FolderBrowserDialog m_FolderBrowserDialogue = new FolderBrowserDialog();
+        private SaveFileDialog m_SaveFileDialogue = new SaveFileDialog();
+
+        private enum EditMode
+        {
+            MODEL = 0,
+            OBJECTS = 1, 
+            WARPS = 2, 
+            PATHS = 3, 
+            VIEWS = 4, 
+            MISC = 5
+        };
 
         private void SnapToGrid(ref Vector3 pos)
         {
@@ -1363,11 +842,6 @@ namespace SM64DSe
             //GL.Enable(EnableCap.CullFace);
             //GL.CullFace(CullFaceMode.Back);
 
-            m_EntranceID = 0;
-            m_PathNodeID = 0;
-            m_MinimapTileIDNum = 0;
-
-
             LoadLevelData();
             PopulateObjectList();
 
@@ -1406,7 +880,6 @@ namespace SM64DSe
             m_AspectRatio = (float)glLevelView.Width / (float)glLevelView.Height;
             GL.MatrixMode(MatrixMode.Projection);
             Matrix4 projmtx = Matrix4.CreatePerspectiveFieldOfView(k_FOV, m_AspectRatio, k_zNear, k_zFar);
-            //Matrix4 projmtx = Matrix4.CreateOrthographic(2f, 2f, 0.01f, 1000f);
             GL.LoadMatrix(ref projmtx);
 
             m_PixelFactorX = ((2f * (float)Math.Tan(k_FOV / 2f) * m_AspectRatio) / (float)(glLevelView.Width));
@@ -1420,6 +893,7 @@ namespace SM64DSe
             if (!m_GLLoaded) return;
             glLevelView.Context.MakeCurrent(glLevelView.WindowInfo);
 
+            // lol temporary
             GL.MatrixMode(MatrixMode.Projection);
             Matrix4 projmtx = (!m_OrthView) ? Matrix4.CreatePerspectiveFieldOfView(k_FOV, m_AspectRatio, k_zNear, k_zFar) : 
                 Matrix4.CreateOrthographic(m_OrthZoom, m_OrthZoom / m_AspectRatio, k_zNear, k_zFar);
@@ -1498,8 +972,6 @@ namespace SM64DSe
             if (m_SelectedObject != null && m_SelectedObject != m_HoveredObject) GL.CallList(m_SelectHiliteDL);
             if (m_HoveredObject != null) GL.CallList(m_HoverHiliteDL);
 
-            //GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
-
             glLevelView.SwapBuffers();
         }
 
@@ -1526,10 +998,10 @@ namespace SM64DSe
 
             if (m_ObjectBeingPlaced != 0xFFFF)
             {
-                int type = (int)(m_ObjectBeingPlaced >> 16);
+                LevelObject.Type type = (LevelObject.Type)(m_ObjectBeingPlaced >> 16);
                 ushort id = (ushort)(m_ObjectBeingPlaced & 0xFFFF);
-                if (type == 0 && IsSimpleObject(id))
-                    type = 5;
+                if (type == LevelObject.Type.STANDARD && IsSimpleObject(id))
+                    type = LevelObject.Type.SIMPLE;
 
                 LevelObject obj = AddObject(type, id, 0, 0);
 
@@ -1587,10 +1059,10 @@ namespace SM64DSe
                 if (btnRemoveSel.Checked)
                 {
                     uint sel = m_PickingFrameBuffer[4];
-                    uint type = (sel >> 28);
+                    EditMode type = (EditMode)(sel >> 28);
                     if (type == m_EditMode)
                     {
-                        LevelObject obj = m_LevelObjects[sel];
+                        LevelObject obj = m_Level.m_LevelObjects[sel];
                         RemoveObject(obj);
                         RefreshObjects(obj.m_Layer);
 
@@ -1628,15 +1100,15 @@ namespace SM64DSe
                 (m_PickingFrameBuffer[4] == m_PickingFrameBuffer[7]))
             {
                 uint sel = m_PickingFrameBuffer[4];
-                uint type = (sel >> 28);
+                EditMode type = (EditMode)(sel >> 28);
 
-                if (type == m_EditMode && type != 0 && type != 5)
+                if (type == m_EditMode && type != 0 && type != EditMode.MISC)
                 {
                     m_Selected = sel;
 
                     if (m_LastSelected != m_Selected)
                     {
-                        LevelObject obj = m_LevelObjects[sel];
+                        LevelObject obj = m_Level.m_LevelObjects[sel];
                         RenderObjectHilite(obj, k_SelectionColor, m_SelectHiliteDL);
                         m_LastSelected = m_Selected;
                         m_SelectedObject = obj;
@@ -1803,11 +1275,11 @@ namespace SM64DSe
                     (m_PickingFrameBuffer[4] == m_PickingFrameBuffer[7]))
                 {
                     uint sel = m_PickingFrameBuffer[4];
-                    uint type = (sel >> 28);
+                    EditMode type = (EditMode)(sel >> 28);
                     if (type == m_EditMode)
                     {
                         m_Hovered = sel;
-                        if ((type == 0) || (type == 5))
+                        if ((type == EditMode.MODEL) || (type == EditMode.MISC))
                         {
                             m_LastHovered = 0xFFFFFFFF;
                             m_HoveredObject = null;
@@ -1815,7 +1287,7 @@ namespace SM64DSe
                         else
                             if (m_LastHovered != m_Hovered)
                             {
-                                LevelObject obj = m_LevelObjects[sel];
+                                LevelObject obj = m_Level.m_LevelObjects[sel];
                                 RenderObjectHilite(obj, k_HoverColor, m_HoverHiliteDL);
                                 m_LastHovered = m_Hovered;
                                 m_HoveredObject = obj;
@@ -1908,24 +1380,31 @@ namespace SM64DSe
             return dump;
         }
 
-        private void ReleaseObjectTable(List<LevelObject> list)
-        {
-            foreach (LevelObject obj in list)
-                obj.Release();
-        }
-
         private void LevelEditorForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            // save confirm goes here
+            // save confirmation goes here
 
-            foreach (LevelObject obj in m_LevelObjects.Values)
+            ReleaseModels();
+
+            Program.m_LevelEditors.Remove(this);
+        }
+
+        private void ReleaseModels()
+        {
+            foreach (LevelObject obj in m_Level.m_LevelObjects.Values)
                 obj.Release();
 
-            m_LevelModel.Release();
+            foreach (int dl in m_LevelModelDLs)
+                GL.DeleteLists(dl, 1);
+
+            foreach (int dl in m_ObjectDLs)
+                GL.DeleteLists(dl, 1);
+
             if (m_SkyboxModel != null)
                 ModelCache.RemoveModel(m_SkyboxModel);
 
-            Program.m_LevelEditors.Remove(this);
+            GL.DeleteLists(m_SelectHiliteDL, 1);
+            GL.DeleteLists(m_HoverHiliteDL, 1);
         }
 
 
@@ -1975,7 +1454,7 @@ namespace SM64DSe
             btnEditMisc.Checked = false;
             btn.Checked = true;
 
-            m_EditMode = int.Parse((string)btn.Tag);
+            m_EditMode = (EditMode)int.Parse((string)btn.Tag);
 
             for (int l = 0; l < 8; l++)
                 RenderObjectLists(RenderMode.Picking, l);
@@ -2023,8 +1502,8 @@ namespace SM64DSe
 
         private void btnImportModel_Click(object sender, EventArgs e)
         {
-            string bmdName = Program.m_ROM.GetFileFromInternalID(m_LevelSettings.BMDFileID).m_Name;
-            string kclName = Program.m_ROM.GetFileFromInternalID(m_LevelSettings.KCLFileID).m_Name;
+            string bmdName = Program.m_ROM.GetFileFromInternalID(m_Level.m_LevelSettings.BMDFileID).m_Name;
+            string kclName = Program.m_ROM.GetFileFromInternalID(m_Level.m_LevelSettings.KCLFileID).m_Name;
             if (!Properties.Settings.Default.UseSimpleModelAndCollisionMapImporters)
             {
                 ModelAndCollisionMapEditor form =
@@ -2046,11 +1525,12 @@ namespace SM64DSe
             if (font == null) font = tvObjectList.Font;
 
             bool red = false;
-            if (e.Node.Tag is uint && m_LevelObjects.ContainsKey((uint)e.Node.Tag))
+            if (e.Node.Tag is uint && m_Level.m_LevelObjects.ContainsKey((uint)e.Node.Tag))
             {
                 uint uniqueid = (uint)e.Node.Tag;
                 if ((uniqueid >> 28) == 1)
-                    red = !m_ObjAvailable[m_LevelObjects[uniqueid].ID];
+                    red = m_Level.m_LevelObjects[uniqueid].ID >= LevelObject.NUM_OBJ_TYPES ?
+                        true : !m_Level.m_ObjAvailable[m_Level.m_LevelObjects[uniqueid].ID];
             }
 
             if ((e.State & TreeNodeStates.Selected) != 0)
@@ -2075,23 +1555,14 @@ namespace SM64DSe
 
         private void btnLevelSettings_Click(object sender, EventArgs e)
         {
-            new LevelSettingsForm(m_LevelSettings).ShowDialog(this);
-            GetObjectsAvailable();
+            new LevelSettingsForm(m_Level.m_LevelSettings).ShowDialog(this);
+            m_Level.DetermineAvailableObjects();
             tvObjectList.Refresh();
         }
 
         private void btnSave_Click(object sender, EventArgs e)
         {
-            bool bankwarning = false;
-            IEnumerable<LevelObject> objs = m_LevelObjects.Values.Where(obj => (obj.m_UniqueID >> 28) == 1);
-            foreach (LevelObject obj in objs)
-                if (!m_ObjAvailable[obj.ID])
-                {
-                    bankwarning = true;
-                    break;
-                }
-
-            if (bankwarning)
+            if (m_Level.ContainsObjectsIncompatibleWithBankSettings())
             {
                 DialogResult res = MessageBox.Show("This level contains objects which aren't available with the current object bank settings, and would crash the game.\n\nSave anyway?",
                     Program.AppTitle, MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2);
@@ -2099,12 +1570,8 @@ namespace SM64DSe
                     return;
             }
 
-            m_LevelSettings.SaveChanges();
-
-            foreach (LevelObject obj in m_LevelObjects.Values)
-                obj.SaveChanges();
-
-            m_Overlay.SaveChanges();
+            m_Level.SaveChanges();
+            
             slStatusLabel.Text = "Changes saved.";
         }
 
@@ -2119,16 +1586,17 @@ namespace SM64DSe
 
             uint objid = (uint)e.Node.Tag;
             m_Selected = m_LastSelected = objid;
-            m_SelectedObject = m_LevelObjects[objid];
+            m_SelectedObject = m_Level.m_LevelObjects[objid];
             pgObjectProperties.SelectedObject = m_SelectedObject.m_Properties;
-            if (m_SelectedObject.m_Type == 3)
+            if (m_SelectedObject.m_Type == LevelObject.Type.PATH)
             {
                 // If object selected is a path, highlight all nodes in current path
-                IEnumerable<LevelObject> pathNodes = m_LevelObjects.Values.Where(obj => (obj.m_Type) == 2);
+                List<LevelObject> pathNodes = m_Level.GetAllObjectsByType(LevelObject.Type.PATH_NODE)
+                    .OrderBy(obj => ((PathPointObject)obj).m_NodeID).ToList();
                 List<LevelObject> nodes = new List<LevelObject>();
                 for (int i = ((PathObject)m_SelectedObject).Parameters[0]; i < (((PathObject)m_SelectedObject).Parameters[0] + ((PathObject)m_SelectedObject).Parameters[1]); i++)
                 {
-                    PathPointObject node = (PathPointObject)pathNodes.Where(obj0 => ((PathPointObject)obj0).m_NodeID == i).ElementAt(0);
+                    PathPointObject node = (PathPointObject)pathNodes[i];
                     nodes.Add(node);
                 }
                 RenderPathHilite(nodes, k_SelectionColor, m_SelectHiliteDL);
@@ -2154,10 +1622,10 @@ namespace SM64DSe
                     RemoveObject(oldobj);
 
                     ushort newid = (ushort)e.ChangedItem.Value;
-                    int type = IsSimpleObject(newid) ? 5 : 0;
+                    LevelObject.Type type = IsSimpleObject(newid) ? LevelObject.Type.SIMPLE : LevelObject.Type.STANDARD;
                     LevelObject obj = AddObject(type, newid, oldobj.m_Layer, oldobj.m_Area);
                     obj.Position = oldobj.Position;
-                    obj.Parameters[0] = (ushort)(oldobj.Parameters[0] & ((type == 5) ? 0x007F : 0xFFFF));
+                    obj.Parameters[0] = (ushort)(oldobj.Parameters[0] & ((type == LevelObject.Type.SIMPLE) ? 0x007F : 0xFFFF));
                     obj.GenerateProperties();
                     pgObjectProperties.SelectedObject = obj.m_Properties;
 
@@ -2180,14 +1648,15 @@ namespace SM64DSe
                 if (e.ChangedItem.Value is int) newstar = (int)e.ChangedItem.Value;
                 else if ((string)e.ChangedItem.Value == "All") newstar = 0;
                 else newstar = int.Parse((string)e.ChangedItem.Value);
-
-                RelocateObject(m_SelectedObject, newstar, m_SelectedObject.m_Area);
+                m_SelectedObject.m_Layer = newstar;
                 return;
             }
 
             if (e.ChangedItem.Label == "Area")
             {
-                RelocateObject(m_SelectedObject, m_SelectedObject.m_Layer, (int)e.ChangedItem.Value);
+                int area = (int)e.ChangedItem.Value;
+                if (area >= 0 && area < 8)
+                    m_SelectedObject.m_Area = area;
                 return;
             }
 
@@ -2206,11 +1675,11 @@ namespace SM64DSe
 
             ObjectListForm objlist = new ObjectListForm(0);
             if (objlist.ShowDialog(this) != DialogResult.OK) return;
-            if (objlist.ObjectID > 0x145 && objlist.ObjectID != 0x1FF) return;
+            if (objlist.ObjectID >= LevelObject.NUM_OBJ_TYPES && objlist.ObjectID != 0x1FF) return;
 
             m_ObjectBeingPlaced = objlist.ObjectID;
             string placementMsg = "Click anywhere in the level to place your new object ({0} - {1}). Hold Shift while clicking to place multiple objects. Hit Escape to abort.";
-            slStatusLabel.Text = (objlist.ObjectID < 326) ? 
+            slStatusLabel.Text = (objlist.ObjectID < LevelObject.NUM_OBJ_TYPES) ? 
                 string.Format(placementMsg, objlist.ObjectID, ObjectDatabase.m_ObjectInfo[objlist.ObjectID].m_Name) : 
                 string.Format(placementMsg, 511, "Minimap change");
         }
@@ -2223,14 +1692,14 @@ namespace SM64DSe
             m_ObjectBeingPlaced = type << 16;
 
             string obj = "OSHIT BUG";
-            switch (type)
+            switch ((LevelObject.Type)type)
             {
-                case 1: obj = "entrance"; break;
-                case 4: obj = "view"; break;
-                case 6: obj = "teleport source"; break;
-                case 7: obj = "teleport destination"; break;
-                case 9: obj = "door"; break;
-                case 10: obj = "exit"; break;
+                case LevelObject.Type.ENTRANCE: obj = "entrance"; break;
+                case LevelObject.Type.VIEW: obj = "view"; break;
+                case LevelObject.Type.TELEPORT_SOURCE: obj = "teleport source"; break;
+                case LevelObject.Type.TELEPORT_DESTINATION: obj = "teleport destination"; break;
+                case LevelObject.Type.DOOR: obj = "door"; break;
+                case LevelObject.Type.EXIT: obj = "exit"; break;
             }
 
             slStatusLabel.Text = "Click anywhere in the level to place your new " + obj + ". Hold Shift while clicking to place multiple " + obj + "s. Hit Escape to abort.";
@@ -2254,13 +1723,109 @@ namespace SM64DSe
             }
 
             LevelObject obj = m_SelectedObject;
-
-            if (obj.m_Type == 2)
-                UpdatePathsNodeRemoved((PathPointObject)obj);
-
             RemoveObject(obj);
+
             RefreshObjects(obj.m_Layer);
             slStatusLabel.Text = "Object removed.";
+        }
+
+        private void btnRemoveAll_Click(object sender, EventArgs e)
+        {
+            TreeNode parentNode = tvObjectList.SelectedNode;
+            int layer = 0;
+            switch (m_EditMode)
+            {
+                case EditMode.OBJECTS:
+                    if (parentNode == null)
+                    {
+                        RemoveObjects(m_Level.GetAllObjectsByType(LevelObject.Type.STANDARD).ToList());
+                        RemoveObjects(m_Level.GetAllObjectsByType(LevelObject.Type.SIMPLE).ToList());
+                    }
+                    else
+                    {
+                        List<LevelObject> objs = new List<LevelObject>();
+                        foreach (TreeNode node in parentNode.Nodes)
+                        {
+                            objs.Add(m_Level.m_LevelObjects[uint.Parse(node.Tag.ToString())]);
+                        }
+                        RemoveObjects(objs);
+                    }
+                    layer = m_AuxLayerNum;
+                    slStatusLabel.Text = "Objects removed.";
+                    break;
+                case EditMode.WARPS:
+                    if (parentNode == null)
+                    {
+                        RemoveObjects(m_Level.GetAllObjectsByType(LevelObject.Type.ENTRANCE).ToList());
+                        RemoveObjects(m_Level.GetAllObjectsByType(LevelObject.Type.EXIT).ToList());
+                        RemoveObjects(m_Level.GetAllObjectsByType(LevelObject.Type.DOOR).ToList());
+                        RemoveObjects(m_Level.GetAllObjectsByType(LevelObject.Type.TELEPORT_SOURCE).ToList());
+                        RemoveObjects(m_Level.GetAllObjectsByType(LevelObject.Type.TELEPORT_DESTINATION).ToList());
+                        slStatusLabel.Text = "Warp objects removed.";
+                    }
+                    else
+                    {
+                        switch (parentNode.Name)
+                        {
+                            case "entrance":
+                                RemoveObjects(m_Level.GetAllObjectsByType(LevelObject.Type.ENTRANCE).ToList());
+                                slStatusLabel.Text = "Entrance objects removed.";
+                                break;
+                            case "exit":
+                                RemoveObjects(m_Level.GetAllObjectsByType(LevelObject.Type.EXIT).ToList());
+                                slStatusLabel.Text = "Exit objects removed.";
+                                break;
+                            case "door":
+                                RemoveObjects(m_Level.GetAllObjectsByType(LevelObject.Type.DOOR).ToList());
+                                slStatusLabel.Text = "Door objects removed.";
+                                break;
+                            case "teleport_source":
+                                RemoveObjects(m_Level.GetAllObjectsByType(LevelObject.Type.TELEPORT_SOURCE).ToList());
+                                slStatusLabel.Text = "Teleport source objects removed.";
+                                break;
+                            case "teleport_destination":
+                                RemoveObjects(m_Level.GetAllObjectsByType(LevelObject.Type.TELEPORT_DESTINATION).ToList());
+                                slStatusLabel.Text = "Teleport destination objects removed.";
+                                break;
+                        }
+                    }
+                    break;
+                case EditMode.PATHS:
+                    if (parentNode == null)
+                    {
+                        RemoveObjects(m_Level.GetAllObjectsByType(LevelObject.Type.PATH_NODE).ToList());
+                        RemoveObjects(m_Level.GetAllObjectsByType(LevelObject.Type.PATH).ToList());
+                        slStatusLabel.Text = "Paths removed.";
+                    }
+                    else 
+                    {
+                        switch (parentNode.Name)
+                        {
+                            case "path":
+                                RemoveObjects(m_Level.GetAllObjectsByType(LevelObject.Type.PATH).ToList());
+                                slStatusLabel.Text = "Path objects removed.";
+                                break;
+                            case "path_node":
+                                RemoveObjects(m_Level.GetAllObjectsByType(LevelObject.Type.PATH_NODE).ToList());
+                                slStatusLabel.Text = "Path node objects removed.";
+                                break;
+                        }
+                    }
+                    break;
+                case EditMode.VIEWS:
+                    RemoveObjects(m_Level.GetAllObjectsByType(LevelObject.Type.VIEW).ToList());
+                    slStatusLabel.Text = "View objects removed.";
+                    break;
+                case EditMode.MISC:
+                    RemoveObjects(m_Level.GetAllObjectsByType(LevelObject.Type.FOG).ToList());
+                    RemoveObjects(m_Level.GetAllObjectsByType(LevelObject.Type.MINIMAP_TILE_ID).ToList());
+                    RemoveObjects(m_Level.GetAllObjectsByType(LevelObject.Type.MINIMAP_SCALE).ToList());
+                    RemoveObjects(m_Level.GetAllObjectsByType(LevelObject.Type.UNKNOWN_14).ToList());
+                    slStatusLabel.Text = "Miscellaneous objects removed.";
+                    break;
+            }
+
+            RefreshObjects(layer);
         }
 
         private void glLevelView_KeyDown(object sender, KeyEventArgs e)
@@ -2370,8 +1935,9 @@ namespace SM64DSe
 
         private void btnDumpOverlay_Click(object sender, EventArgs e)
         {
+            NitroOverlay ovl = new NitroOverlay(Program.m_ROM, m_ROM.GetLevelOverlayID(m_LevelID));
             string filename = "level" + m_LevelID.ToString() + "_overlay.bin";
-            System.IO.File.WriteAllBytes(filename, m_Overlay.m_Data);
+            System.IO.File.WriteAllBytes(filename, ovl.m_Data);
             slStatusLabel.Text = "Level overlay dumped to " + filename;
         }
 
@@ -2384,7 +1950,7 @@ namespace SM64DSe
 
         private void btnEditMinimap_Click(object sender, EventArgs e)
         {
-            new MinimapEditor().Show(this);
+            new MinimapEditor(m_Level).Show(this);
         }
 
         private void btnReplaceObjModel_Click(object sender, EventArgs e)
@@ -2398,7 +1964,7 @@ namespace SM64DSe
 
             if (null == m_SelectedObject.m_Renderer.GetFilename())
             {
-                slStatusLabel.Text = "This object uses more than one model, use 'Import Other Model' to replace them.";
+                slStatusLabel.Text = "This object uses more than one model, use the 'Model and Collision Map Importer' to replace them.";
                 return;
             }
 
@@ -2425,12 +1991,12 @@ namespace SM64DSe
 
         private void btnEditTexAnim_Click(object sender, EventArgs e)
         {
-            new TextureAnimationForm(this).Show(this);
+            new TextureAnimationForm(m_Level).Show(this);
         }
 
         private void btnCLPS_Click(object sender, EventArgs e)
         {
-            new CLPS_Form(this).Show(this);
+            new CLPS_Form(m_Level.m_CLPS).Show(this);
         }
 
         private void btnAddPath_Click(object sender, EventArgs e)
@@ -2438,7 +2004,7 @@ namespace SM64DSe
             uint type0 = 3;
             m_ObjectBeingPlaced = type0 << 16;
 
-            int type = (int)(m_ObjectBeingPlaced >> 16);
+            LevelObject.Type type = (LevelObject.Type)(m_ObjectBeingPlaced >> 16);
             ushort id = (ushort)(m_ObjectBeingPlaced & 0xFFFF);
 
             LevelObject obj = AddObject(type, id, 0, 0);
@@ -2465,55 +2031,44 @@ namespace SM64DSe
         private int m_CurrentPathID = -1;
         void btnAddPathNodes_DropDownItemClicked(object sender, System.Windows.Forms.ToolStripItemClickedEventArgs e)
         {
-            uint type0 = 2;
-            m_ObjectBeingPlaced = type0 << 16;
-
-            int type = (int)(m_ObjectBeingPlaced >> 16);
-            ushort id = (ushort)(m_ObjectBeingPlaced & 0xFFFF);
+            m_ObjectBeingPlaced = (int)LevelObject.Type.PATH_NODE << 16;
 
             // Parse path to which node is to be added
-            String chosenPath = e.ClickedItem.Text;
-            m_CurrentPathID = int.Parse(chosenPath.Substring(17, chosenPath.Length - 17));
+            m_CurrentPathID = int.Parse(e.ClickedItem.Tag.ToString());
 
-            IEnumerable<LevelObject> paths = m_LevelObjects.Values.Where(obj0 => (obj0.m_Type) == 3);
-            IEnumerable<LevelObject> pathNodes = m_LevelObjects.Values.Where(obj0 => (obj0.m_Type) == 2);
-            long lastNodeInPathOff = -1;
-            try
-            {
-                lastNodeInPathOff = pathNodes.ElementAt(paths.ElementAt(m_CurrentPathID).Parameters[0] +
-                    (paths.ElementAt(m_CurrentPathID).Parameters[1] - 1)).m_Offset;
-            }
-            catch { }
+            List<LevelObject> paths = m_Level.GetAllObjectsByType(LevelObject.Type.PATH).ToList();
+            List<LevelObject> pathNodes = m_Level.GetAllObjectsByType(LevelObject.Type.PATH_NODE)
+                .OrderBy(obj1 => ((PathPointObject)obj1).m_NodeID).ToList();
 
-            int nodeID = ((PathObject)paths.ElementAt(m_CurrentPathID)).Parameters[0] +
-                            ((PathObject)paths.ElementAt(m_CurrentPathID)).Parameters[1];
+            PathObject path = (PathObject)paths[m_CurrentPathID];
+            int nodeID = path.Parameters[0] + path.Parameters[1];
 
             // Update Node ID's of following path nodes
-            for (int i = pathNodes.Count() - 1; i >= nodeID; i--)
+            for (int i = pathNodes.Count - 1; i >= nodeID; i--)
             {
-                PathPointObject node = (PathPointObject)pathNodes.Where(obj0 => ((PathPointObject)obj0).m_NodeID == i).ElementAt(0);
+                PathPointObject node = (PathPointObject)pathNodes[i];
                 node.m_NodeID++;
             }
 
             // If possible, create object after last node in path
-            LevelObject obj = AddObject(type, id, 0, 0, ((lastNodeInPathOff != -1) ? ((int)lastNodeInPathOff + 6) : -1));
+            LevelObject obj = AddObject(LevelObject.Type.PATH_NODE, 0, 0, 0);
             obj.GenerateProperties();
             pgObjectProperties.SelectedObject = obj.m_Properties;
 
             // Update start indices and lengths of paths
-            for (int i = m_CurrentPathID; i < paths.Count(); i++)
+            for (int i = m_CurrentPathID; i < paths.Count; i++)
             {
                 if (i == m_CurrentPathID)
                 {
                     // Increase length of parent path
-                    paths.ElementAt(i).Parameters[1] += 1;
+                    paths[i].Parameters[1] += 1;
                 }
                 else if (i > m_CurrentPathID)
                 {
                     // Increase start node index for all following paths
-                    paths.ElementAt(i).Parameters[0] += 1;
+                    paths[i].Parameters[0] += 1;
                 }
-                paths.ElementAt(i).GenerateProperties();
+                paths[i].GenerateProperties();
             }
 
             m_Selected = obj.m_UniqueID;
@@ -2534,49 +2089,6 @@ namespace SM64DSe
             }
         }
 
-        public int GetPathNodeParentIDFromNodeID(int nodeID)
-        {
-            int pos = -1;
-
-            IEnumerable<LevelObject> paths = m_LevelObjects.Values.Where(obj0 => (obj0.m_Type) == 3);
-            IEnumerable<LevelObject> pathNodes = m_LevelObjects.Values.Where(obj0 => (obj0.m_Type) == 2);
-            for (int i = 0; i < paths.Count(); i++)
-            {
-                if (nodeID >= paths.ElementAt(i).Parameters[0] &&
-                    nodeID < paths.ElementAt(i).Parameters[0] + paths.ElementAt(i).Parameters[1])
-                {
-                    pos = i;
-                    break;
-                }
-            }
-
-            return pos;
-        }
-
-        void UpdatePathsNodeRemoved(PathPointObject removedNode)
-        {
-            int pathNum = GetPathNodeParentIDFromNodeID(removedNode.m_NodeID);
-            if (pathNum == -1) return;
-
-            // Decrease length of current path
-            IEnumerable<LevelObject> paths = m_LevelObjects.Values.Where(obj0 => (obj0.m_Type) == 3);
-            paths.ElementAt(pathNum).Parameters[1] -= 1;
-            paths.ElementAt(pathNum).GenerateProperties();
-            // Decrease starting indices of following paths
-            for (int i = pathNum + 1; i < paths.Count(); i++)
-            {
-                paths.ElementAt(i).Parameters[0] -= 1;
-                paths.ElementAt(i).GenerateProperties();
-            }
-            IEnumerable<LevelObject> pathNodes = m_LevelObjects.Values.Where(obj0 => (obj0.m_Type) == 2);
-            // Update Node ID's of following path nodes
-            for (int i = removedNode.m_NodeID; i < pathNodes.Count(); i++)
-            {
-                PathPointObject node = (PathPointObject)pathNodes.Where(obj0 => ((PathPointObject)obj0).m_NodeID == i).ElementAt(0);
-                node.m_NodeID--;
-            }
-        }
-
         void btnAddMisc_DropDownItemClicked(object sender, System.Windows.Forms.ToolStripItemClickedEventArgs e)
         {
             int selected = int.Parse(e.ClickedItem.Tag.ToString());
@@ -2584,7 +2096,7 @@ namespace SM64DSe
             uint type0 = (uint)selected;
             m_ObjectBeingPlaced = type0 << 16;
 
-            int type = (int)(m_ObjectBeingPlaced >> 16);
+            LevelObject.Type type = (LevelObject.Type)(m_ObjectBeingPlaced >> 16);
             ushort id = (ushort)(m_ObjectBeingPlaced & 0xFFFF);
 
             LevelObject obj = AddObject(type, id, 0, 0);
@@ -2608,18 +2120,25 @@ namespace SM64DSe
             }
         }
 
+        private bool ExportModel(BMD bmd)
+        {
+            m_SaveFileDialogue.FileName = bmd.m_File.m_Name;
+            m_SaveFileDialogue.Filter = Strings.MODEL_EXPORT_FORMATS_FILTER;
+            m_SaveFileDialogue.DefaultExt = ".dae";
+            if (m_SaveFileDialogue.ShowDialog() == DialogResult.OK)
+            {
+                BMD_BCA_KCLExporter.ExportBMDModel(bmd, m_SaveFileDialogue.FileName);
+                return true;
+            }
+            return false;
+        }
+
         private void btnExportLevelModel_Click(object sender, EventArgs e)
         {
-            SaveFileDialog saveModel = new SaveFileDialog();
-            saveModel.FileName = "SM64DS_Model";//Default name
-            saveModel.DefaultExt = ".dae";//Default file extension
-            saveModel.Filter = "COLLADA DAE (.dae)|*.dae|Wavefront OBJ (.obj)|*.obj";//Filter by .DAE and .OBJ
-            if (saveModel.ShowDialog() == DialogResult.Cancel)
-                return;
-
-            BMD_BCA_KCLExporter.ExportBMDModel(new BMD(m_ROM.GetFileFromInternalID(m_LevelSettings.BMDFileID)), saveModel.FileName);
-
-            slStatusLabel.Text = "Finished exporting level model.";
+            if (ExportModel(new BMD(m_ROM.GetFileFromInternalID(m_Level.m_LevelSettings.BMDFileID))))
+            {
+                slStatusLabel.Text = "Finished exporting level model.";
+            }
         }
 
         private void btnExportObjectModel_Click(object sender, EventArgs e)
@@ -2638,14 +2157,8 @@ namespace SM64DSe
             {
                 BMD objectBMD = new BMD(m_ROM.GetFileFromName(name));
 
-                SaveFileDialog saveModel = new SaveFileDialog();
-                saveModel.FileName = "SM64DS_Model_" + name.Substring(name.LastIndexOf("/"));//Default name
-                saveModel.DefaultExt = ".dae";//Default file extension
-                saveModel.Filter = "COLLADA DAE (.dae)|*.dae|Wavefront OBJ (.obj)|*.obj";//Filter by .DAE and .OBJ
-                if (saveModel.ShowDialog() == DialogResult.Cancel)
+                if (!ExportModel(objectBMD))
                     return;
-
-                BMD_BCA_KCLExporter.ExportBMDModel(objectBMD, saveModel.FileName);
             }
 
             slStatusLabel.Text = "Finished exporting model.";
@@ -2654,7 +2167,7 @@ namespace SM64DSe
         private void btnImportOtherModel_Click(object sender, EventArgs e)
         {
             m_ROMFileSelect.Text = "Select a model (BMD) file to replace.";
-            var result = m_ROMFileSelect.ShowDialog(this);
+            DialogResult result = m_ROMFileSelect.ShowDialog(this);
             if (result == DialogResult.OK)
             {
                 String modelName = m_ROMFileSelect.m_SelectedFile;
@@ -2670,18 +2183,10 @@ namespace SM64DSe
             DialogResult result = m_ROMFileSelect.ShowDialog();
             if (result == DialogResult.OK)
             {
-                SaveFileDialog saveModel = new SaveFileDialog();
-                saveModel.FileName = "SM64DS_Model";
-                saveModel.DefaultExt = ".dae";
-                saveModel.Filter = Strings.MODEL_EXPORT_FORMATS_FILTER;
-                if (saveModel.ShowDialog() == DialogResult.Cancel)
-                    return;
-
                 BMD objectBMD = new BMD(m_ROM.GetFileFromName(m_ROMFileSelect.m_SelectedFile));
 
-                BMD_BCA_KCLExporter.ExportBMDModel(objectBMD, saveModel.FileName);
-
-                slStatusLabel.Text = "Finished exporting model.";
+                if (ExportModel(objectBMD))
+                    slStatusLabel.Text = "Finished exporting model.";
             }
         }
 
@@ -2713,6 +2218,21 @@ namespace SM64DSe
             Helper.TryParseFloat(items[items.IndexOfKey("txtRstPlaneOffZ")].Text, out m_RestrPlaneOffset.Z);
         }
 
+        private void btnMakeOverlay_Click(object sender, EventArgs e)
+        {
+            m_FolderBrowserDialogue.SelectedPath = System.IO.Path.GetDirectoryName(Program.m_ROMPath);
+            DialogResult result = m_FolderBrowserDialogue.ShowDialog();
+            if (result == DialogResult.OK)
+            {
+                NitroOverlay ovl = new NitroOverlay(Program.m_ROM, m_Level.m_LevelSettings.ObjectBanks[7] + 7);
+
+                DirectoryInfo dir = new DirectoryInfo(m_FolderBrowserDialogue.SelectedPath);
+                Patcher.PatchMaker pm = new Patcher.PatchMaker(dir, ovl.GetRAMAddr());
+                pm.compilePatch();
+                pm.makeOverlay(m_Level.m_LevelSettings.ObjectBanks[7] + 7);
+            }
+        }
+
         private void btnOffsetAllCoords_Click(object sender, EventArgs e)
         {
             new OffsetAllObjectCoordsForm().Show(this);
@@ -2720,15 +2240,14 @@ namespace SM64DSe
 
         private void btnExportXML_Click(object sender, EventArgs e)
         {
-            SaveFileDialog sfd = new SaveFileDialog();
-            sfd.FileName = "Level_" + m_LevelID;
-            sfd.DefaultExt = ".xml";//Default file extension
-            sfd.Filter = "XML Document (.xml)|*.xml";//Filter by .xml
+            NitroOverlay ovl = new NitroOverlay(m_ROM, (uint)m_LevelID);
+            m_SaveFileDialogue.FileName = "Level_" + m_LevelID;
+            m_SaveFileDialogue.DefaultExt = ".xml";
+            m_SaveFileDialogue.Filter = Strings.FILTER_XML;
 
-            if (sfd.ShowDialog() == DialogResult.OK)
+            if (m_SaveFileDialogue.ShowDialog() == DialogResult.OK)
             {
-                LevelDataXML_Exporter.ExportLevelDataToXML(m_Overlay, m_LevelID, m_LevelSettings,
-                    m_LevelObjects, m_TexAnims, sfd.FileName);
+                LevelDataXML_Exporter.ExportLevelDataToXML(m_Level, m_SaveFileDialogue.FileName);
 
                 slStatusLabel.Text = "Level successfully exported.";
             }
@@ -2736,33 +2255,24 @@ namespace SM64DSe
 
         private void btnImportXML_Click(object sender, EventArgs e)
         {
-            OpenFileDialog ofd = new OpenFileDialog();
-            ofd.FileName = "Level_" + m_LevelID;
-            ofd.DefaultExt = ".xml";//Default file extension
-            ofd.Filter = "XML Document (.xml)|*.xml";//Filter by .xml
+            m_OpenFileDialogue.FileName = "Level_" + m_LevelID;
+            m_OpenFileDialogue.DefaultExt = ".xml";
+            m_OpenFileDialogue.Filter = Strings.FILTER_XML;
 
-            if (ofd.ShowDialog() == DialogResult.OK)
+            if (m_OpenFileDialogue.ShowDialog() == DialogResult.OK)
             {
-                LevelDataXML_Importer importer = new LevelDataXML_Importer(ofd.FileName, m_Overlay, m_LevelID, m_MinimapFileIDs);
+                NitroOverlay ovl = new NitroOverlay(m_ROM, (uint)m_LevelID);
 
-                int success = importer.ImportLevel(false);
+                try { LevelDataXML_Importer.ImportLevel(m_Level, m_OpenFileDialogue.FileName, true); }
+                catch (InvalidDataException ex) { MessageBox.Show(ex.Message); return; }
+                catch (Exception ex) { new ExceptionMessageBox("Error parsing level, changes have not been saved", ex).ShowDialog(); return; }
 
-                if (success != 0)
-                {
-                    slStatusLabel.Text = "Level importing failed, no changes have been saved. It is advised to reload the level.";
-                    return;
-                }
-
-                importer.SaveChangesToAllFiles();
-
-                foreach (LevelObject obj in m_LevelObjects.Values)
-                    obj.Release();
+                ReleaseModels();
 
                 InitialiseLevel();
 
                 slStatusLabel.Text = "Level imported successfully.";
             }
-
         }
 
         private void btnOrthView_Click(object sender, EventArgs e)
@@ -2785,22 +2295,21 @@ namespace SM64DSe
         {
             Bitmap dump = DumpOpenGLRenderingToBMP();
 
-            SaveFileDialog sfd = new SaveFileDialog();
-            sfd.FileName = "Screenshot_Level_" + m_LevelID;
-            sfd.DefaultExt = ".png";//Default file extension
-            sfd.Filter = "PNG Image (.png)|*.png";//Filter by .png
+            m_SaveFileDialogue.FileName = "Screenshot_Level_" + m_LevelID + '_' + Helper.CurrentTimeMillis();
+            m_SaveFileDialogue.DefaultExt = ".png";
+            m_SaveFileDialogue.Filter = Strings.IMAGE_EXPORT_PNG_FILTER;
 
-            if (sfd.ShowDialog() == DialogResult.OK)
+            if (m_SaveFileDialogue.ShowDialog() == DialogResult.OK)
             {
                 try
                 {
-                    dump.Save(sfd.FileName, System.Drawing.Imaging.ImageFormat.Png);
+                    dump.Save(m_SaveFileDialogue.FileName, System.Drawing.Imaging.ImageFormat.Png);
                     slStatusLabel.Text = "Screenshot saved.";
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("An error occurred while trying to save texture: \n\n" +
-                        ex.Message + "\n" + ex.Data + "\n" + ex.StackTrace + "\n" + ex.Source);
+                    new ExceptionMessageBox("An error occurred whilst saving the screenshot", ex);
+                    return;
                 }
             }
         }

@@ -35,7 +35,8 @@ namespace SM64DSe
 
         private int m_Zoom = 2;
 
-        private LevelEditorForm _owner;
+        private Level m_Level;
+
         private ROMFileSelect m_ROMFileSelect = new ROMFileSelect();
 
         private NitroFile m_PalFile;
@@ -48,8 +49,10 @@ namespace SM64DSe
         private int m_PaletteRow;
         private bool m_IsUsingTileMap;
 
-        public MinimapEditor()
+        public MinimapEditor(Level level)
         {
+            m_Level = level;
+
             InitializeComponent();
         }
 
@@ -461,15 +464,12 @@ namespace SM64DSe
 
         private void MinimapEditor_Load(object sender, EventArgs e)
         {
-            LevelEditorForm _owner = (LevelEditorForm)Owner;
-            this._owner = _owner;
-
-            m_NumAreas = _owner.m_NumAreas;
+            m_NumAreas = m_Level.m_NumAreas;
             m_CurArea = 0;
 
             m_TileMapFiles = new NitroFile[m_NumAreas];
 
-            txtCoordScale.Text = "" + ((_owner.m_LevelSettings.MinimapCoordinateScale) / 1000f);
+            txtCoordScale.Text = "" + ((m_Level.m_LevelSettings.MinimapCoordinateScale) / 1000f);
 
             int i, pos = tsMinimapEditor.Items.IndexOf(tslBeforeAreaBtns) + 1;
             for (i = 0; i < m_NumAreas; i++, pos++)
@@ -502,15 +502,15 @@ namespace SM64DSe
         private void LoadMinimapFiles()
         {
 
-            m_PalFile = Program.m_ROM.GetFileFromInternalID(_owner.m_LevelSettings.MinimapPalFileID);
-            m_TileSetFile = Program.m_ROM.GetFileFromInternalID(_owner.m_LevelSettings.MinimapTsetFileID);
+            m_PalFile = Program.m_ROM.GetFileFromInternalID(m_Level.m_LevelSettings.MinimapPalFileID);
+            m_TileSetFile = Program.m_ROM.GetFileFromInternalID(m_Level.m_LevelSettings.MinimapTsetFileID);
             for (int j = 0; j < m_NumAreas; j++)
             {
                 try
                 {
-                    if (j < _owner.m_MinimapFileIDs.Length && _owner.m_MinimapFileIDs[j] != 0)
+                    if (j < m_Level.m_MinimapFileIDs.Length && m_Level.m_MinimapFileIDs[j] != 0)
                     {
-                        m_TileMapFiles[j] = (Program.m_ROM.GetFileFromInternalID(_owner.m_MinimapFileIDs[j]));
+                        m_TileMapFiles[j] = (Program.m_ROM.GetFileFromInternalID(m_Level.m_MinimapFileIDs[j]));
                         tsMinimapEditor.Items[1 + j].Enabled = true;
                     }
                     else
@@ -595,9 +595,9 @@ namespace SM64DSe
             {
                 try
                 {
-                    if (_owner.m_MinimapFileIDs[j] != 0)
+                    if (m_Level.m_MinimapFileIDs[j] != 0)
                     {
-                        m_TileMapFiles[j] = (Program.m_ROM.GetFileFromInternalID(_owner.m_MinimapFileIDs[j]));
+                        m_TileMapFiles[j] = (Program.m_ROM.GetFileFromInternalID(m_Level.m_MinimapFileIDs[j]));
                         validFiles.Add(j);
                     }
                 }
@@ -670,7 +670,7 @@ namespace SM64DSe
             {
                 try
                 {
-                    _owner.m_LevelSettings.MinimapCoordinateScale = (ushort)(Convert.ToSingle(txtCoordScale.Text) * 1000);
+                    m_Level.m_LevelSettings.MinimapCoordinateScale = (ushort)(Convert.ToSingle(txtCoordScale.Text) * 1000);
                 }
                 catch
                 {

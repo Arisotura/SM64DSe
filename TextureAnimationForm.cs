@@ -12,891 +12,648 @@ namespace SM64DSe
 {
     public partial class TextureAnimationForm : Form
     {
-        // Important Note: When adding or removing space, make sure scale etc. tables and headers for the following 
-        // areas are multiples of 4, so:
-        // When adding space, round up to multiples of 4 eg. 9 > 12
-        // When removing space, round down to multiples of 4 eg. 9 > 8
+        protected Level m_Level;
 
-        public LevelEditorForm _owner;
-        public uint numAreas;
-
-        public TextureAnimationForm(LevelEditorForm _owner)
+        public TextureAnimationForm(Level level)
         {
             InitializeComponent();
-            this._owner = _owner;
+            
+            m_Level = level;
 
-            for (int i = 0; i < _owner.m_NumAreas; i++)
+            for (int i = 0; i < m_Level.m_NumAreas; i++)
             {
-                lbxArea.Items.Add("" + i);
+                lbxArea.Items.Add(i.ToString());
             }
             lbxArea.SelectedIndex = 0;//Make sure an area is selected
 
-            reloadData();
+            ReloadData();
         }
 
         private void lbxTexAnim_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (lbxTexAnim.SelectedIndex != -1)
-                refreshLbx();
+            if (lbxTexAnim.SelectedIndex > -1)
+                RefreshLbx();
         }
 
-        private void refreshLbx()
+        private void RefreshLbx()
         {
-            txtMaterialName.Text = _owner.m_TexAnims[lbxArea.SelectedIndex].ElementAt(lbxTexAnim.SelectedIndex).getMatName();
-            txtNumFrames.Text = "" + _owner.m_TexAnims[lbxArea.SelectedIndex].ElementAt(lbxTexAnim.SelectedIndex).getNumFrames();
-            lbxScale.Items.Clear();
-            for (int i = 0; i < _owner.m_TexAnims[lbxArea.SelectedIndex].ElementAt(lbxTexAnim.SelectedIndex).getScaleTblSize(); i++)
-            {
-                lbxScale.Items.Add("Scale value " + i);
-            }
-            lbxRotation.Items.Clear();
-            for (int i = 0; i < _owner.m_TexAnims[lbxArea.SelectedIndex].ElementAt(lbxTexAnim.SelectedIndex).getRotTblSize(); i++)
-            {
-                lbxRotation.Items.Add("Rotation value " + i);
-            }
-            lbxTranslation.Items.Clear();
-            for (int i = 0; i < _owner.m_TexAnims[lbxArea.SelectedIndex].ElementAt(lbxTexAnim.SelectedIndex).getTransTblSize(); i++)
-            {
-                lbxTranslation.Items.Add("Translation value " + i);
-            }
-            txtScaleStart.Text = _owner.m_TexAnims[lbxArea.SelectedIndex].ElementAt(lbxTexAnim.SelectedIndex).getScaleTblStart().ToString();
-            txtScaleSize.Text = _owner.m_TexAnims[lbxArea.SelectedIndex].ElementAt(lbxTexAnim.SelectedIndex).getScaleTblSize().ToString();
-            txtRotStart.Text = _owner.m_TexAnims[lbxArea.SelectedIndex].ElementAt(lbxTexAnim.SelectedIndex).getRotTblStart().ToString();
-            txtRotSize.Text = _owner.m_TexAnims[lbxArea.SelectedIndex].ElementAt(lbxTexAnim.SelectedIndex).getRotTblSize().ToString();
-            txtTransStart.Text = _owner.m_TexAnims[lbxArea.SelectedIndex].ElementAt(lbxTexAnim.SelectedIndex).getTransTblStart().ToString();
-            txtTransSize.Text = _owner.m_TexAnims[lbxArea.SelectedIndex].ElementAt(lbxTexAnim.SelectedIndex).getTransTblSize().ToString();
+            if (lbxArea.SelectedIndex < 0) return;
+            LevelTexAnim texAnim = m_Level.m_TexAnims[lbxArea.SelectedIndex];
 
-            //Take this out when done testing
-            /*textBox1.Text = 
-                "" + _owner.m_Overlay.Read16((uint)(_owner.m_TexAnims[lbxArea.SelectedIndex].ElementAt(lbxTexAnim.SelectedIndex).m_Offset + 0x18)) +
-                ",  " + _owner.m_Overlay.Read16((uint)(_owner.m_TexAnims[lbxArea.SelectedIndex].ElementAt(lbxTexAnim.SelectedIndex).m_Offset + 0x1A));
-             // Values at 0x08, 0x18 and 0x1A within animation data unknown, seems linked to number of frames possibly*/
+            if (lbxTexAnim.SelectedIndex < 0)
+            {
+                ClearFormFields();
+                return;
+            }
+            LevelTexAnim.Def texAnimDef = texAnim.m_Defs[lbxTexAnim.SelectedIndex];
 
-            /*MessageBox.Show("Start of scale values: " + _owner.m_TexAnims[lbxArea.SelectedIndex].ElementAt(lbxTexAnim.SelectedIndex).m_BaseScaleTblAddr +
-                ", end of material name (first null): " + (_owner.m_TexAnims[lbxArea.SelectedIndex].ElementAt(lbxTexAnim.SelectedIndex).m_MatNameOffset +
-                _owner.m_TexAnims[lbxArea.SelectedIndex].ElementAt(lbxTexAnim.SelectedIndex).getMatName().Length));*/
+            txtMaterialName.Text = texAnimDef.m_MaterialName;
+            txtNumFrames.Text = texAnim.m_NumFrames.ToString();
+            lbxScaleValues.Items.Clear();
+            for (int i = 0; i < texAnimDef.m_ScaleValues.Count; i++)
+            {
+                lbxScaleValues.Items.Add("Scale value " + i.ToString("D4"));
+            }
+            lbxRotationValues.Items.Clear();
+            for (int i = 0; i < texAnimDef.m_RotationValues.Count; i++)
+            {
+                lbxRotationValues.Items.Add("Rotation value " + i.ToString("D4"));
+            }
+            lbxTranslationXValues.Items.Clear();
+            for (int i = 0; i < texAnimDef.m_TranslationXValues.Count; i++)
+            {
+                lbxTranslationXValues.Items.Add("Translation X value " + i.ToString("D4"));
+            }
+            lbxTranslationYValues.Items.Clear();
+            for (int i = 0; i < texAnimDef.m_TranslationYValues.Count; i++)
+            {
+                lbxTranslationYValues.Items.Add("Translation Y value " + i.ToString("D4"));
+            }
+            txtScaleLength.Text = texAnimDef.m_NumScaleValues.ToString();
+            txtRotationLength.Text = texAnimDef.m_NumRotationValues.ToString();
+            txtTranslationXLength.Text = texAnimDef.m_NumTranslationXValues.ToString();
+            txtTranslationYLength.Text = texAnimDef.m_NumTranslationYValues.ToString();
+        }
+
+        private void ClearFormFields()
+        {
+            txtMaterialName.Text = null;
+            txtNumFrames.Text = null;
+
+            lbxScaleValues.Items.Clear();
+            lbxRotationValues.Items.Clear();
+            lbxTranslationXValues.Items.Clear();
+            lbxTranslationYValues.Items.Clear();
+
+            txtScaleLength.Text = null;
+            txtRotationLength.Text = null;
+            txtTranslationXLength.Text = null;
+            txtTranslationXLength.Text = null;
+
+            txtScaleValue.Text = null;
+            txtRotationValue.Text = null;
+            txtTranslationXValue.Text = null;
+            txtTranslationYValue.Text = null;
+
+            txtScaleGenerationStartValue.Text = null;
+            txtScaleGenerationEndValue.Text = null;
+            txtScaleGenerationAmount.Text = null;
+            txtRotationGenerationStartValue.Text = null;
+            txtRotationGenerationEndValue.Text = null;
+            txtRotationGenerationAmount.Text = null;
+            txtTranslationXGenerationStartValue.Text = null;
+            txtTranslationXGenerationEndValue.Text = null;
+            txtTranslationXGenerationAmount.Text = null;
+            txtTranslationYGenerationStartValue.Text = null;
+            txtTranslationYGenerationEndValue.Text = null;
+            txtTranslationYGenerationAmount.Text = null;
         }
 
         private void lbxArea_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (lbxArea.SelectedIndex != -1)
+            if (lbxArea.SelectedIndex > -1)
             {
                 lbxTexAnim.Items.Clear();
-                for (int j = 0; j < _owner.m_TexAnims[lbxArea.SelectedIndex].Count; j++)
+                for (int j = 0; j < m_Level.m_TexAnims[lbxArea.SelectedIndex].m_Defs.Count; j++)
                 {
-                    lbxTexAnim.Items.Add("" + j);
+                    lbxTexAnim.Items.Add(j.ToString());
                 }
             }
         }
 
-        private float readScaleValue(int area, int texAnim, int index)
+        private float ReadScaleValue(int area, int texAnim, int index)
         {
-            // 20:12 20 bits whole, 12 bits fraction
-            float scale = (float)(_owner.m_Overlay.Read32(_owner.m_TexAnims[area].ElementAt(texAnim).m_ScaleTblOffset +
-                ((uint)index * 4)) / 4096f);
-            return scale;
+            return m_Level.m_TexAnims[area].m_Defs[texAnim].m_ScaleValues[index];
         }
 
-        private float readRotationValue(int area, int texAnim, int index)
+        private float ReadRotationValue(int area, int texAnim, int index)
         {
-            // 1024 = 90 degrees. Stored as radians 1024/4096 = 0.25 (2 * Pi) / 4 = 90 deg
-            float rotation = (float)(_owner.m_Overlay.Read16(_owner.m_TexAnims[area].ElementAt(texAnim).m_RotTblOffset +
-                ((uint)index * 2)) / (1024f / 90f));
-            return rotation;
+            return m_Level.m_TexAnims[area].m_Defs[texAnim].m_RotationValues[index];
         }
 
-        private float readTranslationValue(int area, int texAnim, int index)
+        private float ReadTranslationXValue(int area, int texAnim, int index)
         {
-            // 20:12 20 bits whole, 12 bits fraction
-            float translation = (float)(_owner.m_Overlay.Read32(_owner.m_TexAnims[area].ElementAt(texAnim).m_TransTblOffset +
-                ((uint)index * 4)) / 4096f);
-            return translation;
+            return m_Level.m_TexAnims[area].m_Defs[texAnim].m_TranslationXValues[index];
         }
 
-        private void setScaleValue(float value, int area, int texAnim, int index)
+        private float ReadTranslationYValue(int area, int texAnim, int index)
         {
-            _owner.m_Overlay.Write32(_owner.m_TexAnims[area].ElementAt(texAnim).m_ScaleTblOffset +
-                ((uint)index * 4), (uint)(value * 4096f));
+            return m_Level.m_TexAnims[area].m_Defs[texAnim].m_TranslationYValues[index];
         }
 
-        private void setRotationValue(float value, int area, int texAnim, int index)
+        private void SetScaleValue(float value, int area, int texAnim, int index)
         {
-            _owner.m_Overlay.Write16(_owner.m_TexAnims[area].ElementAt(texAnim).m_RotTblOffset +
-                ((uint)index * 2), (ushort)(value * (1024f / 90f)));
+            m_Level.m_TexAnims[area].m_Defs[texAnim].m_ScaleValues[index] = value;
         }
 
-        private void setTranslationValue(float value, int area, int texAnim, int index)
+        private void SetRotationValue(float value, int area, int texAnim, int index)
         {
-            _owner.m_Overlay.Write32(_owner.m_TexAnims[area].ElementAt(texAnim).m_TransTblOffset +
-                ((uint)index * 4), (uint)(value * 4096f));
+            m_Level.m_TexAnims[area].m_Defs[texAnim].m_RotationValues[index] = value;
         }
 
-        private void addScaleValue(float value, int area, int texAnim, int index)
+        private void SetTranslationXValue(float value, int area, int texAnim, int index)
         {
-            _owner.AddSpace(_owner.m_TexAnims[area].ElementAt(texAnim).m_ScaleTblOffset + ((uint)index * 4), 4);
-            _owner.m_Overlay.Write32(_owner.m_TexAnims[area].ElementAt(texAnim).m_ScaleTblOffset +
-                ((uint)index * 4), (uint)(value * 4096f));
-            setScaleSize((ushort)(_owner.m_TexAnims[area].ElementAt(texAnim).getScaleTblSize() + 1), area, texAnim);
-            // Need to update start indices for following texture animations in same area
-            for (int i = texAnim + 1; i < _owner.m_TexAnims[area].Count; i++)
-            {
-                setScaleStart((ushort)(_owner.m_TexAnims[area].ElementAt(i).getScaleTblStart() + 1), area, i);
-            }
+            m_Level.m_TexAnims[area].m_Defs[texAnim].m_TranslationXValues[index] = value;
         }
 
-        private void addRotationValue(float value, int area, int texAnim, int index)
+        private void SetTranslationYValue(float value, int area, int texAnim, int index)
         {
-            _owner.AddSpace(_owner.m_TexAnims[area].ElementAt(texAnim).m_RotTblOffset + ((uint)index * 2), 2);
-            _owner.m_Overlay.Write16(_owner.m_TexAnims[area].ElementAt(texAnim).m_RotTblOffset +
-                ((uint)index * 2), (ushort)(value * (1024f / 90f)));
-            setRotationSize((ushort)(_owner.m_TexAnims[area].ElementAt(texAnim).getRotTblSize() + 1), area, texAnim);
-            // Need to update start indices for following texture animations in same area
-            for (int i = texAnim + 1; i < _owner.m_TexAnims[area].Count; i++)
-            {
-                setRotationStart((ushort)(_owner.m_TexAnims[area].ElementAt(i).getRotTblStart() + 1), area, i);
-            }
-            // Because each rotation value is 2 bytes, if there's an odd number, following addresses will no 
-            // longer be multiples of 4
-            if ((float)((float)_owner.m_TexAnims[area].ElementAt(texAnim).m_BaseTransTblAddr / 4f) != 0.0f)
-                _owner.AddSpace((uint)(_owner.m_TexAnims[area].ElementAt(texAnim).m_BaseTransTblAddr - 2), 2);
+            m_Level.m_TexAnims[area].m_Defs[texAnim].m_TranslationYValues[index] = value;
         }
 
-        private void addTranslationValue(float value, int area, int texAnim, int index)
+        private void AddScaleValue(float value, int area, int texAnim, int index)
         {
-            _owner.AddSpace(_owner.m_TexAnims[area].ElementAt(texAnim).m_TransTblOffset + ((uint)index * 4), 4);
-            _owner.m_Overlay.Write32(_owner.m_TexAnims[area].ElementAt(texAnim).m_TransTblOffset +
-                ((uint)index * 4), (uint)(value * 4096f));
-            setTranslationSize((ushort)(_owner.m_TexAnims[area].ElementAt(texAnim).getTransTblSize() + 1), area, texAnim);
-            // Need to update start indices for following texture animations in same area
-            for (int i = texAnim + 1; i < _owner.m_TexAnims[area].Count; i++)
-            {
-                setTranslationStart((ushort)(_owner.m_TexAnims[area].ElementAt(i).getTransTblStart() + 1), area, i);
-            }
+            m_Level.m_TexAnims[area].m_Defs[texAnim].m_ScaleValues.Insert(index, value);
         }
 
-        private void setScaleSize(ushort value, int area, int texAnim)
+        private void AddRotationValue(float value, int area, int texAnim, int index)
         {
-            _owner.m_Overlay.Write16(_owner.m_TexAnims[area].ElementAt(texAnim).m_Offset + 0x0C, value);
+            m_Level.m_TexAnims[area].m_Defs[texAnim].m_RotationValues.Insert(index, value);
         }
 
-        private void setRotationSize(ushort value, int area, int texAnim)
+        private void AddTranslationXValue(float value, int area, int texAnim, int index)
         {
-            _owner.m_Overlay.Write16(_owner.m_TexAnims[area].ElementAt(texAnim).m_Offset + 0x10, value);
+            m_Level.m_TexAnims[area].m_Defs[texAnim].m_TranslationXValues.Insert(index, value);
         }
 
-        private void setTranslationSize(ushort value, int area, int texAnim)
+        private void AddTranslationYValue(float value, int area, int texAnim, int index)
         {
-            _owner.m_Overlay.Write16(_owner.m_TexAnims[area].ElementAt(texAnim).m_Offset + 0x14, value);
+            m_Level.m_TexAnims[area].m_Defs[texAnim].m_TranslationYValues.Insert(index, value);
         }
 
-        private void setScaleStart(ushort value, int area, int texAnim)
+        private void SetScaleSize(ushort value, int area, int texAnim)
         {
-            _owner.m_Overlay.Write16(_owner.m_TexAnims[area].ElementAt(texAnim).m_Offset + 0x0E, value);
-            // Also update the value in m_ScaleTblOffset
-            _owner.m_TexAnims[area].ElementAt(texAnim).m_ScaleTblOffset = _owner.m_TexAnims[area].ElementAt(texAnim).m_BaseScaleTblAddr
-                + (_owner.m_TexAnims[area].ElementAt(texAnim).getScaleTblStart() * 4);
+            Helper.ResizeList(m_Level.m_TexAnims[area].m_Defs[texAnim].m_ScaleValues, value, 1.0f);
         }
 
-        private void setRotationStart(ushort value, int area, int texAnim)
+        private void SetRotationSize(ushort value, int area, int texAnim)
         {
-            _owner.m_Overlay.Write16(_owner.m_TexAnims[area].ElementAt(texAnim).m_Offset + 0x12, value);
-            // Also update the value in m_RotTblOffset
-            _owner.m_TexAnims[area].ElementAt(texAnim).m_RotTblOffset = _owner.m_TexAnims[area].ElementAt(texAnim).m_BaseRotTblAddr
-                + (_owner.m_TexAnims[area].ElementAt(texAnim).getRotTblStart() * 2);
+            Helper.ResizeList(m_Level.m_TexAnims[area].m_Defs[texAnim].m_RotationValues, value, 0.0f);
         }
 
-        private void setTranslationStart(ushort value, int area, int texAnim)
+        private void SetTranslationXSize(ushort value, int area, int texAnim)
         {
-            _owner.m_Overlay.Write16(_owner.m_TexAnims[area].ElementAt(texAnim).m_Offset + 0x16, value);
-            // Also update the value in m_TransTblOffset
-            _owner.m_TexAnims[area].ElementAt(texAnim).m_TransTblOffset = _owner.m_TexAnims[area].ElementAt(texAnim).m_BaseTransTblAddr
-                + (_owner.m_TexAnims[area].ElementAt(texAnim).getTransTblStart() * 4);
+            Helper.ResizeList(m_Level.m_TexAnims[area].m_Defs[texAnim].m_TranslationXValues, value, 0.0f);
         }
 
-        private void removeScaleValue(int area, int texAnim, int index)
+        private void SetTranslationYSize(ushort value, int area, int texAnim)
         {
-            _owner.RemoveSpace(_owner.m_TexAnims[area].ElementAt(texAnim).m_ScaleTblOffset + (uint)(index * 4), 4);
-            setScaleSize((ushort)(_owner.m_TexAnims[area].ElementAt(texAnim).getScaleTblSize() - 1), area, texAnim);
-            // Need to update start indices for following texture animations in same area
-            for (int i = texAnim + 1; i < _owner.m_TexAnims[area].Count; i++)
-            {
-                if (_owner.m_TexAnims[area].ElementAt(i).getScaleTblStart() != 0)
-                    setScaleStart((ushort)(_owner.m_TexAnims[area].ElementAt(i).getScaleTblStart() - 1), area, i);
-            }
+            Helper.ResizeList(m_Level.m_TexAnims[area].m_Defs[texAnim].m_TranslationYValues, value, 0.0f);
         }
 
-        private void removeRotationValue(int area, int texAnim, int index)
+        private void RemoveScaleValue(int area, int texAnim, int index)
         {
-            _owner.RemoveSpace(_owner.m_TexAnims[area].ElementAt(texAnim).m_RotTblOffset + (uint)(index * 2), 2);
-            setRotationSize((ushort)(_owner.m_TexAnims[area].ElementAt(texAnim).getRotTblSize() - 1), area, texAnim);
-            // Need to update start indices for following texture animations in same area
-            for (int i = texAnim + 1; i < _owner.m_TexAnims[area].Count; i++)
-            {
-                if (_owner.m_TexAnims[area].ElementAt(i).getRotTblStart() != 0)
-                    setRotationStart((ushort)(_owner.m_TexAnims[area].ElementAt(i).getRotTblStart() - 1), area, i);
-            }
-            // Because each rotation value is 2 bytes, if there's an odd number, following addresses will no 
-            // longer be multiples of 4
-            if ((float)((float)_owner.m_TexAnims[area].ElementAt(texAnim).m_BaseTransTblAddr / 4f) != 0.0f)
-                _owner.AddSpace((uint)(_owner.m_TexAnims[area].ElementAt(texAnim).m_BaseTransTblAddr - 2), 2);
+            m_Level.m_TexAnims[area].m_Defs[texAnim].m_ScaleValues.RemoveAt(index);
         }
 
-        private void removeTranslationValue(int area, int texAnim, int index)
+        private void RemoveRotationValue(int area, int texAnim, int index)
         {
-            _owner.RemoveSpace(_owner.m_TexAnims[area].ElementAt(texAnim).m_TransTblOffset + (uint)(index * 4), 4);
-            setTranslationSize((ushort)(_owner.m_TexAnims[area].ElementAt(texAnim).getTransTblSize() - 1), area, texAnim);
-            // Need to update start indices for following texture animations in same area
-            for (int i = texAnim + 1; i < _owner.m_TexAnims[area].Count; i++)
-            {
-                if (_owner.m_TexAnims[area].ElementAt(i).getTransTblStart() != 0)
-                    setTranslationStart((ushort)(_owner.m_TexAnims[area].ElementAt(i).getTransTblStart() - 1), area, i);
-            }
+            m_Level.m_TexAnims[area].m_Defs[texAnim].m_RotationValues.RemoveAt(index);
         }
 
-        private void setMaterialName(string value, int area, int texAnim)
+        private void RemoveTranslationXValue(int area, int texAnim, int index)
         {
-            string old = _owner.m_TexAnims[area].ElementAt(texAnim).getMatName();
-            int delta = value.Length - old.Length;
-            bool endNull = false;
-            if (delta > 0)
-            {
-                // Need to make room
-                delta = delta + (4 - (delta % 4));
-                _owner.AddSpace(_owner.m_TexAnims[area].ElementAt(texAnim).m_MatNameOffset + (uint)old.Length, (uint)delta);
-            }
-            else if (delta < 0)
-            {
-                // Need to remove room
-                delta = (-1 * delta) & ~3;
-                _owner.RemoveSpace(_owner.m_TexAnims[area].ElementAt(texAnim).m_MatNameOffset + (uint)(old.Length + delta), (uint)(-1 * delta));
-                endNull = true;
-            }
-            else if (delta == 0)
-            {
-                return;
-            }
-            for (int a = 0; a < value.Length; a++)
-            {
-                _owner.m_Overlay.Write8((uint)(_owner.m_TexAnims[area].ElementAt(texAnim).m_MatNameOffset + a),
-                    (byte)value.ToCharArray()[a]);
-            }
-            if (endNull)
-            {
-                _owner.m_Overlay.Write8((uint)(_owner.m_TexAnims[area].ElementAt(texAnim).m_MatNameOffset + value.Length),
-                    (byte)0);
-            }
+            m_Level.m_TexAnims[area].m_Defs[texAnim].m_TranslationXValues.RemoveAt(index);
         }
 
-        private void setNumFrames(uint value, int area)
+        private void RemoveTranslationYValue(int area, int texAnim, int index)
         {
-            _owner.m_Overlay.Write32(_owner.m_TexAnims[area].ElementAt(0).m_TexAnimHeaderOffset, value);
+            m_Level.m_TexAnims[area].m_Defs[texAnim].m_TranslationYValues.RemoveAt(index);
         }
 
-        private void lbxScale_SelectedIndexChanged(object sender, EventArgs e)
+        private void SetMaterialName(string value, int area, int texAnim)
         {
-            if (lbxArea.SelectedIndex != -1 && lbxTexAnim.SelectedIndex != -1 && lbxScale.SelectedIndex != -1)
-                txtScale.Text = Helper.ToString(readScaleValue(lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex, lbxScale.SelectedIndex));
+            m_Level.m_TexAnims[area].m_Defs[texAnim].m_MaterialName = value;
         }
 
-        private void lbxRotation_SelectedIndexChanged(object sender, EventArgs e)
+        private void SetNumFrames(uint value, int area)
         {
-            if (lbxArea.SelectedIndex != -1 && lbxTexAnim.SelectedIndex != -1 && lbxRotation.SelectedIndex != -1)
-                txtRotation.Text = Helper.ToString(readRotationValue(lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex, lbxRotation.SelectedIndex));
+            m_Level.m_TexAnims[area].m_NumFrames = value;
         }
 
-        private void lbxTranslation_SelectedIndexChanged(object sender, EventArgs e)
+        private void lbxScaleValues_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (lbxArea.SelectedIndex != -1 && lbxTexAnim.SelectedIndex != -1 && lbxTranslation.SelectedIndex != -1)
-                txtTranslation.Text = Helper.ToString(readTranslationValue(lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex, lbxTranslation.SelectedIndex));
+            if (IsTextureAnimationSelected() && lbxScaleValues.SelectedIndex > -1)
+                txtScaleValue.Text = Helper.ToString(ReadScaleValue(lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex, lbxScaleValues.SelectedIndex));
+        }
+
+        private void lbxRotationValues_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (IsTextureAnimationSelected() && lbxRotationValues.SelectedIndex > -1)
+                txtRotationValue.Text = Helper.ToString(ReadRotationValue(lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex, lbxRotationValues.SelectedIndex));
+        }
+
+        private void lbxTranslationXValues_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (IsTextureAnimationSelected() && lbxTranslationXValues.SelectedIndex > -1)
+                txtTranslationXValue.Text = Helper.ToString(ReadTranslationXValue(lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex, lbxTranslationXValues.SelectedIndex));
+        }
+
+        private void lbxTranslationYValues_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (IsTextureAnimationSelected() && lbxTranslationYValues.SelectedIndex > -1)
+                txtTranslationYValue.Text = Helper.ToString(ReadTranslationYValue(lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex, lbxTranslationYValues.SelectedIndex));
         }
 
         private void btnRemoveAll_Click(object sender, EventArgs e)
         {
-            uint numAreas = _owner.m_Overlay.Read8(0x74);
-            uint objlistptr = _owner.m_Overlay.ReadPointer(0x70);
-
-            for (byte a = 0; a < _owner.m_NumAreas; a++)//For each area in current overlay
+            for(int i = 0; i < 8; ++i)
             {
-                uint addr = (uint)(objlistptr + (a * 12));//Each level data header is 12 bytes - get the address of current one
-
-                //Texture animation addresses have an offset of 4 bytes within each level data header
-                addr += 4;
-                if (_owner.m_Overlay.Read32(addr) != 0)//If current area's texture animation data pointer is not NULL
-                {
-                    _owner.m_Overlay.Write32(addr, 0);//Make it NULL
-                }
+                m_Level.m_TexAnims[i].m_NumFrames = 0;
+                m_Level.m_TexAnims[i].m_Defs.Clear();
             }
-            reloadData();
-            lbxScale.Items.Clear(); lbxRotation.Items.Clear(); lbxTranslation.Items.Clear();
-            txtMaterialName.Text = ""; txtScale.Text = ""; txtRotation.Text = ""; txtTranslation.Text = ""; txtNumFrames.Text = "";
-            // Above would still leave all the Pointers intact, potentially causing problems if the level isn't 
-            // closed and reloaded afterwards before making any further texture animation changes
+            ReloadData();
         }
 
-        private void reloadData()
+        private void ReloadData()
         {
-            //Refresh data
-
-            //The name of the last material goes straight into scale values for some levels, need to insert 4 NULLs to avoid corruption
-            numAreas = _owner.m_Overlay.Read8(0x74);
-            uint objlistptr = _owner.m_Overlay.ReadPointer(0x70);
-
-            // Remove Pointers for existing texture animations
-            // Note: for each area it's Object tables, Texture Animation tables
-            for (int i = 0; i < numAreas; i++)
-            {
-                for (int j = 0; j < _owner.m_TexAnims[i].Count; j++)
-                {
-                    _owner.RemovePointerByPointerAddress(_owner.m_TexAnims[i].ElementAt(j).m_TexAnimHeaderOffset);
-                    _owner.RemovePointerByPointerAddress(_owner.m_TexAnims[i].ElementAt(j).m_BaseScaleTblAddr);
-                    _owner.RemovePointerByPointerAddress(_owner.m_TexAnims[i].ElementAt(j).m_BaseRotTblAddr);
-                    _owner.RemovePointerByPointerAddress(_owner.m_TexAnims[i].ElementAt(j).m_BaseTransTblAddr);
-                    _owner.RemovePointerByPointerAddress(_owner.m_TexAnims[i].ElementAt(j).m_Offset);
-                    _owner.RemovePointerByPointerAddress(_owner.m_TexAnims[i].ElementAt(j).m_MatNameOffset);
-                }
-            }
-
-            _owner.m_TexAnims = new List<LevelTexAnim>[numAreas];
-            for (int a = 0; a < numAreas; a++)
-            {
-                _owner.m_TexAnims[a] = new List<LevelTexAnim>();
-            }
-
-            for (byte a = 0; a < numAreas; a++)
-            {
-                uint addr = (uint)(objlistptr + (a * 12));
-
-                // read texture animation
-                addr += 4;
-                if (_owner.m_Overlay.Read32(addr) != 0)
-                {
-                    _owner.AddPointer(addr);
-                    _owner.ReadTextureAnimations(_owner.m_Overlay.ReadPointer(addr), a);
-                }
-            }
-
-            //If the first byte after the last name is in the scale value table, make room for a null byte(s) and insert them, 
-            // need to make sure scale table still starts on multiple of 4
-            int[] lastNamePos = new int[2];
-            //Find the last material name
-            for (int a = 0; a < numAreas; a++)
-            {
-                for (int b = 0; b < _owner.m_TexAnims[a].Count; b++)
-                {
-                    lastNamePos[0] = a;
-                    lastNamePos[1] = b;
-                }
-            }
-            //Find the first scale values table
-            int[] firstScalePos = new int[2];
-            for (int a = 0; a < numAreas; a++)
-            {
-                if (_owner.m_TexAnims[a].Count >= 1)
-                {
-                    firstScalePos[0] = a;
-                    firstScalePos[1] = 0;
-                    break;
-                }
-            }
-            
-            if (!IsEmpty())
-            {
-                uint afterLastname = (uint)(_owner.m_TexAnims[lastNamePos[0]][lastNamePos[1]].m_MatNameOffset +
-                    _owner.m_TexAnims[lastNamePos[0]][lastNamePos[1]].getMatName().Length);
-
-                uint firstScaleStart = _owner.m_TexAnims[firstScalePos[0]][firstScalePos[1]].m_ScaleTblOffset;
-                if (afterLastname == firstScaleStart)
-                {
-                    _owner.AddSpace((uint)(_owner.m_TexAnims[lastNamePos[0]][lastNamePos[1]].m_MatNameOffset +
-                    _owner.m_TexAnims[lastNamePos[0]][lastNamePos[1]].getMatName().Length), 4);
-                }
-            }
-
             lbxArea.Items.Clear();
             lbxTexAnim.Items.Clear();
-            for (int i = 0; i < _owner.m_NumAreas; i++)
+            for (int i = 0; i < m_Level.m_NumAreas; i++)
             {
-                lbxArea.Items.Add("" + i);
+                lbxArea.Items.Add(i.ToString());
             }
             lbxArea.SelectedIndex = 0;//Make sure an area is selected
+            lbxTexAnim.SelectedIndex = -1;
+            RefreshLbx();
         }
 
         private bool IsEmpty()
         {
-            bool empty = true;
-
-            foreach (List<LevelTexAnim> list in _owner.m_TexAnims)
+            foreach (LevelTexAnim anim in m_Level.m_TexAnims)
             {
-                if (list.Count > 0)
+                if (anim.m_Defs.Count > 0)
                     return false;
             }
-
-            return empty;
+            return true;
         }
 
-        private void txtScale_TextChanged(object sender, EventArgs e)
+        private bool IsTextureAnimationSelected()
         {
-            if (txtScale.Text != "" && lbxArea.SelectedIndex != -1 && lbxTexAnim.SelectedIndex != -1 && lbxScale.SelectedIndex != -1)
+            return (lbxArea.SelectedIndex > -1 && lbxTexAnim.SelectedIndex > -1);
+        }
+
+        private void txtScaleValue_TextChanged(object sender, EventArgs e)
+        {
+            if (Strings.IsNotBlank(txtScaleValue.Text) && IsTextureAnimationSelected() && lbxScaleValues.SelectedIndex > -1)
             {
-                try
+                float value;
+                if (float.TryParse(txtScaleValue.Text, out value))
                 {
-                    float value = Convert.ToSingle(txtScale.Text);
-                    setScaleValue(value, lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex, lbxScale.SelectedIndex);
+                    SetScaleValue(value, lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex, lbxScaleValues.SelectedIndex);
                 }
-                catch { MessageBox.Show("Invalid Scale value entered."); }
             }
         }
 
-        private void txtRotation_TextChanged(object sender, EventArgs e)
+        private void txtRotationValue_TextChanged(object sender, EventArgs e)
         {
-            if (txtRotation.Text != "" && lbxArea.SelectedIndex != -1 && lbxTexAnim.SelectedIndex != -1 && lbxRotation.SelectedIndex != -1)
+            if (Strings.IsNotBlank(txtRotationValue.Text) && IsTextureAnimationSelected() && lbxRotationValues.SelectedIndex > -1)
             {
-                try
+                float value;
+                if (float.TryParse(txtRotationValue.Text, out value))
                 {
-                    float value = Convert.ToSingle(txtRotation.Text);
-                    setRotationValue(value, lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex, lbxRotation.SelectedIndex);
+                    SetRotationValue(value, lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex, lbxRotationValues.SelectedIndex);
                 }
-                catch { MessageBox.Show("Invalid Rotation value entered."); }
             }
         }
 
-        private void txtTranslation_TextChanged(object sender, EventArgs e)
+        private void txtTranslationXValue_TextChanged(object sender, EventArgs e)
         {
-            if (txtTranslation.Text != "" && lbxArea.SelectedIndex != -1 && lbxTexAnim.SelectedIndex != -1 && lbxTranslation.SelectedIndex != -1)
+            if (Strings.IsNotBlank(txtTranslationXValue.Text) && IsTextureAnimationSelected() && lbxTranslationXValues.SelectedIndex > -1)
             {
-                try
+                float value;
+                if (float.TryParse(txtTranslationXValue.Text, out value))
                 {
-                    float value = Convert.ToSingle(txtTranslation.Text);
-                    setTranslationValue(value, lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex, lbxTranslation.SelectedIndex);
+                    SetTranslationXValue(value, lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex, lbxTranslationXValues.SelectedIndex);
                 }
-                catch { MessageBox.Show("Invalid Translation value entered."); }
             }
         }
 
-        private void btnSaveCurrent_Click(object sender, EventArgs e)
+        private void txtTranslationYValue_TextChanged(object sender, EventArgs e)
         {
-            _owner.m_Overlay.SaveChanges();
-
-            //reloadData();
+            if (Strings.IsNotBlank(txtTranslationYValue.Text) && IsTextureAnimationSelected() && lbxTranslationYValues.SelectedIndex > -1)
+            {
+                float value;
+                if (float.TryParse(txtTranslationYValue.Text, out value))
+                {
+                    SetTranslationYValue(value, lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex, lbxTranslationYValues.SelectedIndex);
+                }
+            }
         }
 
         private void txtMaterialName_TextChanged(object sender, EventArgs e)
         {
-            if (txtMaterialName.Text != "")
-                setMaterialName(txtMaterialName.Text, lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex);
+            if (Strings.IsNotBlank(txtMaterialName.Text))
+                SetMaterialName(txtMaterialName.Text, lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex);
         }
 
-        private void btnRemScale_Click(object sender, EventArgs e)
+        private void btnScaleRemove_Click(object sender, EventArgs e)
         {
-            if (lbxArea.SelectedIndex != -1 && lbxTexAnim.SelectedIndex != -1 && lbxScale.SelectedIndex != -1 && lbxScale.Items.Count > 1)
+            if (IsTextureAnimationSelected() && lbxScaleValues.SelectedIndex > -1 && lbxScaleValues.Items.Count > 1)
             {
-                int index = lbxScale.SelectedIndex;
-                removeScaleValue(lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex, index);
-                refreshLbx();
-                if (index > 0)
-                    lbxScale.SelectedIndex = --index;
+                int index = lbxScaleValues.SelectedIndex;
+                RemoveScaleValue(lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex, index);
+                RefreshLbx();
+                if (index > 0) lbxScaleValues.SelectedIndex = index - 1;
             }
         }
 
-        private void btnAddScale_Click(object sender, EventArgs e)
+        private void btnScaleAdd_Click(object sender, EventArgs e)
         {
-            if (lbxArea.SelectedIndex != -1 && lbxTexAnim.SelectedIndex != -1)
+            if (IsTextureAnimationSelected())
             {
                 try
                 {
-                    int index = (lbxScale.SelectedIndex != -1) ? lbxScale.SelectedIndex + 1 : lbxScale.Items.Count;
-                    float value = (txtScale.Text != "" && txtScale.Text != null) ? Convert.ToSingle(txtScale.Text) : 1f;
+                    int index = (lbxScaleValues.SelectedIndex > -1) ? lbxScaleValues.SelectedIndex + 1 : lbxScaleValues.Items.Count;
+                    float value = (Strings.IsNotBlank(txtScaleValue.Text)) ? Helper.ParseFloat(txtScaleValue.Text) : 1f;
 
-                    addScaleValue(value, lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex, index);
-                    refreshLbx();
-                    lbxScale.SelectedIndex = index;
+                    AddScaleValue(value, lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex, index);
+                    RefreshLbx();
+                    lbxScaleValues.SelectedIndex = index;
                 }
                 catch { MessageBox.Show("Invalid Scale value entered."); }
             }
         }
 
-        private void btnRemRot_Click(object sender, EventArgs e)
+        private void btnRotationRemove_Click(object sender, EventArgs e)
         {
-            if (lbxArea.SelectedIndex != -1 && lbxTexAnim.SelectedIndex != -1 && lbxRotation.SelectedIndex != -1 && lbxRotation.Items.Count > 1)
+            if (IsTextureAnimationSelected() && lbxRotationValues.SelectedIndex > -1 && lbxRotationValues.Items.Count > 1)
             {
-                int index = lbxRotation.SelectedIndex;
-                removeRotationValue(lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex, index);
-                refreshLbx();
-                if (index > 0)
-                    lbxRotation.SelectedIndex = --index;
+                int index = lbxRotationValues.SelectedIndex;
+                RemoveRotationValue(lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex, index);
+                RefreshLbx();
+                if (index > 0) lbxRotationValues.SelectedIndex = index - 1;
             }
         }
 
-        private void btnAddRot_Click(object sender, EventArgs e)
+        private void btnRotationAdd_Click(object sender, EventArgs e)
         {
-            if (lbxArea.SelectedIndex != -1 && lbxTexAnim.SelectedIndex != -1)
+            if (IsTextureAnimationSelected())
             {
                 try
                 {
-                    int index = (lbxRotation.SelectedIndex != -1) ? lbxRotation.SelectedIndex + 1 : lbxRotation.Items.Count;
-                    float value = (txtRotation.Text != "" && txtRotation.Text != null) ? Convert.ToSingle(txtRotation.Text) : 0f;
+                    int index = (lbxRotationValues.SelectedIndex > -1) ? lbxRotationValues.SelectedIndex + 1 : lbxRotationValues.Items.Count;
+                    float value = (Strings.IsNotBlank(txtRotationValue.Text)) ? Helper.ParseFloat(txtRotationValue.Text) : 0f;
 
-                    addRotationValue(value, lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex, index);
-                    refreshLbx();
-                    lbxRotation.SelectedIndex = index;
+                    AddRotationValue(value, lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex, index);
+                    RefreshLbx();
+                    lbxRotationValues.SelectedIndex = index;
                 }
                 catch { MessageBox.Show("Invalid Rotation value entered."); }
             }
         }
 
-        private void btnRemTrans_Click(object sender, EventArgs e)
+        private void btnTranslationXRemove_Click(object sender, EventArgs e)
         {
-            if (lbxArea.SelectedIndex != -1 && lbxTexAnim.SelectedIndex != -1 && lbxTranslation.SelectedIndex != -1 && lbxTranslation.Items.Count > 1)
+            if (IsTextureAnimationSelected() && lbxTranslationXValues.SelectedIndex > -1 && lbxTranslationXValues.Items.Count > 1)
             {
-                int index = lbxTranslation.SelectedIndex;
-                removeTranslationValue(lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex, index);
-                refreshLbx();
-                if (index > 0)
-                    lbxTranslation.SelectedIndex = --index;
+                int index = lbxTranslationXValues.SelectedIndex;
+                RemoveTranslationXValue(lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex, index);
+                RefreshLbx();
+                if (index > 0) lbxTranslationXValues.SelectedIndex = index - 1;
             }
         }
 
-        private void btnAddTrans_Click(object sender, EventArgs e)
+        private void btnTranslationXAdd_Click(object sender, EventArgs e)
         {
-            if (lbxArea.SelectedIndex != -1 && lbxTexAnim.SelectedIndex != -1)
+            if (IsTextureAnimationSelected())
             {
                 try
                 {
-                    int index = (lbxTranslation.SelectedIndex != -1) ? lbxTranslation.SelectedIndex + 1 : lbxTranslation.Items.Count;
-                    float value = (txtTranslation.Text != "" && txtTranslation.Text != null) ? Convert.ToSingle(txtTranslation.Text) : 1f;
-
-                    addTranslationValue(value, lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex, index);
-                    refreshLbx();
-                    lbxTranslation.SelectedIndex = index;
+                    int index = (lbxTranslationXValues.SelectedIndex > -1) ? lbxTranslationXValues.SelectedIndex + 1 : lbxTranslationXValues.Items.Count;
+                    float value = (Strings.IsNotBlank(txtTranslationXValue.Text)) ? Helper.ParseFloat(txtTranslationXValue.Text) : 1f;
+                    
+                    AddTranslationXValue(value, lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex, index);
+                    RefreshLbx();
+                    lbxTranslationXValues.SelectedIndex = index;
                 }
-                catch { MessageBox.Show("Invalid Translation value entered."); }
+                catch { MessageBox.Show("Invalid Translation X value entered."); }
             }
         }
 
-        private void txtScaleStart_TextChanged(object sender, EventArgs e)
+        private void btnTranslationYRemove_Click(object sender, EventArgs e)
         {
-            if (lbxArea.SelectedIndex != -1 && lbxTexAnim.SelectedIndex != -1 && txtScaleStart.Text != "")
+            if (IsTextureAnimationSelected() && lbxTranslationYValues.SelectedIndex > -1 && lbxTranslationYValues.Items.Count > 1)
+            {
+                int index = lbxTranslationYValues.SelectedIndex;
+                RemoveTranslationYValue(lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex, index);
+                RefreshLbx();
+                if (index > 0) lbxTranslationYValues.SelectedIndex = index - 1;
+            }
+        }
+
+        private void btnTranslationYAdd_Click(object sender, EventArgs e)
+        {
+            if (IsTextureAnimationSelected())
             {
                 try
                 {
-                    ushort value = Convert.ToUInt16(txtScaleStart.Text);
-                    setScaleStart(value, lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex);
+                    int index = (lbxTranslationYValues.SelectedIndex > -1) ? lbxTranslationYValues.SelectedIndex + 1 : lbxTranslationYValues.Items.Count;
+                    float value = (Strings.IsNotBlank(txtTranslationYValue.Text)) ? Helper.ParseFloat(txtTranslationYValue.Text) : 1f;
+
+                    AddTranslationYValue(value, lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex, index);
+                    RefreshLbx();
+                    lbxTranslationYValues.SelectedIndex = index;
                 }
-                catch { MessageBox.Show("Invalid Scale Start Index entered."); }
+                catch { MessageBox.Show("Invalid Translation Y value entered."); }
             }
         }
 
-        private void txtRotStart_TextChanged(object sender, EventArgs e)
+        private void RemoveTextureAnimation(int area, int texAnim)
         {
-            if (lbxArea.SelectedIndex != -1 && lbxTexAnim.SelectedIndex != -1 && txtRotStart.Text != "")
-            {
-                try
-                {
-                    ushort value = Convert.ToUInt16(txtRotStart.Text);
-                    setRotationStart(value, lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex);
-                }
-                catch { MessageBox.Show("Invalid Rotation Start Index entered."); }
-            }
+            m_Level.m_TexAnims[area].m_Defs.RemoveAt(texAnim);
+            ReloadData();
         }
 
-        private void txtTransStart_TextChanged(object sender, EventArgs e)
+        private void AddTextureAnimation(int area, int texAnim)
         {
-            if (lbxArea.SelectedIndex != -1 && lbxTexAnim.SelectedIndex != -1 && txtTransStart.Text != "")
-            {
-                try
-                {
-                    ushort value = Convert.ToUInt16(txtTransStart.Text);
-                    setTranslationStart(value, lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex);
-                }
-                catch { MessageBox.Show("Invalid Translation Start Index entered."); }
-            }
-        }
-
-        private void txtScaleSize_TextChanged(object sender, EventArgs e)
-        {
-            if (lbxArea.SelectedIndex != -1 && lbxTexAnim.SelectedIndex != -1 && txtScaleSize.Text != "")
-            {
-                try
-                {
-                    ushort value = Convert.ToUInt16(txtScaleSize.Text);
-                    setScaleSize(value, lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex);
-                }
-                catch { MessageBox.Show("Invalid Scale Length entered."); }
-            }
-        }
-
-        private void txtRotSize_TextChanged(object sender, EventArgs e)
-        {
-            if (lbxArea.SelectedIndex != -1 && lbxTexAnim.SelectedIndex != -1 && txtRotSize.Text != "")
-            {
-                try
-                {
-                    ushort value = Convert.ToUInt16(txtRotSize.Text);
-                    setRotationSize(value, lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex);
-                }
-                catch { MessageBox.Show("Invalid Rotation Length entered."); }
-            }
-        }
-
-        private void txtTransSize_TextChanged(object sender, EventArgs e)
-        {
-            if (lbxArea.SelectedIndex != -1 && lbxTexAnim.SelectedIndex != -1 && txtTransSize.Text != "")
-            {
-                try
-                {
-                    ushort value = Convert.ToUInt16(txtTransSize.Text);
-                    setTranslationSize(value, lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex);
-                }
-                catch { MessageBox.Show("Invalid Translation Length entered."); }
-            }
-        }
-
-        private void removeTextureAnimation(int area, int texAnim)
-        {
-            if (_owner.m_TexAnims[area].Count == 1)
-            {
-                // First, remove all pointers to texture animations for this area:
-                // Addresss of Texture Animation header, addresses of scale, rotation and translation 
-                // tables, address of the animation data, address of the material name
-
-                _owner.RemovePointerByPointerAddress(_owner.m_TexAnims[area].ElementAt(texAnim).m_TexAnimHeaderOffset);
-                _owner.RemovePointerByPointerAddress(_owner.m_TexAnims[area].ElementAt(texAnim).m_BaseScaleTblAddr);
-                _owner.RemovePointerByPointerAddress(_owner.m_TexAnims[area].ElementAt(texAnim).m_BaseRotTblAddr);
-                _owner.RemovePointerByPointerAddress(_owner.m_TexAnims[area].ElementAt(texAnim).m_BaseTransTblAddr);
-                _owner.RemovePointerByPointerAddress(_owner.m_TexAnims[area].ElementAt(texAnim).m_Offset);
-                _owner.RemovePointerByPointerAddress(_owner.m_TexAnims[area].ElementAt(texAnim).m_MatNameOffset);
-
-                // Remove the space once occupied by the texture animation data:
-                // Texture Animation header, Animation Data header, material name, scale, rotation and translation values
-                // Order is important, remove in reverse order to listed above
-                _owner.RemoveSpace(_owner.m_TexAnims[area].ElementAt(texAnim).m_BaseTransTblAddr,
-                    (uint)(_owner.m_TexAnims[area].ElementAt(texAnim).getTransTblSize() * 4));
-                uint rotRemove = (uint)((_owner.m_TexAnims[area].ElementAt(texAnim).getRotTblSize() * 2) & ~3);
-                _owner.RemoveSpace(_owner.m_TexAnims[area].ElementAt(texAnim).m_BaseRotTblAddr,
-                    rotRemove);
-                _owner.RemoveSpace(_owner.m_TexAnims[area].ElementAt(texAnim).m_BaseScaleTblAddr,
-                    (uint)(_owner.m_TexAnims[area].ElementAt(texAnim).getScaleTblSize() * 4));
-                uint matNameRemove = (uint)((_owner.m_TexAnims[area].ElementAt(texAnim).getMatName().Length) & ~3);
-                _owner.RemoveSpace(_owner.m_TexAnims[area].ElementAt(texAnim).m_MatNameOffset,
-                    matNameRemove);
-                _owner.RemoveSpace(_owner.m_TexAnims[area].ElementAt(texAnim).m_Offset, 28);
-                _owner.RemoveSpace(_owner.m_TexAnims[area].ElementAt(texAnim).m_TexAnimHeaderOffset, 24);
-                // Set address of the Texture Animation Data within the Level Data header for this area 
-                // to NULL
-                uint objlistptr = _owner.m_Overlay.ReadPointer(0x70);
-                uint addr = (uint)(objlistptr + (area * 12)) + 0x04;
-                _owner.m_Overlay.Write32(addr, 0);
-                _owner.m_TexAnims[area].RemoveAt(texAnim);
-            }
-            else if (_owner.m_TexAnims[area].Count > 1)
-            {
-                _owner.RemovePointerByPointerAddress(_owner.m_TexAnims[area].ElementAt(texAnim).m_Offset);
-                _owner.RemovePointerByPointerAddress(_owner.m_TexAnims[area].ElementAt(texAnim).m_MatNameOffset);
-
-                uint matNameRemove = (uint)((_owner.m_TexAnims[area].ElementAt(texAnim).getMatName().Length) & ~3);
-                _owner.RemoveSpace(_owner.m_TexAnims[area].ElementAt(texAnim).m_MatNameOffset,
-                    matNameRemove);
-                _owner.RemoveSpace(_owner.m_TexAnims[area].ElementAt(texAnim).m_Offset, 28);
-
-                // Reduce animation count
-                _owner.m_Overlay.Write32(_owner.m_TexAnims[area].ElementAt(texAnim).m_TexAnimHeaderOffset + 0x10,
-                    (uint)(_owner.m_TexAnims[area].Count - 1));
-                _owner.m_TexAnims[area].RemoveAt(texAnim);
-            }
-            reloadData();
-        }
-
-        private void addTextureAnimation(int area, int texAnim)
-        {
-            if (_owner.m_TexAnims[area].Count == 0)
-            {
-                // No existing texture animations in area
-
-                // New data will get written to end of overlay
-                uint texAnimHeader = (uint)((_owner.m_Overlay.GetSize() + 3) & ~3);// multiple of 4
-                uint animDataHeader = texAnimHeader + 24;
-                uint matNameAddress = animDataHeader + 28;
-                uint scaleTblAddress = matNameAddress + 16;
-                uint rotTblAddress = scaleTblAddress + 4;
-                uint transTblAddress = rotTblAddress + 4;// Rotation table should be a multiple of 4 bytes long
-
-                _owner.AddSpace(_owner.m_Overlay.GetSize(), texAnimHeader - _owner.m_Overlay.GetSize());
-                _owner.AddSpace(texAnimHeader, (uint)(24 + 28 + 16 + 4 + 4 + 4));
-
-                // Point area level data to texture animation header
-                uint objlistptr = _owner.m_Overlay.ReadPointer(0x70);
-                uint addr = (uint)(objlistptr + (area * 12)) + 0x04;//Each level data header is 12 bytes - get the address of current one
-                _owner.m_Overlay.WritePointer(addr, texAnimHeader);
-
-                // Write Texture Animation header
-                _owner.m_Overlay.Write32(texAnimHeader, (uint)100);// Number of frames
-                _owner.m_Overlay.WritePointer(texAnimHeader + 0x04, scaleTblAddress);// Address of scale values table
-                _owner.m_Overlay.WritePointer(texAnimHeader + 0x08, rotTblAddress);// Address of rotation values table
-                _owner.m_Overlay.WritePointer(texAnimHeader + 0x0C, transTblAddress);// Address of translation value table
-                _owner.m_Overlay.Write32(texAnimHeader + 0x10, (uint)1);// Number of animations
-                _owner.m_Overlay.WritePointer(texAnimHeader + 0x14, animDataHeader);// Address of animation data header
-
-                // Write Animation Data (header)
-                _owner.m_Overlay.Write32(animDataHeader, (uint)0);// Unknown
-                _owner.m_Overlay.WritePointer(animDataHeader + 0x04, matNameAddress);// Address of material name
-                _owner.m_Overlay.Write32(animDataHeader + 0x08, (uint)1);// Default scale value? Set to 1
-                _owner.m_Overlay.Write16(animDataHeader + 0x0C, (ushort)1);// Number of scale values
-                _owner.m_Overlay.Write16(animDataHeader + 0x0E, (ushort)0);// Start index of scale values
-                _owner.m_Overlay.Write16(animDataHeader + 0x10, (ushort)1);// Number of rotation values
-                _owner.m_Overlay.Write16(animDataHeader + 0x12, (ushort)0);// Start index of rotation values
-                _owner.m_Overlay.Write16(animDataHeader + 0x14, (ushort)1);// Number of translation values
-                _owner.m_Overlay.Write16(animDataHeader + 0x16, (ushort)0);// Start index of translation values
-                _owner.m_Overlay.Write32(animDataHeader + 0x18, (uint)0);// Unknown
-
-                // Write material name
-                string newMatName = "MaterialName";
-                for (int i = 0; i < newMatName.Length; i++)
-                {
-                    _owner.m_Overlay.Write8((uint)(matNameAddress + i), (byte)(newMatName.ToCharArray()[i]));
-                }
-                // MaterialName length is 12, null byte(s) already written after material with AddSpace(.., 16)
-
-                //Write scale, rotation and translation values
-                _owner.m_Overlay.Write32(scaleTblAddress, (uint)4096);
-                _owner.m_Overlay.Write16(rotTblAddress, (ushort)0);
-                _owner.m_Overlay.Write32(transTblAddress, (uint)0);
-            }
-            else if (_owner.m_TexAnims[area].Count >= 1)
-            {
-                // Area already has texture animations
-
-                // Make room for animation data header
-                uint animDataHeader = _owner.m_TexAnims[area].ElementAt(texAnim - 1).m_Offset + 28;
-                _owner.AddSpace(animDataHeader, 28);
-
-                // Material name will get written after the existing ones and before the start of the scale values table
-                uint matNameAddress = _owner.m_TexAnims[area].ElementAt(texAnim - 1).m_BaseScaleTblAddr;
-                _owner.AddSpace(matNameAddress, 16);
-
-                // Write material name
-                string newMatName = "MaterialName";
-                for (int i = 0; i < newMatName.Length; i++)
-                {
-                    _owner.m_Overlay.Write8((uint)(matNameAddress + i), (byte)(newMatName.ToCharArray()[i]));
-                }
-                // MaterialName length is 12, null byte(s) already written after material with AddSpace(.., 16)
-
-                // Write Animation Data (header)
-                _owner.m_Overlay.Write32(animDataHeader, (uint)0);// Unknown
-                _owner.m_Overlay.WritePointer(animDataHeader + 0x04, matNameAddress);// Address of material name
-                _owner.m_Overlay.Write32(animDataHeader + 0x08, (uint)1);// Default scale value? Set to 1
-                _owner.m_Overlay.Write16(animDataHeader + 0x0C, (ushort)1);// Number of scale values
-                _owner.m_Overlay.Write16(animDataHeader + 0x0E, (ushort)0);// Start index of scale values
-                _owner.m_Overlay.Write16(animDataHeader + 0x10, (ushort)1);// Number of rotation values
-                _owner.m_Overlay.Write16(animDataHeader + 0x12, (ushort)0);// Start index of rotation values
-                _owner.m_Overlay.Write16(animDataHeader + 0x14, (ushort)1);// Number of translation values
-                _owner.m_Overlay.Write16(animDataHeader + 0x16, (ushort)0);// Start index of translation values
-                _owner.m_Overlay.Write32(animDataHeader + 0x18, (uint)0);// Unknown
-
-                // Increase number of animations in Texture Animation header
-                _owner.m_Overlay.Write32(_owner.m_TexAnims[area].ElementAt(texAnim - 1).m_TexAnimHeaderOffset + 0x10,
-                    (uint)(texAnim + 1));
-            }
-            reloadData();
+            m_Level.m_TexAnims[area].m_Defs.Insert(texAnim, new LevelTexAnim.Def());
+            ReloadData();
         }
 
         private void btnRemove_Click(object sender, EventArgs e)
         {
-            if (lbxArea.SelectedIndex != -1 && lbxTexAnim.SelectedIndex != -1 && _owner.m_TexAnims[lbxArea.SelectedIndex].Count != 0)
+            if (IsTextureAnimationSelected() && m_Level.m_TexAnims[lbxArea.SelectedIndex].m_Defs.Count != 0)
             {
-                removeTextureAnimation(lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex);
+                RemoveTextureAnimation(lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex);
             }
         }
 
         private void btnAdd_Click(object sender, EventArgs e)
         {
-            if (lbxArea.SelectedIndex != -1)
+            if (lbxArea.SelectedIndex > -1)
             {
                 int index = (lbxTexAnim.Items.Count > 0) ? lbxTexAnim.Items.Count : 0;
-                addTextureAnimation(lbxArea.SelectedIndex, index);
+                AddTextureAnimation(lbxArea.SelectedIndex, index);
             }
         }
 
         private void txtNumFrames_TextChanged(object sender, EventArgs e)
         {
-            if (lbxArea.SelectedIndex != -1 && lbxTexAnim.SelectedIndex != -1 && txtNumFrames.Text != "")
+            if (IsTextureAnimationSelected() && txtNumFrames.Text != "")
             {
                 try
                 {
-                    setNumFrames(Convert.ToUInt32(txtNumFrames.Text), lbxArea.SelectedIndex);
+                    SetNumFrames(Convert.ToUInt32(txtNumFrames.Text), lbxArea.SelectedIndex);
                 }
                 catch { MessageBox.Show("Invalid number of frames entered"); }
             }
         }
 
-        private void btnGenerateScale_Click(object sender, EventArgs e)
+        private void btnScaleGenerate_Click(object sender, EventArgs e)
         {
-            if (lbxArea.SelectedIndex == -1 || lbxTexAnim.SelectedIndex == -1)
-                return;
+            if (!IsTextureAnimationSelected()) return;
 
             try
             {
-                float startValue = Helper.ParseFloat(txtGenerateScaleStartValue.Text);
-                float endValue = Helper.ParseFloat(txtGenerateScaleEndValue.Text);
-                int amount = int.Parse(txtGenerateScaleAmount.Text);
+                float startValue = Helper.ParseFloat(txtScaleGenerationStartValue.Text);
+                float endValue = Helper.ParseFloat(txtScaleGenerationEndValue.Text);
+                int amount = int.Parse(txtScaleGenerationAmount.Text);
                 float increment = (float)((endValue - startValue) / (float)amount);
 
                 for (int i = 0; i <= amount; i++)
                 {
-                    addScaleValue((startValue + ((float)(amount - i) * increment)), lbxArea.SelectedIndex,
-                        lbxTexAnim.SelectedIndex, lbxScale.Items.Count);
+                    AddScaleValue((startValue + ((float)(amount - i) * increment)), lbxArea.SelectedIndex,
+                        lbxTexAnim.SelectedIndex, lbxScaleValues.Items.Count);
                 }
 
-                refreshLbx();
+                RefreshLbx();
             }
             catch { MessageBox.Show("Invalid value(s) entered for generating scale values."); }
         }
 
-        private void btnGenerateRotation_Click(object sender, EventArgs e)
+        private void btnRotationGenerate_Click(object sender, EventArgs e)
         {
-            if (lbxArea.SelectedIndex == -1 || lbxTexAnim.SelectedIndex == -1)
-                return;
+            if (!IsTextureAnimationSelected()) return;
 
             try
             {
-                float startValue = Helper.ParseFloat(txtGenerateRotationStartValue.Text);
-                float endValue = Helper.ParseFloat(txtGenerateRotationEndValue.Text);
-                int amount = int.Parse(txtGenerateRotationAmount.Text);
+                float startValue = Helper.ParseFloat(txtRotationGenerationStartValue.Text);
+                float endValue = Helper.ParseFloat(txtRotationGenerationEndValue.Text);
+                int amount = int.Parse(txtRotationGenerationAmount.Text);
                 float increment = (float)((endValue - startValue) / (float)amount);
 
                 for (int i = 0; i <= amount; i++)
                 {
-                    addRotationValue((startValue + ((float)(amount - i) * increment)), lbxArea.SelectedIndex,
-                        lbxTexAnim.SelectedIndex, lbxRotation.Items.Count);
+                    AddRotationValue((startValue + ((float)(amount - i) * increment)), lbxArea.SelectedIndex,
+                        lbxTexAnim.SelectedIndex, lbxRotationValues.Items.Count);
                 }
 
-                refreshLbx();
+                RefreshLbx();
             }
             catch { MessageBox.Show("Invalid value(s) entered for generating rotation values."); }
         }
 
-        private void btnGenerateTranslation_Click(object sender, EventArgs e)
+        private void btnTranslationXGenerate_Click(object sender, EventArgs e)
         {
-            if (lbxArea.SelectedIndex == -1 || lbxTexAnim.SelectedIndex == -1)
-                return;
+            if (!IsTextureAnimationSelected()) return;
 
             try
             {
-                float startValue = Helper.ParseFloat(txtGenerateTranslationStartValue.Text);
-                float endValue = Helper.ParseFloat(txtGenerateTranslationEndValue.Text);
-                int amount = int.Parse(txtGenerateTranslationAmount.Text);
+                float startValue = Helper.ParseFloat(txtTranslationXGenerationStartValue.Text);
+                float endValue = Helper.ParseFloat(txtTranslationXGenerationEndValue.Text);
+                int amount = int.Parse(txtTranslationXGenerationAmount.Text);
                 float increment = (float)((endValue - startValue) / (float)amount);
 
                 for (int i = 0; i <= amount; i++)
                 {
-                    addTranslationValue((startValue + ((float)(amount - i) * increment)), lbxArea.SelectedIndex,
-                        lbxTexAnim.SelectedIndex, lbxTranslation.Items.Count);
+                    AddTranslationXValue((startValue + ((float)(amount - i) * increment)), lbxArea.SelectedIndex,
+                        lbxTexAnim.SelectedIndex, lbxTranslationXValues.Items.Count);
                 }
 
-                refreshLbx();
+                RefreshLbx();
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message + "\n\n" + ex.Source + "\n\n" + ex.StackTrace); }
+            catch { MessageBox.Show("Invalid value(s) entered for generating translation X values."); }
         }
 
+        private void btnTranslationYGenerate_Click(object sender, EventArgs e)
+        {
+            if (!IsTextureAnimationSelected()) return;
+
+            try
+            {
+                float startValue = Helper.ParseFloat(txtTranslationYGenerationStartValue.Text);
+                float endValue = Helper.ParseFloat(txtTranslationYGenerationEndValue.Text);
+                int amount = int.Parse(txtTranslationYGenerationAmount.Text);
+                float increment = (float)((endValue - startValue) / (float)amount);
+
+                for (int i = 0; i <= amount; i++)
+                {
+                    AddTranslationYValue((startValue + ((float)(amount - i) * increment)), lbxArea.SelectedIndex,
+                        lbxTexAnim.SelectedIndex, lbxTranslationYValues.Items.Count);
+                }
+
+                RefreshLbx();
+            }
+            catch { MessageBox.Show("Invalid value(s) entered for generating translation Y values."); }
+        }
+
+        private void btnScaleLengthUpdate_Click(object sender, EventArgs e)
+        {
+            if (IsTextureAnimationSelected() && Strings.IsNotBlank(txtScaleLength.Text))
+            {
+                ushort value;
+                if (ushort.TryParse(txtScaleLength.Text, out value))
+                {
+                    SetScaleSize(value, lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex);
+                }
+                else
+                {
+                    MessageBox.Show("Invalid Scale Length entered.");
+                    return;
+                }
+            }
+        }
+
+        private void btnRotationLengthUpdate_Click(object sender, EventArgs e)
+        {
+            if (IsTextureAnimationSelected() && Strings.IsNotBlank(txtRotationLength.Text))
+            {
+                ushort value;
+                if (ushort.TryParse(txtRotationLength.Text, out value))
+                {
+                    SetRotationSize(value, lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex);
+                }
+                else
+                {
+                    MessageBox.Show("Invalid Rotation Length entered.");
+                    return;
+                }
+            }
+        }
+
+        private void btnTranslationXLengthUpdate_Click(object sender, EventArgs e)
+        {
+            if (IsTextureAnimationSelected() && Strings.IsNotBlank(txtTranslationXLength.Text))
+            {
+                ushort value;
+                if (ushort.TryParse(txtTranslationXLength.Text, out value))
+                {
+                    SetTranslationXSize(value, lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex);
+                }
+                else
+                {
+                    MessageBox.Show("Invalid X Translation Length entered.");
+                    return;
+                }
+            }
+        }
+
+        private void btnTranslationYLengthUpdate_Click(object sender, EventArgs e)
+        {
+            if (IsTextureAnimationSelected() && Strings.IsNotBlank(txtTranslationYLength.Text))
+            {
+                ushort value;
+                if (ushort.TryParse(txtTranslationYLength.Text, out value))
+                {
+                    SetTranslationYSize(value, lbxArea.SelectedIndex, lbxTexAnim.SelectedIndex);
+                }
+                else
+                {
+                    MessageBox.Show("Invalid Y Translation Length entered.");
+                    return;
+                }
+            }
+        }
     }
 }

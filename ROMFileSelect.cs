@@ -31,11 +31,20 @@ namespace SM64DSe
         public static void LoadFileList(TreeView tvFileList)
         {
             NitroROM.FileEntry[] files = Program.m_ROM.GetFileEntries();
-            tvFileList.Nodes.Add("root", "ROM File System");
+            TreeNode node = tvFileList.Nodes.Add("root", "ROM File System");
 
-            TreeNode node = tvFileList.Nodes["root"];
-
+            EnsureAllDirsExist(tvFileList); //just in case a directory doesn't have files
             LoadFiles(tvFileList, node, files, new NARC.FileEntry[] { });
+
+            node.Expand();
+        }
+
+        public static void EnsureAllDirsExist(TreeView tvFileList)
+        {
+            NitroROM.DirEntry[] dirs = Program.m_ROM.GetDirEntries();
+
+            for (int i = 1; i < dirs.Length; ++i)
+                EnsureDirExists(dirs[i].FullName, dirs[i].FullName, tvFileList.Nodes["root"]);
         }
 
         private static void LoadFiles(TreeView tvFileList, TreeNode node, NitroROM.FileEntry[] files, NARC.FileEntry[] filesNARC)
@@ -73,7 +82,15 @@ namespace SM64DSe
                     for (int j = 0; j < parts.Length; j++)
                     {
                         if (!node.Nodes.ContainsKey(parts[j]))
-                            node.Nodes.Add(parts[j], parts[j]).Tag = names[i];
+                        {
+                            string dirName = "";
+                            for (int k = 0; k <= j; ++k)
+                                dirName += parts[k] + "/";
+                            if (j == parts.Length - 1)
+                                dirName = dirName.Substring(0, dirName.Length - 1);
+
+                            node.Nodes.Add(parts[j], parts[j]).Tag = dirName;
+                        }
                         node = node.Nodes[parts[j]];
 
                         if (parts[j].EndsWith(".narc"))
@@ -97,6 +114,78 @@ namespace SM64DSe
                 string ind = String.Format("{0:D3}", i);
                 ovlNode.Nodes.Add("Overlay_" + ind).Tag = "Overlay_" + ind;
             }
+
+            ovlNode.Expand();
+        }
+
+        public static void SelectFileOrDirHelper(string fullName, string fullNamePart,
+            TreeNode parent)
+        {
+            int strEnd = fullNamePart.IndexOf('/');
+            string strToMatch = strEnd != -1 ? fullNamePart.Substring(0, strEnd) : fullNamePart;
+
+            foreach (TreeNode node in parent.Nodes)
+            {
+                if (node.Name == strToMatch)
+                {
+                    if (strEnd == -1)
+                    {
+                        node.EnsureVisible();
+                        node.TreeView.SelectedNode = node;
+                        break;
+                    }
+                    else
+                        SelectFileOrDirHelper(fullName, fullNamePart.Substring(strEnd + 1), node);
+                }
+            }
+        }
+
+        public static void EnsureDirExists(string fullName, string fullNamePart,
+            TreeNode parent)
+        {
+            int strEnd = fullNamePart.IndexOf('/');
+            string strToMatch = strEnd != -1 ? fullNamePart.Substring(0, strEnd) : fullNamePart;
+
+            foreach (TreeNode node in parent.Nodes)
+            {
+                if (node.Name == strToMatch)
+                {
+                    if (strEnd != -1)
+                        EnsureDirExists(fullName, fullNamePart.Substring(strEnd + 1), node);
+
+                    return;
+                }
+            }
+
+            TreeNode newNode = parent.Nodes.Add(strToMatch, strToMatch);
+            newNode.Tag = parent.Tag + strToMatch + "/";
+            if(strEnd != -1)
+                EnsureDirExists(fullName, fullNamePart.Substring(strEnd + 1), newNode);
+        }
+
+        public static TreeNode GetFileOrDirHelper(string fullName, string fullNamePart,
+            TreeNode parent)
+        {
+            int strEnd = fullNamePart.IndexOf('/');
+            string strToMatch = strEnd != -1 ? fullNamePart.Substring(0, strEnd) : fullNamePart;
+
+            foreach (TreeNode node in parent.Nodes)
+            {
+                if (node.Name == strToMatch)
+                {
+                    if (strEnd == -1)
+                        return node;
+                    else
+                        return GetFileOrDirHelper(fullName, fullNamePart.Substring(strEnd + 1), node);
+                }
+            }
+
+            return null;
+        }
+
+        public static TreeNode GetFileOrDir(string fullName, TreeNode root)
+        {
+            return GetFileOrDirHelper(fullName, fullName, root);
         }
 
         private void tvFiles_AfterSelect(object sender, TreeViewEventArgs e)

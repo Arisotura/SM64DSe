@@ -31,8 +31,10 @@ namespace SM64DSe
 {
     public partial class NitroROM
     {
-        public const uint ROM_PATCH_VERSION = 4;
+        public const uint ROM_PATCH_VERSION = 5;
         public const uint LEVEL_OVERLAY_SIZE = 32768;
+        public const int NUM_LEVELS = 52;
+        public const int NEW_LEVEL_OVERLAYS_START_INDEX = 103;
 
         private uint ARM_BL(uint src, uint dst) { return (0xEB000000 | (((dst - src - 8) >> 2) & 0x00FFFFFF)); }
         private uint ARM_B(uint src, uint dst) { return (0xEA000000 | (((dst - src - 8) >> 2) & 0x00FFFFFF)); }
@@ -133,7 +135,7 @@ namespace SM64DSe
 		        objbank_table = 0x75998;
 		        mempatch1 = 0x18B60;
 		        mempatch2 = 0x58DE0;
-                loadercode = Properties.Resources.level_ovl_init_EUR;
+                loadercode = Properties.Resources.level_ovl_init_EUR_000;
 		        lvl_ovlid_table = 0x758C8;
 		        unload_patch = 0x2DE80;
 		        unload_branchop = ARM_BL(0x0202DE80, 0x0214EAD8);
@@ -242,7 +244,7 @@ namespace SM64DSe
 	        // for each level, create a new overlay with the loader code and level data
 	        uint dataoffset = (uint)((loadercode.Length + 3) & ~3);
 
-	        for (int i = 0; i < 52; i++)
+            for (int i = 0; i < NUM_LEVELS; i++)
 	        {
 		        uint overlayid = AddOverlay(lvl_start);
 
@@ -414,15 +416,19 @@ namespace SM64DSe
                                     ushort tex_scalestart = oldovl.Read16(tex_old_addr + 0x0E);
                                     ushort tex_rotnum = oldovl.Read16(tex_old_addr + 0x10);
                                     ushort tex_rotstart = oldovl.Read16(tex_old_addr + 0x12);
-                                    ushort tex_transnum = oldovl.Read16(tex_old_addr + 0x14);
-                                    ushort tex_transstart = oldovl.Read16(tex_old_addr + 0x16);
+                                    ushort tex_transxnum = oldovl.Read16(tex_old_addr + 0x14);
+                                    ushort tex_transxstart = oldovl.Read16(tex_old_addr + 0x16);
+                                    ushort tex_transynum = oldovl.Read16(tex_old_addr + 0x18);
+                                    ushort tex_transystart = oldovl.Read16(tex_old_addr + 0x1A);
 
                                     if ((tex_scalestart + tex_scalenum) > numscale)
                                         numscale = (uint)(tex_scalestart + tex_scalenum);
                                     if ((tex_rotstart + tex_rotnum) > numrot)
                                         numrot = (uint)(tex_rotstart + tex_rotnum);
-                                    if ((tex_transstart + tex_transnum) > numtrans)
-                                        numtrans = (uint)(tex_transstart + tex_transnum);
+                                    if ((tex_transxstart + tex_transxnum) > numtrans)
+                                        numtrans = (uint)(tex_transxstart + tex_transxnum);
+                                    if ((tex_transystart + tex_transynum) > numtrans)
+                                        numtrans = (uint)(tex_transystart + tex_transynum);
 
                                     ovl.Write32(tex_new_addr, oldovl.Read32(tex_old_addr));
                                     ovl.WritePointer(tex_new_addr + 0x4, curoffset);
@@ -431,9 +437,10 @@ namespace SM64DSe
                                     ovl.Write16(tex_new_addr + 0xE, tex_scalestart);
                                     ovl.Write16(tex_new_addr + 0x10, tex_rotnum);
                                     ovl.Write16(tex_new_addr + 0x12, tex_rotstart);
-                                    ovl.Write16(tex_new_addr + 0x14, tex_transnum);
-                                    ovl.Write16(tex_new_addr + 0x16, tex_transstart);
-                                    ovl.Write32(tex_new_addr + 0x18, oldovl.Read32(tex_old_addr + 0x18));
+                                    ovl.Write16(tex_new_addr + 0x14, tex_transxnum);
+                                    ovl.Write16(tex_new_addr + 0x16, tex_transxstart);
+                                    ovl.Write16(tex_new_addr + 0x18, tex_transynum);
+                                    ovl.Write16(tex_new_addr + 0x1A, tex_transystart);
 
                                     string tex_matname = oldovl.ReadString(oldovl.ReadPointer(tex_old_addr + 0x4), 0);
                                     ovl.WriteString(curoffset, tex_matname, 0);
@@ -475,10 +482,20 @@ namespace SM64DSe
 			        }
 
 			        // misc header pieces
+                    // BMD and KCL file ID's
 			        ovl.Write32(dataoffset + 0x14, oldovl.Read32(header_offset + 0x8));
 			        ovl.Write32(dataoffset + 0x18, oldovl.Read32(header_offset + 0xC));
+                    // minimap ICG and ICL file ID's
 			        ovl.Write16(dataoffset + 0x22, oldovl.Read16(header_offset + 0x16));
 			        ovl.Write8(dataoffset + 0x24, oldovl.Read8(header_offset + 0x18));
+                    // level format and overlay initialiser versions: 
+                    // - level format version: 
+                    // -- 0: original
+                    // -- 1: fix missing texture animation translation values
+                    // - level initialiser verion:
+                    // -- 0: original
+                    // -- 1: support for "dynamic overlays" (EUR only)
+                    ovl.Write8(dataoffset + 0x2B, Level.k_LevelFormatVersion);
 		        }
 
 		        ovl.SaveChanges();
@@ -595,9 +612,9 @@ namespace SM64DSe
             }
 
             // Copy level music data
-            for (int i = 0; i < 52; i++)
+            for (int i = 0; i < NUM_LEVELS; i++)
             {
-                NitroOverlay ovl = new NitroOverlay(this, (uint)(103 + i));
+                NitroOverlay ovl = new NitroOverlay(this, (uint)(NEW_LEVEL_OVERLAYS_START_INDEX + i));
 
                 m_FileStream.Position = music_tbl_addr + (i * 3);
                 ovl.Write8(0x7C + 0, m_BinReader.ReadByte());
@@ -605,6 +622,8 @@ namespace SM64DSe
                 ovl.Write8(0x7C + 2, m_BinReader.ReadByte());
 
                 ovl.SaveChanges();
+
+                lazyman.ReportProgress((int)(400 + ((99f / 52f) * i)));
             }
 
             // Patch music code to load from overlays
@@ -622,6 +641,38 @@ namespace SM64DSe
             m_BinWriter.Write((uint)(lvl_start + 0x7C));
 
             lazyman.ReportProgress(499);
+        }
+
+        private void Patch_v5(BackgroundWorker lazyman)
+        {
+            // Prior to v2.3.2 it was thought that texture animations simply contained a single 
+            // translation component with only offsets 0x14 and 0x16 in the texture animation 
+            // header being used to determine the translation values to be copied to the new 
+            // overlay: 
+            // 14 2 Number of X translation values
+            // 16 2 Start offset in dwords of the X translations in the translation values table
+            // 18 2 Number of Y translation values
+            // 1A 2 Start offset in dwords of the Y translations in the translation values table
+            // 
+            // The values at offsets 0x18 and 0x1A were still copied however in the case that their 
+            // range fell outside that of the X translation values then the values read were simply 
+            // whichever data came after the translation table in memory. 
+            // This patch checks whether the Y translation values have been correctly copied, indicated 
+            // by a value of "1" for the level format version specified at 0x7F bits 0-3 within the 
+            // level header and if not, will replace missing Y translation values with a value of 
+            // zero. The level is then saved with a level format version of "1". Levels whose level 
+            // format version is already "1" will not be modified.
+
+            Level level;
+            for (int i = 0; i < NUM_LEVELS; i++)
+            {
+                level = new Level(i, new NitroOverlay(this, (uint)(NEW_LEVEL_OVERLAYS_START_INDEX + i)));
+                level.SaveChanges();
+
+                lazyman.ReportProgress((int)(500 + ((99f / 52f) * i)));
+            }
+
+            lazyman.ReportProgress(599);
         }
 
         public void Patch()
@@ -675,6 +726,7 @@ namespace SM64DSe
             if (oldversion < 2) Patch_v2(lazyman); // patch v2: relocate level data to make it expandable
             if (oldversion < 3) Patch_v3(lazyman); // patch v3: fix for R4/acekard flashcarts
             if (oldversion < 4) Patch_v4(lazyman); // patch v4: level music data stored in and loaded from level overlays
+            if (oldversion < 5) Patch_v5(lazyman); // patch v5: fix missing texture animation y translation values
         }
     }
 }

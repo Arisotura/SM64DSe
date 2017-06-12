@@ -1,0 +1,7 @@
+Level Select:
+	Enable:  Set 0x0202aed8 to 0x02
+	Disable: Set 0x0202aed8 to 0x03
+	
+DL Hooks:
+	0x0202df84: Leads to DLCleanAllUsedByLevel
+	0x0202e034, 0x0202e06c: Leads to DLLoadAllUsedByLevel
