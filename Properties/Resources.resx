@@ -214,4 +214,10 @@
   <data name="level_ovl_init_EUR_001" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\level_ovl_init_EUR.001.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="dynamic_library_loader" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\dynamic_library_loader.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="static_overlay_loader" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\static_overlay_loader.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
 </root>

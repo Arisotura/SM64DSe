@@ -98,7 +98,7 @@ YBG_FallingRock::Spawner* YBG_FallingRock::Spawner::Spawn()
 int YBG_FallingRock::Spawner::InitResources()
 {
 	Model::LoadFile(modelFile);
-	MeshCollider::LoadFile(clsnFile);
+	MovingMeshCollider::LoadFile(clsnFile);
 	eventID = param1 & 0xff;
 	return 1;
 }
@@ -192,7 +192,7 @@ int YBG_FallingRock::InitResources()
 	UpdateModelTransform();
 	UpdateClsnPosAndRot();
 	
-	char* clsnF = MeshCollider::LoadFile(clsnFile);
+	char* clsnF = MovingMeshCollider::LoadFile(clsnFile);
 	clsn.SetFile(clsnF, clsnNextMat, 0x1000_f, ang.y, clpsBlock);
 	
 	wmClsn.Init(this, scale.x, 0_f, nullptr, nullptr);

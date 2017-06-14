@@ -106,7 +106,7 @@ ShyGuy* ShyGuy::Spawn()
 	static_assert(sizeof(Model) == 0x50, "Model is wrong size");
 	static_assert(sizeof(ModelAnim) == 0x64, "ModelAnim is wrong size");
 	static_assert(sizeof(ShadowVolume) == 0x28, "Shadow is wrong size");
-	static_assert(sizeof(MeshCollider) == 0x50, "MeshCollider is wrong size");
+	static_assert(sizeof(MovingMeshCollider) == 0x50, "MovingMeshCollider is wrong size");
 	static_assert(sizeof(CylinderClsn) == 0x34, "CylinderClsn is wrong size");
 	static_assert(sizeof(WithMeshClsn) == 0x1bc, "WithMeshClsn is wrong size");
 	static_assert(sizeof(RaycastLine) == 0x78, "RaycastLine is wrong size");

@@ -2,7 +2,7 @@
 
 namespace
 {
-	FixedSizeCLPS_Block<2> clpsBlock =
+	FixedSizeCLPS_Block<1> clpsBlock =
 	{
 		{'C', 'L', 'P', 'S'},
 		8,
@@ -53,7 +53,7 @@ int DoorBlocker::InitResources()
 	UpdateModelTransform();
 	UpdateClsnPosAndRot();
 	
-	char* clsnF = MeshCollider::LoadFile(clsnFile);
+	char* clsnF = MovingMeshCollider::LoadFile(clsnFile);
 	clsn.SetFile(clsnF, clsnNextMat, 0x1000_f, ang.y, clpsBlock);
 	
 	clsn.unkFunc18 = (decltype(clsn.unkFunc18))0x02039348;

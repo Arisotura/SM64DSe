@@ -136,6 +136,7 @@ struct Actor : public ActorBase
 		WRONG_AREA = 1 << 5,
 		GOING_TO_YOSHI_MOUTH = 1 << 17,
 		IN_YOSHI_MOUTH = 1 << 18,
+		CAN_SQUISH = 1 << 25,
 		AIMABLE_BY_EGG = 1 << 28
 	};
 	
@@ -200,7 +201,7 @@ struct Actor : public ActorBase
 	virtual void OnKicked(Actor& kicker);
 	virtual void OnPushed(Actor& pusher);
 	virtual void OnHitByCannonBlastedChar(Actor& blaster);
-	virtual void OnHitByMegaChar(Actor& megaChar);
+	virtual void OnHitByMegaChar(Player& megaChar);
 	virtual void Virtual70(Actor& attacker);
 	virtual Fix12i OnAimedAtWithEgg();
 	virtual Vector3 OnAimedAtWithEggReturnVec();
@@ -226,13 +227,15 @@ struct Actor : public ActorBase
 	
 	void Earthquake(const Vector3& source, Fix12i magnitude);
 	short ReflectAngle(Fix12i normalX, Fix12i normalZ, short angToReflect);
+	
+	bool BumpedUnderneathByPlayer(Player& player); //assumes there is a collision in the first place
 	bool JumpedOnByPlayer(CylinderClsn& cylClsn, Player& player);
 	void Unk_0201061c(Player& player, unsigned numCoins, unsigned coinType);
 	
 	Fix12i DistToCPlayer();
 	Player* ClosestPlayer();
 	short HorzAngleToCPlayer();
-	short HorzAngleToCPlayerOrAng();
+	short HorzAngleToCPlayerOrAng(short ang);
 	Player* FarthestPlayer();
 	Fix12i DistToFPlayer();
 	
@@ -369,24 +372,7 @@ struct CapEnemy : public Enemy
 struct Platform : public Actor
 {
 	Model model;
-	MeshCollider clsn;
-	unsigned unk174;
-	Matrix4x3 newTransform;
-	Matrix4x3 invMat4x3_1a8;
-	Matrix4x3 scMat4x3_1d8;
-	Matrix4x3 invMat4x3_208;
-	unsigned unk238;
-	unsigned unk23c;
-	unsigned unk240;
-	unsigned unk244;
-	unsigned unk248;
-	unsigned unk24c;
-	unsigned unk250;
-	unsigned unk254;
-	Matrix4x3 ledgeMat;
-	unsigned unk288;
-	Matrix4x3 clsnInvMat;
-	Matrix4x3 sc2InvMat4x3_2bc;
+	MovingMeshCollider clsn;
 	Matrix4x3 clsnNextMat;
 	unsigned unk31c;
 	
@@ -541,6 +527,22 @@ struct Area
 	unsigned unk8;
 };
 
+struct HUD : public ActorBase //ActorID = 0x14e
+{
+	unsigned unk50;
+	unsigned unk54;
+	unsigned unk58;
+	unsigned unk5c;
+	unsigned unk60;
+	unsigned unk64;
+	unsigned unk68;
+	unsigned unk6c;
+	unsigned unk70;
+	char currNumInDecimal[3];
+	uint8_t unk77;
+	unsigned unk78;
+};
+
 //vtable at 020921c0, constructor at 0202e088
 struct Stage : public ActorBase //ActorID = 0x003
 {
@@ -554,6 +556,7 @@ struct Stage : public ActorBase //ActorID = 0x003
 	uint8_t fogInfo;
 	uint16_t fogOffset;
 	uint16_t fogColor;
+	uint16_t unk992;
 	uint8_t unk994[0x20];
 	unsigned unk9b4;
 	unsigned unk9b8;
@@ -826,6 +829,23 @@ struct Player : public Actor
 		TK_UNK3 = 3  //+0x6e3 == 5 or 7
 	};
 	
+	enum Flags2
+	{
+		
+		
+		F2_CAMERA_ZOOM_IN = 1 << 2,
+		F2_TELEPORT = 1 << 3,
+		
+		
+		
+		F2_RESET_POSITION = 1 << 7,
+		
+		
+		F2_EXIT_LEVEL_IF_DEAD = 1 << 10,
+		F2_NO_CONTROL = 1 << 11,
+		F2_START_FLOWER_POWER = 1 << 12
+	};
+	
 	unsigned unk0d4;
 	unsigned unk0d8;
 	ModelAnim2* bodyModels[5]; //the fifth one is the Metal Wario model
@@ -849,9 +869,9 @@ struct Player : public Actor
 	CylinderClsnWithPos cylClsn;
 	CylinderClsnWithPos cylClsn2;
 	Actor* shellPtr;
-	unsigned unk358;
+	Actor* actorInHands;
 	unsigned unk35c;
-	unsigned unk360;
+	Actor* actorInMouth;
 	unsigned unk364;
 	ActorBase* speaker;
 	unsigned unk36c;
@@ -861,9 +881,7 @@ struct Player : public Actor
 	unsigned unk37c;
 	WithMeshClsn wmClsn;
 	Vector3 unk53c;
-	unsigned unk548;
-	unsigned unk54c;
-	unsigned unk550;
+	Vector3 unk540; //mirrors the player's position?
 	unsigned unk554;
 	unsigned unk558;
 	unsigned unk55c;
@@ -937,11 +955,13 @@ struct Player : public Actor
 	unsigned unk6b0;
 	unsigned unk6b4;
 	unsigned unk6b8;
-	unsigned unk6bc;
+	uint16_t unk6bc;
+	uint16_t powerupTimer;
 	unsigned unk6c0;
 	unsigned unk6c4;
 	unsigned unk6c8;
-	unsigned unk6cc;
+	uint16_t unk6cc;
+	uint16_t flags2;
 	unsigned unk6d0;
 	unsigned unk6d4;
 	uint8_t playerID; //always 0 in single player mode
@@ -950,13 +970,16 @@ struct Player : public Actor
 	uint8_t unk6db;
 	uint8_t prevHatChar; // 0x6DC
 	uint8_t currHatChar; // 0x6DD
-	uint8_t unk6de;
+	bool isInAir;
 	uint8_t unk6df;
 	uint8_t unk6e0;
 	uint8_t currJumpNumber; // 0x6E1: 0 - first, 1 - second, 2 - triple jump, more?
 	uint8_t unk6e2;
-	uint8_t climbingOrPushingRelated; // 0x6E3: 1 - on pole or moving along wall, 2 - moving while grabbing roof or pushing object, 3 - hitting wall under water?
-	unsigned unk6e4;
+	uint8_t stateState; // 0x6E3: the current state of the current state. How meta.
+	uint8_t unk6e4;
+	uint8_t canFlutterJump;
+	uint8_t unk6e6;
+	uint8_t unk6e7;
 	uint8_t unk6e8;
 	uint8_t currClsnState; // 0x06E9: 0 - not colliding, 1 - standing on ground, 2 - colliding with wall in water, 3 - colliding with wall on land 
 	uint16_t unk6ea;
@@ -975,10 +998,12 @@ struct Player : public Actor
 	uint8_t unk705;
 	bool isUnderwater;
 	uint8_t unk707;
-	unsigned unk708;
+	uint8_t unk708;
+	uint8_t unk709;
+	uint16_t unk70a;
 	unsigned unk70c;
 	uint16_t unk710;
-	uint8_t isInAir; // 0x712
+	uint8_t isInAirIsh; // 0x712
 	uint8_t unk713;
 	uint8_t unk714;
 	uint8_t unk715;
@@ -1033,7 +1058,7 @@ struct Player : public Actor
 	int GetTalkState();
 	bool IsOnShell(); //if not on shell, reset shell ptr
 	void Burn();
-	void Shock(unsigned damage); //theory
+	void Shock(unsigned damage);
 	void RegisterEggCoinCount(unsigned numCoins, bool includeSilverStar, bool includeBlueCoin);
 	//speed is multiplied by constant at 0x020ff128+charID*2 and divided by 50 (? could be 25, could be 100).
 	void Hurt(const Vector3& source, unsigned damage, Fix12i speed, unsigned arg4, unsigned presetHurt, unsigned spawnOuchParticles);
@@ -1065,7 +1090,7 @@ struct ActorDeathTable
 	byte deadObjs[64]; //technically 512 booleans
 };
 
-const int LEVEL_COUNT = 52;
+const int NUM_LEVELS = 52;
 const int NUM_ACT_SELECTORS = 0x1e;
 const int NUM_MAIN_LEVELS = 0xf;
 struct Save0
@@ -1138,11 +1163,11 @@ extern "C"
 {
 	extern char** DL_PTR_ARR_PTR;
 	
-	extern char* LEVEL_PART_TABLE;
-	extern char* SUBLEVEL_LEVEL_TABLE;
+	extern char LEVEL_PART_TABLE[NUM_LEVELS];
+	extern char SUBLEVEL_LEVEL_TABLE[NUM_LEVELS];
 	
 	extern int ACTOR_BANK_OVL_MAP[7][7];
-	extern int LEVEL_OVL_MAP[LEVEL_COUNT];
+	extern int LEVEL_OVL_MAP[NUM_LEVELS];
 	
 	extern MsgGenTextFunc MSG_GEN_TEXT_FUNCS[3];
 	
@@ -1166,10 +1191,12 @@ extern "C"
 	extern char LEVEL_ID;
 	extern char STAR_ID;
 	extern uint8_t MAP_TILE_ARR_SIZE;
+	extern char NUM_LIVES;
 	extern Area* AREAS;
 	extern Camera* CAMERA;
 	extern Fix12i WATER_HEIGHT;
 	extern int EVENT_FIELD;
+	extern short NUM_COINS[2];
 	extern Player* PLAYER_ARR[4];
 	
 	extern Actor* SILVER_STARS[12];	

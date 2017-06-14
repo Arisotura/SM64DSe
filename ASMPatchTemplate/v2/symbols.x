@@ -14,6 +14,7 @@ UTF16_TO_FONT_TABLE					                                              = 0x02075d
 PARTICLE_ROM_EMBEDDED_FILE			                                              = 0x02075f14;
 TEX_ROM_EMBEDDED_FILE				                                              = 0x0207cd74;
                                                         
+_ZN9Matrix3x38IDENTITYE 				                                          = 0x02082128;
 _ZN9Matrix4x38IDENTITYE 				                                          = 0x02082128;
 
 CAM_SPACE_CAM_POS_ASR_3															  = 0x02086ef0;
@@ -23,7 +24,7 @@ POWERS_OF_TEN						                                              = 0x0208ee64;
 DIGIT_ENC_ARR						                                              = 0x0208ee74;
 MSG_GEN_TEXT_FUNCS					                                              = 0x0208ee80;
 MSG_ID_CHAR_MAP																	  = 0x0208eeec;
-TEXT_FONT_CHAR_WIDTHS															  = 0x0208f074;
+TALK_FONT_CHAR_WIDTHS															  = 0x0208f074;
                                                         
 ACTOR_BANK_SETTINGS					                                              = 0x020922a4;
                                                         
@@ -52,15 +53,17 @@ PARTICLE_SYS_TRACKER				                                              = 0x0209ee
 IMMUNE_TO_DAMAGE 					                                              = 0x0209f0d8;
                                                         
 TTC_CLOCK_SETTING 					                                              = 0x0209f2c0;
-LEVEL_ID 							                                              = 0x0209f2f8;
 STAR_ID 							                                              = 0x0209f220;
 MAP_TILE_ARR_SIZE					                                              = 0x0209f2e8;
+NUM_LIVES																		  = 0x0209f2f4;
+LEVEL_ID 							                                              = 0x0209f2f8;
 AREAS																			  = 0x0209f314;
 CAMERA								                                              = 0x0209f318;
 WATER_HEIGHT																 	  = 0x0209f32c;
 MAP_TILE_ARR_PTR					                                              = 0x0209f334;
 EVENT_FIELD							                                              = 0x0209f34c;
 VIEW_ARR_PTR						                                              = 0x0209f354;
+NUM_COINS																		  = 0x0209f358;
 PLAYER_ARR 							                                              = 0x0209f394;
                                                         
 SILVER_STARS 						                                              = 0x0209f40c;
@@ -83,6 +86,10 @@ PARTICLE_RNG_STATE					                                              = 0x020a4d3
 
 _ZN5Sound7PLAYERSE															  	  = 0x020a4d6c;
 _ZN5Sound8SDAT_RAM3PTRE															  = 0x020a5bb8;
+
+_ZN7Message9SpriteRef5TIMESE													  = 0x020ab9c8;
+_ZN7Message9SpriteRef11NUMBER_PTRSE												  = 0x020aba70;
+_ZN7Message9SpriteRef4COINE													  	  = 0x020abad8;
 
 _ZN6Player9ANIM_PTRSE															  = 0x020ff480;
                                                         
@@ -159,7 +166,7 @@ _ZN5Actor11SpawnNumberERK7Vector3jbjj											  = 0x02010044;
 _ZN5Actor25OnAimedAtWithEggReturnVecEv											  = 0x020100dc;
 _ZN5Actor16OnAimedAtWithEggEv													  = 0x02010124;
 _ZN5Actor9Virtual70ERS_															  = 0x0201012c;
-_ZN5Actor15OnHitByMegaCharERS_													  = 0x02010130;
+_ZN5Actor15OnHitByMegaCharER6Player												  = 0x02010130;
 _ZN5Actor24OnHitByCannonBlastedCharERS_											  = 0x02010134;
 _ZN5Actor8OnPushedERS_															  = 0x02010138;
 _ZN5Actor8OnKickedERS_															  = 0x0201013c;
@@ -171,6 +178,7 @@ _ZN5Actor13OnTurnIntoEggER6Player												  = 0x02010154;
 _ZN5Actor13OnYoshiTryEatEv														  = 0x02010160;
 _ZN5Actor10EarthquakeERK7Vector35Fix12IiE					                      = 0x02010168;
 _ZN5Actor12ReflectAngleE5Fix12IiES1_s 					                          = 0x02010428;
+_ZN5Actor24BumpedUnderneathByPlayerER6Player									  = 0x02010518;
 _ZN5Actor16JumpedOnByPlayerER12CylinderClsnR6Player 				              = 0x0201054c;
 _ZN5Actor12Unk_0201061cER6Playerjj						                          = 0x0201061c;
 _ZN5Actor13DistToFPlayerEv 				                                          = 0x0201092c;
@@ -195,8 +203,8 @@ _ZN5Actor21AfterCleanupResourcesEj												  = 0x02011214;
 _ZN5Actor22BeforeCleanupResourcesEv												  = 0x02011220;
 _ZN5Actor18AfterInitResourcesEj													  = 0x02011244;
 _ZN5Actor19BeforeInitResourcesEv												  = 0x02011268;
-_ZN5ActorD2Ev 						                                              = 0x02011374;
 _ZN5ActorD0Ev																	  = 0x02011314;
+_ZN5ActorD2Ev 						                                              = 0x02011374;
 _ZN5ActorC2Ev						                                              = 0x0201150c;
                                                         
 _ZN5Sound13PlayCharVoiceEjjRK7Vector3											  = 0x02012154;
@@ -210,16 +218,25 @@ _ZN5Sound8EndMusicEjj															  = 0x02012998;
 _ZN5Sound8SetMusicEjj															  = 0x02012a68;
 _ZN5Sound15StopLoadedMusicEv													  = 0x02012af8;
 _ZN5Sound15LoadAndSetMusicEj													  = 0x02012bbc;
-_ZN5Sound11PlayMsgSoundEjjj5Fix12IiEb											  = 0x02012be0;
+_ZN5Sound12PlayMsgSoundEjjj5Fix12IiEb											  = 0x02012be0;
 _ZN5Sound17ChangeMusicVolumeEj5Fix12IiE											  = 0x02012d2c;
                                                         
 SublevelToLevel						                                              = 0x02013558;
 NumStars							                                              = 0x0201367c;
 IsStarCollected						                                              = 0x020137e0;
                                                         
+_ZN19CylinderClsnWithPos21SetPosRelativeToActorERK7Vector3						  = 0x0201489c;
+_ZN19CylinderClsnWithPos4InitEP5ActorRK7Vector35Fix12IiES6_jj 					  = 0x020148c8;
 _ZN12CylinderClsn4InitEP5Actor5Fix12IiES3_jj 						              = 0x0201490c;
+_ZN12CylinderClsn10GetOwnerIDEv													  = 0x0201493c;
+_ZN12CylinderClsn6GetPosEv													  	  = 0x02014948;
+_ZN12CylinderClsnD0Ev				                                              = 0x02014978;
 _ZN12CylinderClsnD1Ev				                                              = 0x020149a4;
 _ZN12CylinderClsnC1Ev 					                                          = 0x020149c8;
+_ZN19CylinderClsnWithPos6GetPosEv												  = 0x02014a2c;
+_ZN19CylinderClsnWithPosD0Ev				                                      = 0x02014a34;
+_ZN19CylinderClsnWithPosD1Ev				                                      = 0x02014a60;
+_ZN19CylinderClsnWithPosC1Ev 					                                  = 0x02014a84;
 _ZN12CylinderClsn6UpdateEv 						                                  = 0x02014ff0;
 _ZN12CylinderClsn5ClearEv 					                                      = 0x02015024;
                                                         
@@ -253,7 +270,7 @@ _ZN10ModelAnim28CopyAnimERS_PcS1_												  = 0x02016254;
                                                         
 _ZN9ModelAnim7SetAnimEPci5Fix12IiEj 				                              = 0x02016748;
 _ZN9ModelAnim6RenderEPK7Vector3													  = 0x020167f8;								  
-_ZN9ModelAnim9Virtual10ER9Matrix4x3												  = 0x02016828;
+_ZN9ModelAnim9Virtual10ER9Matrix4x3												  = 0x0201682c;
 _ZN9ModelAnim11UpdateVertsEv													  = 0x0201686c;
 _ZN9ModelAnimD0Ev					                                              = 0x020168d8;
 _ZN9ModelAnimD1Ev					                                              = 0x0201691c;
@@ -271,7 +288,7 @@ _ZN15TextureSequence8LoadFileER13SharedFilePtr                                  
 _ZN13BoneAnimation8LoadFileER13SharedFilePtr 							          = 0x0201794c;
 _ZN13SharedFilePtr9ConstructEj													  = 0x0201799c;
 _ZN5Model8LoadFileER13SharedFilePtr 							                  = 0x02017a3c;
-_ZN12MeshCollider8LoadFileER13SharedFilePtr 							          = 0x02017afc;
+_ZN18MovingMeshCollider8LoadFileER13SharedFilePtr 							      = 0x02017afc;
 _ZN13SharedFilePtr7ReleaseEv 					                                  = 0x02017b64;
 _ZN13SharedFilePtr4LoadEv														  = 0x02017c54;
 UnloadObjBankOverlay				                                              = 0x02017f34;
@@ -286,6 +303,8 @@ _ZN7Message11PrepareTalkEv														  = 0x0201ab38;
                                                         
 _ZN7Message7AddCharEc							                                  = 0x0201b5a8;
 _ZN7Message7DisplayEj						                                      = 0x0201e574;
+
+_ZN7Message10ShowNumberEbRNS_9SpriteRefEiiijj									  = 0x020214a4;
 
 _ZN8Particle14SplashCallback8OnUpdateERNS_6SystemEb								  = 0x020224fc;
 _ZN8Particle14SimpleCallback8OnUpdateERNS_6SystemEb								  = 0x02022630;
@@ -343,19 +362,24 @@ _ZN11RaycastLineC1Ev	 			                                              = 0x02037
 _ZN10SphereClsn15SetObjAndSphereERK7Vector35Fix12IiEP5Actor						  = 0x02037c00;
 _ZN10SphereClsnD1Ev																  = 0x02037cb0;
 _ZN10SphereClsnC1Ev																  = 0x02037d18;
-_ZN10ClsnResultC1Ev 				                                              = 0x02038144;
-_ZN10ClsnResult5ResetEv 				                                          = 0x02038144;
+_ZN10ClsnResultD1Ev 				                                              = 0x02038144;
+_ZN10ClsnResultC1Ev 				                                              = 0x0203816c;
+_ZN10ClsnResult5ResetEv 				                                          = 0x0203816c;
 _ZN11RaycastLine10DetectClsnEv 				                                      = 0x02038638;
 _ZN10SphereClsn10DetectClsnEv													  = 0x02038b78;
 _ZN13RaycastGround10DetectClsnEv 			                                      = 0x02038f44;
                                                         
 _ZN12MeshCollider7DisableEv 						                              = 0x02039140;
-_ZN12MeshCollider6EnableEv 						                                  = 0x02039184;
+_ZN12MeshCollider6EnableEP5Actor 						                          = 0x02039184;
 _ZN12MeshCollider9IsEnabledEv 						                              = 0x020393dc;
-_ZN12MeshCollider9TransformER9Matrix4x3s 						                  = 0x02039f20;
-_ZN12MeshCollider7SetFileEPcR9Matrix4x35Fix12IiEsR10CLPS_Block 					  = 0x0203a1e0;
-_ZN12MeshColliderD1Ev				                                              = 0x0203a470;
-_ZN12MeshColliderC1Ev						                                      = 0x0203a494;
+_ZN12MeshColliderD0Ev				                                        	  = 0x0203982c;
+_ZN12MeshColliderD1Ev				                                        	  = 0x02039864;
+_ZN12MeshColliderC1Ev						                                  	  = 0x02039894;
+_ZN18MovingMeshCollider9TransformER9Matrix4x3s 						              = 0x02039f20;
+_ZN18MovingMeshCollider7SetFileEPcR9Matrix4x35Fix12IiEsR10CLPS_Block 			  = 0x0203a1e0;
+_ZN18MovingMeshColliderD0Ev				                                          = 0x0203a444;
+_ZN18MovingMeshColliderD1Ev				                                          = 0x0203a470;
+_ZN18MovingMeshColliderC1Ev						                                  = 0x0203a494;
                                                         
 _ZN7PathPtr6FromIDEj						                                      = 0x0203ac80;
 _ZN7PathPtr5GetPtER7Vector3j						                              = 0x0203acdc;
@@ -369,6 +393,7 @@ AdvanceToDest_Int 					                                              = 0x0203ae5
                                                         
 AngleDiff							                                              = 0x0203b0e8;
 Atan2 								                                              = 0x0203b4dc;
+Vec3_RotateYAndTranslate														  = 0x0203b6a4;
 Vec3_VertAngle 						                                              = 0x0203b770;
 Vec3_HorzAngle 						                                              = 0x0203b7ac;
 RandomIntInternal					                                              = 0x0203b990;
@@ -377,6 +402,10 @@ Matrix4x3_FromRotationY 			                                              = 0x020
 Matrix4x3_FromRotationX 			                                              = 0x0203bdb0;
 Matrix4x3_FromRotationZXYExt 		                                              = 0x0203bdf4;
 Matrix4x3_FromRotationXYZExt 		                                              = 0x0203be9c;
+Matrix4x3_FromTranslation 		                                            	  = 0x0203bf44;
+Matrix4x3_ApplyInPlaceToRotationZ												  = 0x0203bf90;
+Matrix4x3_ApplyInPlaceToRotationY												  = 0x0203bfc0;
+Matrix4x3_ApplyInPlaceToRotationX												  = 0x0203bff0;
                                                         
 _ZdlPv			 					                                              = 0x0203c1b4;                                                        
 _ZdaPv			 					                                              = 0x0203c1b4;
@@ -434,7 +463,11 @@ _ZN8Particle5Drift4FuncERNS_10EffectDataEPcR7Vector3							  = 0x0204d8b0;
 
 _ZN5Sound23InfoInstrumentBankEntry9GetWithIDEj									  = 0x02050bb0;
 _ZN5Sound17InfoSequenceEntry9GetWithIDEj										  = 0x02050c78;
-                                                        
+          
+Matrix3x3_LoadIdentity															  = 0x020524f0;	
+Math_MulVec3Mat3x3 					                                              = 0x020525a0;
+Math_MulMat3x3Mat3x3				                                              = 0x02052624;
+Matrix4x3_LoadIdentity															  = 0x020527c0;		  
 Matrix4x3_FromScale					                                              = 0x020527e9; /* gcc fails to generate a blx instruction to call this; so it's one off. */
 Math_MulVec3Mat4x3 					                                              = 0x02052858;
 Math_MulMat4x3Mat4x3				                                              = 0x02052914;
@@ -457,6 +490,7 @@ InvalidateDataCache														  		  = 0x02058c40;
 InvalidateInstructionCache														  = 0x02058c68;
                                                         
 MultiStore_Int						                                              = 0x0205a47c;
+MultiCopy_Int																	  = 0x0205a490;
                                                         
 String_Compare 						                                              = 0x02070508;
                                                         
@@ -519,41 +553,13 @@ _ZN8Platform13IsClsnInRangeE5Fix12IiES1_ 				                          = 0x020ee
 _ZN8Platform21IsClsnInRangeOnScreenE5Fix12IiES1_ 		                          = 0x020ee934;
 _ZN8PlatformC2Ev 					                                              = 0x020eea50;
 
-Player_PerformAction = 0x020BEF2C;
-ParticleEffect = 0x02022E98;
-ComplexParticleEffect = 0x02022D80;
-OBJ_028_PositionUpdateDrawMethod = 0x02139850;
 Player_PlaySoundEffect = 0x02011E28;
 
-FindNextObjectByActorID = 0x02010EF0;
-
-VEC3_NotEqual = 0x0203d024;
-VEC3_Equal = 0x0203d064;
-VEC3_DivScalarInPlace = 0x0203d170;
-VEC3_MulScalarInPlace = 0x0203d224;
-VEC3_MulScalar = 0x0203d290;
-
-MATH_Sqrt64 = 0x0203d744;
-
-VEC3_Mag = 0x020536e4;
-VEC3_Cross = 0x02053770;
-VEC3_Dot = 0x0205380c;
-VEC3_Sub = 0x02053850;
-
-OBJ_TalkToPlayer = 0x020C4EC0;
-
-OBJ_UpdateObjectModelPosRotXYZ = 0x02131340;
-OBJ_UpdateObjectModelRotation = 0x0203BE9C;
-OBJ_UpdateObjectModelRotationY = 0x0203BD6C;
-OBJ_NeedsCollisionUpdate2 = 0x020EE934;
 AreCannonsActivatedForCurrentLevel = 0x0202A694;
 SetCannonsToActivatedForCurrentLevel = 0x0202A67C;
 LoadLevel = 0x0202ACC0;
 LeanPlayerForwardWhileRunning = 0x0203B008;
 Player_WasLastAction = 0x020BEECC;
 Player_DoesStateEqual = 0x020E308C;
-Player_ChangeHealthTarget = 0x020BF4E4;
-GetActSelectorID = 0x02013558;
 OBJ_UpdateObjectXYZSpeedBasedOnForwardSpeedAndDirection = 0x02010C5C;
-OBJ_CalculateObjectNextXYZPostionFromCurrentPositionAndSpeed = 0x0203D340;
 ObjectMessageIDToActualMessageID = 0x0201FC10;

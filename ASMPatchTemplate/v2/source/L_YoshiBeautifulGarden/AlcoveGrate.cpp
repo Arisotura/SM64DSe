@@ -53,7 +53,7 @@ int YBG_AlcoveGrate::InitResources()
 	UpdateModelTransform();
 	UpdateClsnPosAndRot();
 	
-	char* clsnF = MeshCollider::LoadFile(clsnFile);
+	char* clsnF = MovingMeshCollider::LoadFile(clsnFile);
 	clsn.SetFile(clsnF, clsnNextMat, 0x1000_f, ang.y, clpsBlock);
 	clsn.beforeClsnCallback = (decltype(clsn.beforeClsnCallback))0x02039348;
 	eventID = param1 & 0xff;

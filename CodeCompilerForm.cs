@@ -25,6 +25,9 @@ namespace SM64DSe
 
         private void btnCompile_Click(object sender, EventArgs e)
         {
+            if (!Patcher.PatchMaker.PatchToSupportBigASMHacks())
+                return;
+
             //code and patcher borrowed from NSMBe and edited.
             System.IO.DirectoryInfo dir = new System.IO.DirectoryInfo(txtFolder.Text);
             Patcher.PatchMaker pm = new Patcher.PatchMaker(dir,

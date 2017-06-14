@@ -128,7 +128,7 @@ int YBG_Sprinkler::InitResources()
 	UpdateModelPosAndRotY();
 	UpdateClsnPosAndRot();
 	
-	char* clsnF = MeshCollider::LoadFile(clsnFile);
+	char* clsnF = MovingMeshCollider::LoadFile(clsnFile);
 	clsn.SetFile(clsnF, clsnNextMat, CLSN_SCALE, ang.y, clpsBlock);
 	clsn.beforeClsnCallback = (decltype(clsn.beforeClsnCallback))0x02039348;
 	eventID = param1 & 0xff;

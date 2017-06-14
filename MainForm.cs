@@ -132,13 +132,11 @@ namespace SM64DSe
             btnASMHacking.Enabled = true;
             btnTools.Enabled = true;
             btnMore.Enabled = true;
-
-            EnableOrDisableASMHackingCompilationAndGenerationFeatures();
         }
 
         private void EnableOrDisableASMHackingCompilationAndGenerationFeatures()
         {
-            if (!Properties.Settings.Default.EnableASMHackingCompilationAndGeneration)
+            if (Program.m_ROM.m_Version != NitroROM.Version.EUR)
             {
                 btnASMHacking.DropDownItems.Remove(mnitASMHackingCompilation);
                 btnASMHacking.DropDownItems.Remove(mnitASMHackingGeneration);
@@ -304,7 +302,6 @@ namespace SM64DSe
         private void btnEditorSettings_Click(object sender, EventArgs e)
         {
             new SettingsForm().ShowDialog(this);
-            EnableOrDisableASMHackingCompilationAndGenerationFeatures();
         }
 
         private void btnHalp_Click(object sender, EventArgs e)

@@ -51,7 +51,7 @@ int BBL2_Plank::InitResources()
 	UpdateModelPosAndRotXYZ();
 	UpdateClsnPosAndRot();
 	
-	char* clsnF = MeshCollider::LoadFile(clsnFile);
+	char* clsnF = MovingMeshCollider::LoadFile(clsnFile);
 	clsn.SetFile(clsnF, clsnNextMat, 0x1000_f, ang.y, clpsBlock);
 	
 	//rayStart = {0, 0, -0xfa000}.RotateY(ang.y) + pos + {0, 0x14000, 0}

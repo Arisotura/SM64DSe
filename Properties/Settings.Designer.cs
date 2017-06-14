@@ -82,17 +82,5 @@ namespace SM64DSe.Properties {
                 this["UseSimpleModelAndCollisionMapImporters"] = value;
             }
         }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool EnableASMHackingCompilationAndGeneration {
-            get {
-                return ((bool)(this["EnableASMHackingCompilationAndGeneration"]));
-            }
-            set {
-                this["EnableASMHackingCompilationAndGeneration"] = value;
-            }
-        }
     }
 }

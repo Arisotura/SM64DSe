@@ -105,7 +105,7 @@ int PipeVH::InitResources()
 	UpdateShadowMatrix();
 	UpdateStubModel();
 	
-	char* clsnF = MeshCollider::LoadFile(clsnFile);
+	char* clsnF = MovingMeshCollider::LoadFile(clsnFile);
 	clsn.SetFile(clsnF, clsnNextMat, 0x0100_f, ang.y, clpsBlock);
 	
 	SetClsnHeight();

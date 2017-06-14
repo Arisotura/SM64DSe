@@ -48,7 +48,7 @@ export LD	:=	$(PREFIX)ld
 #---------------------------------------------------------------------------------
 TARGET		:=	newcode
 BUILD		:=	build
-SOURCES		:=	source/F_DLLoader libfat_source
+SOURCES		:=	source/P_TestPlatform libfat_source
 INCLUDES	:=	include
 DATA		:=	data  
 GRAPHICS	:=	gfx  

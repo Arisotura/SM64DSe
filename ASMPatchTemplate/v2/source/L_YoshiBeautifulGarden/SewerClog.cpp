@@ -116,7 +116,7 @@ int YBG_SewerClog::InitResources()
 	UpdateModelTransform();
 	UpdateClsnPosAndRot();
 	
-	char* clsnF = MeshCollider::LoadFile(clsnFile);
+	char* clsnF = MovingMeshCollider::LoadFile(clsnFile);
 	clsn.SetFile(clsnF, clsnNextMat, 0x1000_f, ang.y, clpsBlock);
 	
 	eventID = param1 & 0xff;

@@ -253,6 +253,16 @@ namespace SM64DSe.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] dynamic_library_loader {
+            get {
+                object obj = ResourceManager.GetObject("dynamic_library_loader", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] level_ovl_init_EUR_000 {
             get {
                 object obj = ResourceManager.GetObject("level_ovl_init_EUR_000", resourceCulture);
@@ -386,6 +396,16 @@ namespace SM64DSe.Properties {
             get {
                 object obj = ResourceManager.GetObject("StarFull1", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] static_overlay_loader {
+            get {
+                object obj = ResourceManager.GetObject("static_overlay_loader", resourceCulture);
+                return ((byte[])(obj));
             }
         }
         

@@ -55,7 +55,7 @@ int BBL2_MegaBlock::InitResources()
 	UpdateClsnPosAndRot();
 	UpdateShadowMatrix();
 	
-	char* clsnF = MeshCollider::LoadFile(clsnFile);
+	char* clsnF = MovingMeshCollider::LoadFile(clsnFile);
 	clsn.SetFile(clsnF, clsnNextMat, 0x1000_f, ang.y, clpsBlock);
 	
 	Model::LoadFile(SILVER_NUMBER_MODEL_PTR);

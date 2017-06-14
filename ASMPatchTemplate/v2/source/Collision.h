@@ -7,11 +7,11 @@ struct CylinderClsn;
 struct WithMeshClsn;
 struct RaycastGround;
 struct RaycastLine;
-struct MeshCollider;
+struct MovingMeshCollider;
 struct ClsnResult;
 extern "C"
 {
-	extern MeshCollider* ACTIVE_MESH_CLSNS[0x18];
+	extern MovingMeshCollider* ACTIVE_MESH_CLSNS[0x18];
 }
 
 struct CLPS
@@ -73,6 +73,7 @@ struct CLPS
 		BH_SLOW_QUICKSAND = 0x07,
 		BH_SLOW_QUICKSAND_2 = 0x08,
 		BH_INSTANT_QUICKSAND = 0x09,
+		BH_HARD = 0x0e,
 		BH_RACE_START = 0x0f,
 		BH_RACE_END = 0x10,
 		BH_VANISH_LUIGI_GRATE = 0x11,
@@ -97,7 +98,8 @@ struct CLPS
 	inline unsigned BehaviorID()      const {return low >> 19 & 0x1f;}
 	inline bool     CanCamGoThrough() const {return low & 0x01000000;}
 	inline bool     IsToxic()         const {return low & 0x02000000;}
-	inline bool     IsUnk26()         const {return low & 0x04000000;}
+	inline bool     IsCameraWall()    const {return low & 0x04000000;}
+	inline unsigned Padding()		  const {return low >> 27;}
 	inline unsigned WindID()          const {return high & 0xff;}
 };
 	
@@ -120,7 +122,7 @@ template<int Size> struct FixedSizeCLPS_Block //flexible arrays cannot be static
 
 struct MeshCollider
 {
-	unsigned* vTable;
+	//vtable
 	Actor* actor;
 	unsigned unk08;
 	Fix12i range;
@@ -140,13 +142,39 @@ struct MeshCollider
 	unsigned unk4c;
 	
 	MeshCollider();
-	~MeshCollider();
+	virtual ~MeshCollider();
+	
 	bool Disable();
-	bool Enable();
+	bool Enable(Actor* actor);
 	bool IsEnabled();
-	void Transform(Matrix4x3& mat, short rotY);
+};
+
+struct MovingMeshCollider : public MeshCollider
+{
+	unsigned unk50;
+	Matrix4x3 newTransform;
+	Matrix4x3 invMat4x3_084;
+	Matrix4x3 scMat4x3_0b4;
+	Matrix4x3 invMat4x3_0e4;
+	unsigned unk114;
+	unsigned unk118;
+	unsigned unk11c;
+	unsigned unk120;
+	unsigned unk124;
+	unsigned unk128;
+	unsigned unk12c;
+	unsigned unk130;
+	Matrix4x3 ledgeMat;
+	unsigned unk164;
+	Matrix4x3 clsnInvMat;
+	Matrix4x3 sc2InvMat4x3_198;
+	
+	MovingMeshCollider();
+	virtual ~MovingMeshCollider();
+	
 	static char* LoadFile(SharedFilePtr& filePtr);
 	void SetFile(char* clsnFile, Matrix4x3& mat, Fix12i scale, short angleY, CLPS_Block& clps);
+	void Transform(Matrix4x3& mat, short rotY);
 };
 
 struct CylinderClsn
@@ -184,7 +212,6 @@ struct CylinderClsn
 		HIT_BY_PLAYER = 1 << 27
 	};
 
-	unsigned* vTable;
 	Fix12i radius;
 	Fix12i height;
 	Vector3 pushback;
@@ -194,10 +221,13 @@ struct CylinderClsn
 	unsigned otherObjID;
 	unsigned unk28;
 	unsigned unk2c;
-	unsigned unk30;
+	Actor* owner;
 	
 	CylinderClsn();
-	~CylinderClsn();
+	virtual ~CylinderClsn();
+	virtual Vector3& GetPos();
+	virtual unsigned GetOwnerID();
+	
 	void Init(Actor* actor, Fix12i radius, Fix12i height, unsigned flags, unsigned vulnFlags);
 	void Update();
 	void Clear();
@@ -206,6 +236,13 @@ struct CylinderClsn
 struct CylinderClsnWithPos : CylinderClsn
 {
 	Vector3 pos;
+	
+	CylinderClsnWithPos();
+	virtual ~CylinderClsnWithPos();
+	virtual Vector3& GetPos() override;
+	
+	void Init(Actor* actor, const Vector3& pos, Fix12i radius, Fix12i height, unsigned flags, unsigned vulnFlags); //pos is transformed by the object's Y angle
+	void SetPosRelativeToActor(const Vector3& pos);
 };
 
 struct ClsnResult
@@ -217,7 +254,7 @@ struct ClsnResult
 	short clsnID; //not constant per object, 0x18 if in air (only 24 mesh colliders can be active at a time)
 	unsigned objID;
 	Actor* obj;
-	MeshCollider* meshClsn;
+	MovingMeshCollider* meshClsn;
 	
 	ClsnResult();
 	void Reset();

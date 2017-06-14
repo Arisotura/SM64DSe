@@ -412,6 +412,7 @@
       <DependentUpon>TextureEditorForm.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="app.config" />
+    <None Include="dynamic_library_loader.bin" />
     <None Include="level_ovl_init_EUR.000.bin" />
     <None Include="level_ovl_init_EUR.001.bin" />
     <None Include="level_ovl_init_EUR.bin" />
@@ -447,6 +448,7 @@
     <Compile Include="TextureAnimationForm.Designer.cs">
       <DependentUpon>TextureAnimationForm.cs</DependentUpon>
     </Compile>
+    <None Include="static_overlay_loader.bin" />
   </ItemGroup>
   <ItemGroup>
     <None Include="obj_list.txt" />

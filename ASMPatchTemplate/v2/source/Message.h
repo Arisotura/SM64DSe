@@ -16,6 +16,16 @@
 
 struct Message
 {
+	struct SpriteRef
+	{
+		unsigned unk0;
+		unsigned unk4;
+		
+		static SpriteRef COIN;
+		static SpriteRef* NUMBER_PTRS[20]; //first 10 are gold versions of 0-9, last 10 are red versions of 0-9
+		static SpriteRef TIMES;
+	};
+	
 	/*static wchar_t chars = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F',
 							'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V',
 							'W', 'X', 'Y', 'Z', '「', '」', '?', '!', '~', ',', '“', '”', '•', 'a', 'b', 'c',
@@ -37,6 +47,9 @@ struct Message
 	
 	static void AddChar(char charInFontEncoding);
 	static void Display(unsigned msgID);
+	//Add 9 to the horizontal spacing to show multiple digits.
+	// (usual values)                                                               -1                           1              0
+	static void ShowNumber(bool bottomScreen, SpriteRef& number, int x, int y, int dontInvertGradient, unsigned arg5, unsigned arg6);
 };
 
 struct MsgFile

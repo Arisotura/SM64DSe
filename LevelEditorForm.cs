@@ -125,7 +125,7 @@ namespace SM64DSe
             m_ObjectBeingPlaced = 0xFFFF;
             m_ShiftPressed = false;
 
-            btnMakeOverlay.Visible = Properties.Settings.Default.EnableASMHackingCompilationAndGeneration;
+            btnMakeOverlay.Visible = (Program.m_ROM.m_Version == NitroROM.Version.EUR);
 
             slStatusLabel.Text = "Ready";
         }

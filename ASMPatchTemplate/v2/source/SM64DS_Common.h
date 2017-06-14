@@ -21,8 +21,8 @@ extern "C"
 {
 	int Math_DivQ12(int numerator, int denominator);
 	
-	uint16_t DecIfAbove0_Short(uint16_t& counter);
-	uint8_t DecIfAbove0_Byte(uint8_t& counter);
+	uint16_t DecIfAbove0_Short(uint16_t& counter); //returns the counter's new value
+	uint8_t DecIfAbove0_Byte(uint8_t& counter); //returns the counter's new value
 	bool AdvanceToDest_Short(short& counterPtr, short dest, short step); //returns whether the counter reached its destination
 	bool AdvanceToDest_Int(int& counterPtr, int dest, int step);
 }
@@ -70,13 +70,27 @@ using Fix12s = Fix12<short>;
 constexpr Fix12i operator""_f (unsigned long long val) {return Fix12i(val, true);}
 constexpr Fix12s operator""_fs(unsigned long long val) {return Fix12s(val, true);}
 
-enum Input : short
+enum Input : uint16_t
 {
-	A = 1 << 0
+	A = 1 << 0,
+	B = 1 << 1,
+	SELECT = 1 << 2,
+	START = 1 << 3,
+	RIGHT = 1 << 4,
+	LEFT = 1 << 5,
+	UP = 1 << 6,
+	DOWN = 1 << 7,
+	CAM_RIGHT = 1 << 8,
+	CAM_LEFT = 1 << 9,
+	R = 1 << 10,
+	Y = 1 << 11,
+	L = 1 << 14,
+	X = 1 << 15
 };
 struct Vector3;
 struct Vector3_16;
 struct Matrix4x3;
+struct Matrix3x3;
 struct SharedFilePtr;
 extern "C"
 {
@@ -106,14 +120,19 @@ extern "C"
 	
 	short AngleDiff(short ang0, short ang1) __attribute__((const));
 	short Atan2(Fix12i y, Fix12i x) __attribute__((const));
+	void Vec3_RotateYAndTranslate(Vector3* vF, const Vector3* translation, short angY, const Vector3* v0); //vF and v0 cannot alias.
 	short Vec3_VertAngle(const Vector3* v1, const Vector3* v0) __attribute__((pure));
 	short Vec3_HorzAngle(const Vector3* v0, const Vector3* v1) __attribute__((pure));
 	int RandomIntInternal(int* randomIntStatePtr);
+	void Matrix4x3_FromTranslation(Matrix4x3* mF, Fix12i x, Fix12i y, Fix12i z);
 	void Matrix4x3_FromRotationZ(Matrix4x3* mF, short angZ);
 	void Matrix4x3_FromRotationY(Matrix4x3* mF, short angY);
 	void Matrix4x3_FromRotationX(Matrix4x3* mF, short angX);
 	void Matrix4x3_FromRotationZXYExt(Matrix4x3* mF, short angX, short angY, short angZ); //yxz intrinsic = zxy extrinsic
 	void Matrix4x3_FromRotationXYZExt(Matrix4x3* mF, short angX, short angY, short angZ); //zyx intrinsic = xyz extrinsic
+	void Matrix4x3_ApplyInPlaceToRotationZ(Matrix4x3* mF, short angZ); //transforms a rotation matrix using matrix mF.
+	void Matrix4x3_ApplyInPlaceToRotationY(Matrix4x3* mF, short angY); //does not apply a rotation matrix.
+	void Matrix4x3_ApplyInPlaceToRotationX(Matrix4x3* mF, short angX); //don't get the two confused.
 	
 	Fix12i Vec3_HorzDist(const Vector3* v0, const Vector3* v1) __attribute__((pure));
 	Fix12i Vec3_HorzLen(const Vector3* v0) __attribute__((pure));
@@ -130,6 +149,10 @@ extern "C"
 	void Vec3_Add(Vector3* vF, const Vector3* v0, const Vector3* v1);
 	Fix12i SqrtQ24(unsigned low, unsigned high) __attribute__((const));
 	
+	void Matrix3x3_LoadIdentity(Matrix3x3* mF);
+	void Math_MulVec3Mat3x3(const Vector3* v, const Matrix3x3* m, Vector3* vF);
+	void Math_MulMat3x3Mat3x3(const Matrix3x3* m1, const Matrix3x3* m0, Matrix3x3* mF); //m0 is applied to m1, so it's m0*m1=mF
+	void Matrix4x3_LoadIdentity(Matrix4x3* mF);
 	 // long call to force gcc to actually call the off-by-one address and therefore set the mode to thumb.
 	void Matrix4x3_FromScale(Matrix4x3* mF, Fix12i x, Fix12i y, Fix12i z) __attribute__((long_call, target("thumb")));
 	void Math_MulVec3Mat4x3(const Vector3* v, const Matrix4x3* m, Vector3* vF);
@@ -144,7 +167,8 @@ extern "C"
 	void InvalidateDataCache(void* where, unsigned length);
 	void InvalidateInstructionCache(void* where, unsigned length);
 	
-	void MultiStore_Int(int val, int* ptr, int size);
+	void MultiStore_Int(int val, void* dest, int byteSize);
+	void MultiCopy_Int(void* source, void* dest, int byteSize);
 	
 	int String_Compare(const char* str1, const char* str2); //returns 0 if equal, a positive number if str1 comes after str2, and a negative number otherwise
 	
@@ -169,6 +193,12 @@ struct Matrix3x3
     Fix12i r0c0, r1c0, r2c0;
     Fix12i r0c1, r1c1, r2c1;
     Fix12i r0c2, r1c2, r2c2;
+	
+	static Matrix3x3 IDENTITY;
+	
+	inline void LoadIdentity() {Matrix3x3_LoadIdentity(this);}
+	
+	inline Matrix3x3 operator*(const Matrix3x3& m) const {Matrix3x3 res; Math_MulMat3x3Mat3x3(&m, this, &res); return res;}
 };
 
 //Matrix is column-major!
@@ -181,12 +211,17 @@ struct Matrix4x3
 	
 	static Matrix4x3 IDENTITY;
 	
+	inline void LoadIdentity() {Matrix4x3_LoadIdentity(this);}
 	inline void ThisFromScale(Fix12i x, Fix12i y, Fix12i z) {Matrix4x3_FromScale(this, x, y, z);}
 	inline void ThisFromRotationZ(short angZ) {Matrix4x3_FromRotationZ(this, angZ);}
 	inline void ThisFromRotationY(short angY) {Matrix4x3_FromRotationY(this, angY);}
 	inline void ThisFromRotationX(short angX) {Matrix4x3_FromRotationX(this, angX);}
 	inline void ThisFromRotationZXYExt(short angX, short angY, short angZ) {Matrix4x3_FromRotationZXYExt(this, angX, angY, angZ);}
 	inline void ThisFromRotationXYZExt(short angX, short angY, short angZ) {Matrix4x3_FromRotationXYZExt(this, angX, angY, angZ);}
+	inline void ThisFromTranslation(Fix12i x, Fix12i y, Fix12i z) {Matrix4x3_FromTranslation(this, x, y, z);}
+	inline void ApplyInPlaceToRotationZ(short angZ) {Matrix4x3_ApplyInPlaceToRotationZ(this, angZ);}
+	inline void ApplyInPlaceToRotationY(short angY) {Matrix4x3_ApplyInPlaceToRotationY(this, angY);}
+	inline void ApplyInPlaceToRotationX(short angX) {Matrix4x3_ApplyInPlaceToRotationX(this, angX);}
 	
 	static inline Matrix4x3 FromScale(Fix12i x, Fix12i y, Fix12i z) {Matrix4x3 res; Matrix4x3_FromScale(&res, x, y, z); return res;}
 	static inline Matrix4x3 FromRotationZ(short angZ) {Matrix4x3 res; Matrix4x3_FromRotationZ(&res, angZ); return res;}
@@ -194,6 +229,7 @@ struct Matrix4x3
 	static inline Matrix4x3 FromRotationX(short angX) {Matrix4x3 res; Matrix4x3_FromRotationX(&res, angX); return res;}
 	static inline Matrix4x3 FromRotationZXYExt(short angX, short angY, short angZ) {Matrix4x3 res; Matrix4x3_FromRotationZXYExt(&res, angX, angY, angZ); return res;}
 	static inline Matrix4x3 FromRotationXYZExt(short angX, short angY, short angZ) {Matrix4x3 res; Matrix4x3_FromRotationXYZExt(&res, angX, angY, angZ); return res;}
+	static inline Matrix4x3 FromTranslation(Fix12i x, Fix12i y, Fix12i z) {Matrix4x3 res; Matrix4x3_FromTranslation(&res, x, y, z); return res;}
 	
 	inline Matrix4x3 Inv() const {Matrix4x3 res; Math_InvMat4x3(this, &res); return res;}
 	inline Matrix4x3 operator*(const Matrix4x3& m) const {Matrix4x3 res; Math_MulMat4x3Mat4x3(&m, this, &res); return res;}
@@ -231,8 +267,11 @@ struct Vector3
 	inline short VertAngle(const Vector3& v) const {return Vec3_VertAngle(this, &v);}
 	inline Fix12i Dot(const Vector3& v) const {return Math_DotVec3(this, &v);}
 	inline Vector3 Cross(const Vector3& v) const {Vector3 res; Math_CrossVec3(this, &v, &res); return res;}
+	inline void TransformThis(const Matrix3x3& m) {Math_MulVec3Mat3x3(this, &m, this);}
+	inline Vector3 Transform(const Matrix3x3& m) const {Vector3 res; Math_MulVec3Mat3x3(this, &m, &res); return res;}
 	inline void TransformThis(const Matrix4x3& m) {Math_MulVec3Mat4x3(this, &m, this);}
 	inline Vector3 Transform(const Matrix4x3& m) const {Vector3 res; Math_MulVec3Mat4x3(this, &m, &res); return res;}
+	inline Vector3 RotateYAndTranslate(const Vector3& trans, short angY) const {Vector3 res; Vec3_RotateYAndTranslate(&res, &trans, angY, this); return res;}
 	
 	inline static Vector3 InterpCubic(const Vector3& v0, const Vector3& v1, const Vector3& v2, const Vector3& v3, Fix12i t)
 		{Vector3 res; Vec3_InterpCubic(&res, &v0, &v1, &v2, &v3, t); return res;}
