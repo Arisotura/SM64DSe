@@ -29,12 +29,14 @@ namespace SM64DSe
 {
     public partial class LevelSettingsForm : Form
     {
+        private Level m_Level;
         private LevelSettings m_LevelSettings;
 
-        public LevelSettingsForm(LevelSettings settings)
+        public LevelSettingsForm(Level level)
         {
             InitializeComponent();
-            m_LevelSettings = settings;
+            m_Level = level;
+            m_LevelSettings = level.m_LevelSettings;
         }
 
         private void LevelSettingsForm_Load(object sender, EventArgs e)
@@ -85,6 +87,7 @@ namespace SM64DSe
             }
 
             cbxBackground.SelectedIndex = m_LevelSettings.Background;
+            nudGeneralMinimumNumberOfAreas.Value = m_Level.m_NumAreas;
 
             txtMusicByte01.Text = m_LevelSettings.MusicBytes[0].ToString();
             txtMusicByte02.Text = m_LevelSettings.MusicBytes[1].ToString();
@@ -144,6 +147,7 @@ namespace SM64DSe
         private void btnOk_Click(object sender, EventArgs e)
         {
             m_LevelSettings.Background = (byte)cbxBackground.SelectedIndex;
+            m_Level.m_NumAreas = (byte)(nudGeneralMinimumNumberOfAreas.Value);
             m_LevelSettings.ObjectBanks[0] = (uint)cbxBank0.SelectedIndex;
             m_LevelSettings.ObjectBanks[1] = (uint)cbxBank1.SelectedIndex;
             m_LevelSettings.ObjectBanks[2] = (uint)cbxBank2.SelectedIndex;

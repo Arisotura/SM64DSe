@@ -559,8 +559,17 @@ namespace SM64DSe
 
             foreach (ModelBase.BoneDef bone in m_ModelBase.m_BoneTree)
             {
-                bone.m_Geometries = originalGeometries[bone.m_ID];
+                foreach (ModelBase.GeometryDef geometry in bone.m_Geometries.Values)
+                {
+                    foreach (ModelBase.PolyListDef polyList in geometry.m_PolyLists.Values)
+                    {
+                        polyList.m_FaceLists =
+                            originalGeometries[bone.m_ID][geometry.m_ID].m_PolyLists[polyList.m_ID].m_FaceLists;
+                    }
+                }
             }
+
+            PopulateMaterialsList();
 
             return result;
         }
@@ -627,7 +636,7 @@ namespace SM64DSe
                     {
                         parentNodes[bone.m_Parent.m_ID].Nodes.Add(node);
                     }
-                    parentNodes.Add(bone.m_ID, node);
+                    parentNodes[bone.m_ID] = node;
                 }
             }
 
@@ -639,6 +648,7 @@ namespace SM64DSe
             SetEnabledStateModelBonePolylistControls(false);
             txtModelBonesName.Text = null;
             txtModelBonesName.BackColor = Color.White;
+            chkModelBonesSettingsBillboard.Checked = false;
 
             lbxModelBonesGeometries.Items.Clear();
             lbxModelBonesPolylists.Items.Clear();
@@ -654,6 +664,7 @@ namespace SM64DSe
             btnModelBonesPasteToBone.Enabled = (m_SourcePolylists != null || m_SourceGeometries != null);
             btnModelBonesRenameBone.Enabled = state;
             txtModelBonesName.Enabled = state;
+            chkModelBonesSettingsBillboard.Enabled = state;
         }
 
         private void SetEnabledStateModelBoneGeometryControls(bool state)
@@ -959,7 +970,10 @@ namespace SM64DSe
 
         private void tcModelSettings_SelectedIndexChanged(object sender, System.EventArgs e)
         {
-            UpdateBMDModelAndPreview();
+            if (m_ModelSourceLoaded)
+            {
+                UpdateBMDModelAndPreview();
+            }
         }
 
         private bool IsModelBonesTabSelected()
@@ -1182,6 +1196,7 @@ namespace SM64DSe
             SetEnabledStateModelBonePolylistControls(false);
 
             txtModelBonesName.Text = bone.m_ID;
+            chkModelBonesSettingsBillboard.Checked = bone.m_Billboard;
 
             DrawSkeleton();
 
@@ -2411,9 +2426,23 @@ namespace SM64DSe
             string boneIDNew = null;
             if (!GetValidNonAsciiTextBoxValue(txtModelBonesName, ref boneIDNew)) return;
 
+            string boneIDOld = bone.m_ID;
+            
             bone.m_ID = boneIDNew;
 
+            int boneTransform = m_ModelBase.m_BoneTransformsMap.GetByFirst(boneIDOld);
+            m_ModelBase.m_BoneTransformsMap.RemoveByFirst(boneIDOld);
+            m_ModelBase.m_BoneTransformsMap.Add(boneIDNew, boneTransform);
+
             tvModelBonesBones.SelectedNode.Text = boneIDNew;
+        }
+
+        private void chkModelBonesSettingsBillboard_CheckedChanged(object sender, System.EventArgs e)
+        {
+            ModelBase.BoneDef bone = GetSelectedBone();
+            if (bone == null) return;
+
+            bone.m_Billboard = chkModelBonesSettingsBillboard.Checked;
         }
 
         private string GenerateUniqueBoneID()
@@ -2474,6 +2503,7 @@ namespace SM64DSe
             ModelBase.BoneDef childBone = new ModelBase.BoneDef(boneID);
 
             selectedBone.AddChild(childBone);
+            m_ModelBase.m_BoneTransformsMap.Add(childBone.m_ID, m_ModelBase.m_BoneTransformsMap.Count);
 
             int childBoneIndex = m_ModelBase.m_BoneTree.GetBoneIndex(childBone);
             UpdateVertexBoneIndicesForBoneInsertionAt(childBoneIndex);
@@ -2501,6 +2531,7 @@ namespace SM64DSe
             {
                 m_ModelBase.m_BoneTree.AddRootBone(siblingBone);
             }
+            m_ModelBase.m_BoneTransformsMap.Add(siblingBone.m_ID, m_ModelBase.m_BoneTransformsMap.Count);
 
             int siblingBoneIndex = m_ModelBase.m_BoneTree.GetBoneIndex(siblingBone);
             UpdateVertexBoneIndicesForBoneInsertionAt(siblingBoneIndex);

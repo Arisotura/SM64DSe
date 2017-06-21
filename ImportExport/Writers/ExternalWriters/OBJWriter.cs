@@ -60,20 +60,25 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
                                 if (objSplitBoneID != boneIndex)
                                 {
                                     ModelBase.BoneDef newBone = flatBoneList[objSplitBoneID];
-
-                                    if (!newBone.m_Geometries.ContainsKey(geometry.m_ID))
-                                        newBone.m_Geometries.Add(geometry.m_ID, new ModelBase.GeometryDef(geometry.m_ID));
-                                    if (!newBone.m_Geometries[geometry.m_ID].m_PolyLists.ContainsKey(polyList.m_MaterialName))
+                                    // For models using "areas" (multiple-parent bones) the vertices all seem to be 
+                                    // assigned to the first parent bone. We don't want to move faces about in such 
+                                    // cases so only move faces between bones within the same branch.
+                                    if (bone.GetBranch().Contains(newBone))
                                     {
-                                        ModelBase.PolyListDef tmp = new ModelBase.PolyListDef(polyList.m_ID, polyList.m_MaterialName);
-                                        tmp.m_FaceLists.Add(new ModelBase.FaceListDef());
-                                        newBone.m_Geometries[geometry.m_ID].m_PolyLists.Add(polyList.m_MaterialName, tmp);
-                                    }
-                                    if (!newBone.m_MaterialsInBranch.Contains(polyList.m_MaterialName))
-                                        newBone.m_MaterialsInBranch.Add(polyList.m_MaterialName);
+                                        if (!newBone.m_Geometries.ContainsKey(geometry.m_ID))
+                                            newBone.m_Geometries.Add(geometry.m_ID, new ModelBase.GeometryDef(geometry.m_ID));
+                                        if (!newBone.m_Geometries[geometry.m_ID].m_PolyLists.ContainsKey(polyList.m_MaterialName))
+                                        {
+                                            ModelBase.PolyListDef tmp = new ModelBase.PolyListDef(polyList.m_ID, polyList.m_MaterialName);
+                                            tmp.m_FaceLists.Add(new ModelBase.FaceListDef());
+                                            newBone.m_Geometries[geometry.m_ID].m_PolyLists.Add(polyList.m_MaterialName, tmp);
+                                        }
+                                        if (!newBone.m_MaterialsInBranch.Contains(polyList.m_MaterialName))
+                                            newBone.m_MaterialsInBranch.Add(polyList.m_MaterialName);
 
-                                    newBone.m_Geometries[geometry.m_ID].m_PolyLists[polyList.m_MaterialName].m_FaceLists[0].m_Faces.Add(face);
-                                    faceList.m_Faces.RemoveAt(f);
+                                        newBone.m_Geometries[geometry.m_ID].m_PolyLists[polyList.m_MaterialName].m_FaceLists[0].m_Faces.Add(face);
+                                        faceList.m_Faces.RemoveAt(f);
+                                    }
                                 }
 
                                 f++;

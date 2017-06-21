@@ -617,15 +617,21 @@ namespace SM64DSe
             SaveObjList(binWriter, m_LevelObjects.Values, k_MiscLevelObjTypeOrder);
         }
 
+        public int CalculateNumberOfAreas()
+        {
+            int numAreas = m_LevelObjects.Max(x => x.Value.m_Area);
+            numAreas = Math.Max(numAreas, m_LevelObjects.Values.Where(x => x is EntranceObject)
+                .Select(x => x.Parameters[3] & 7).Max() + 1); //include entrance areas
+            numAreas = Math.Max(numAreas, m_TexAnims.FindLastIndex(x => x.m_Defs.Count != 0) + 1);
+            return numAreas;
+        }
+
         private void SaveRegularObjs(BinaryWriter binWriter, out uint areaTableOffset)
         {
             List<List<LevelObject>> objsByArea = new List<List<LevelObject>>();
             for (int i = 0; i < 8; ++i)
                 objsByArea.Add(m_LevelObjects.Values.Where(x => x.m_Area == i).ToList());
-            m_NumAreas = objsByArea.FindLastIndex(x => x.Count != 0) + 1;
-            m_NumAreas = Math.Max(m_NumAreas, m_LevelObjects.Values.Where(x => x is EntranceObject)
-                .Select(x => x.Parameters[3] & 7).Max() + 1); //include entrance areas
-            m_NumAreas = Math.Max(m_NumAreas, m_TexAnims.FindLastIndex(x => x.m_Defs.Count != 0) + 1);
+            m_NumAreas = Math.Max(m_NumAreas, CalculateNumberOfAreas());
 
             if (m_NumAreas > k_MaxNumAreas)
                 throw new InvalidDataException("The game can support only " + k_MaxNumAreas + " areas. You have " + m_NumAreas + ".");

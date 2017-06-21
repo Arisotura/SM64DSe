@@ -181,13 +181,15 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                             }
 
                             ModelBase.BoneDef bone = m_Model.m_BoneTree.GetBoneByID(currentBone);
-                            if (!bone.m_Geometries.Values.ElementAt(0).m_PolyLists.ContainsKey(curmaterial))
+                            ModelBase.GeometryDef geomDef = bone.m_Geometries.Values.ElementAt(0);
+                            string polyListKey = "polylist-" + curmaterial;
+                            ModelBase.PolyListDef polyList;
+                            if (!geomDef.m_PolyLists.TryGetValue(polyListKey, out polyList))
                             {
-                                ModelBase.PolyListDef tmp = new ModelBase.PolyListDef(currentBone + "." + curmaterial, curmaterial);
-                                tmp.m_FaceLists.Add(new ModelBase.FaceListDef());
-                                bone.m_Geometries.Values.ElementAt(0).m_PolyLists.Add(curmaterial, tmp);
+                                polyList = new ModelBase.PolyListDef(polyListKey, curmaterial);
+                                polyList.m_FaceLists.Add(new ModelBase.FaceListDef());
+                                geomDef.m_PolyLists.Add(polyList.m_ID, polyList);
                             }
-                            ModelBase.PolyListDef polyList = bone.m_Geometries.Values.ElementAt(0).m_PolyLists[curmaterial];
 
                             ModelBase.FaceDef face = new ModelBase.FaceDef(nvtx);
 
@@ -500,7 +502,7 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                             bone.SetTranslation(translation);
                         }
                         break;
-                    case "billboard": // Always rendered facing camera (not yet implemented)
+                    case "billboard": // Always rendered facing camera
                         {
                             if (parts.Length < 2) continue;
                             bool billboard = (short.Parse(parts[1]) == 1);

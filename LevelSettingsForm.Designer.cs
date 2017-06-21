@@ -30,6 +30,10 @@
         {
             this.cbxBank0 = new System.Windows.Forms.ComboBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.nudGeneralMinimumNumberOfAreas = new System.Windows.Forms.NumericUpDown();
+            this.lblGeneralMinimumNumberOfAreas = new System.Windows.Forms.Label();
+            this.txtActSelectorID = new System.Windows.Forms.TextBox();
+            this.label10 = new System.Windows.Forms.Label();
             this.cbxBackground = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
@@ -57,9 +61,8 @@
             this.label13 = new System.Windows.Forms.Label();
             this.label12 = new System.Windows.Forms.Label();
             this.label11 = new System.Windows.Forms.Label();
-            this.label10 = new System.Windows.Forms.Label();
-            this.txtActSelectorID = new System.Windows.Forms.TextBox();
             this.groupBox1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.nudGeneralMinimumNumberOfAreas)).BeginInit();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.SuspendLayout();
@@ -80,16 +83,65 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.nudGeneralMinimumNumberOfAreas);
+            this.groupBox1.Controls.Add(this.lblGeneralMinimumNumberOfAreas);
             this.groupBox1.Controls.Add(this.txtActSelectorID);
             this.groupBox1.Controls.Add(this.label10);
             this.groupBox1.Controls.Add(this.cbxBackground);
             this.groupBox1.Controls.Add(this.label1);
             this.groupBox1.Location = new System.Drawing.Point(12, 12);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(381, 81);
+            this.groupBox1.Size = new System.Drawing.Size(381, 105);
             this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "General settings";
+            // 
+            // nudGeneralMinimumNumberOfAreas
+            // 
+            this.nudGeneralMinimumNumberOfAreas.Location = new System.Drawing.Point(225, 77);
+            this.nudGeneralMinimumNumberOfAreas.Maximum = new decimal(new int[] {
+            8,
+            0,
+            0,
+            0});
+            this.nudGeneralMinimumNumberOfAreas.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.nudGeneralMinimumNumberOfAreas.Name = "nudGeneralMinimumNumberOfAreas";
+            this.nudGeneralMinimumNumberOfAreas.Size = new System.Drawing.Size(141, 20);
+            this.nudGeneralMinimumNumberOfAreas.TabIndex = 5;
+            this.nudGeneralMinimumNumberOfAreas.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            // 
+            // lblGeneralMinimumNumberOfAreas
+            // 
+            this.lblGeneralMinimumNumberOfAreas.AutoSize = true;
+            this.lblGeneralMinimumNumberOfAreas.Location = new System.Drawing.Point(15, 79);
+            this.lblGeneralMinimumNumberOfAreas.Name = "lblGeneralMinimumNumberOfAreas";
+            this.lblGeneralMinimumNumberOfAreas.Size = new System.Drawing.Size(110, 13);
+            this.lblGeneralMinimumNumberOfAreas.TabIndex = 4;
+            this.lblGeneralMinimumNumberOfAreas.Text = "Minimum No. of Areas";
+            // 
+            // txtActSelectorID
+            // 
+            this.txtActSelectorID.Location = new System.Drawing.Point(225, 51);
+            this.txtActSelectorID.Name = "txtActSelectorID";
+            this.txtActSelectorID.Size = new System.Drawing.Size(141, 20);
+            this.txtActSelectorID.TabIndex = 3;
+            // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Location = new System.Drawing.Point(15, 54);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(82, 13);
+            this.label10.TabIndex = 2;
+            this.label10.Text = "Act Selector ID:";
             // 
             // cbxBackground
             // 
@@ -108,9 +160,9 @@
             "[9] Foggy forest",
             "[10] Bowser in the Dark World",
             "[11] Bowser in the Sky"});
-            this.cbxBackground.Location = new System.Drawing.Point(103, 24);
+            this.cbxBackground.Location = new System.Drawing.Point(225, 24);
             this.cbxBackground.Name = "cbxBackground";
-            this.cbxBackground.Size = new System.Drawing.Size(263, 21);
+            this.cbxBackground.Size = new System.Drawing.Size(141, 21);
             this.cbxBackground.TabIndex = 1;
             this.cbxBackground.SelectedIndexChanged += new System.EventHandler(this.cbxBackground_SelectedIndexChanged);
             // 
@@ -141,7 +193,7 @@
             this.groupBox2.Controls.Add(this.cbxBank1);
             this.groupBox2.Controls.Add(this.label2);
             this.groupBox2.Controls.Add(this.cbxBank0);
-            this.groupBox2.Location = new System.Drawing.Point(12, 99);
+            this.groupBox2.Location = new System.Drawing.Point(12, 123);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(381, 230);
             this.groupBox2.TabIndex = 2;
@@ -321,7 +373,7 @@
             // btnCancel
             // 
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(318, 462);
+            this.btnCancel.Location = new System.Drawing.Point(318, 465);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(75, 26);
             this.btnCancel.TabIndex = 3;
@@ -331,7 +383,7 @@
             // btnOk
             // 
             this.btnOk.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.btnOk.Location = new System.Drawing.Point(237, 462);
+            this.btnOk.Location = new System.Drawing.Point(237, 465);
             this.btnOk.Name = "btnOk";
             this.btnOk.Size = new System.Drawing.Size(75, 26);
             this.btnOk.TabIndex = 4;
@@ -347,7 +399,7 @@
             this.groupBox3.Controls.Add(this.label13);
             this.groupBox3.Controls.Add(this.label12);
             this.groupBox3.Controls.Add(this.label11);
-            this.groupBox3.Location = new System.Drawing.Point(12, 336);
+            this.groupBox3.Location = new System.Drawing.Point(12, 360);
             this.groupBox3.Name = "groupBox3";
             this.groupBox3.Size = new System.Drawing.Size(381, 99);
             this.groupBox3.TabIndex = 5;
@@ -402,22 +454,6 @@
             this.label11.TabIndex = 1;
             this.label11.Text = "Byte 01: (SWAR entry address - 4) / 4";
             // 
-            // label10
-            // 
-            this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(15, 54);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(82, 13);
-            this.label10.TabIndex = 2;
-            this.label10.Text = "Act Selector ID:";
-            // 
-            // txtActSelectorID
-            // 
-            this.txtActSelectorID.Location = new System.Drawing.Point(266, 51);
-            this.txtActSelectorID.Name = "txtActSelectorID";
-            this.txtActSelectorID.Size = new System.Drawing.Size(100, 20);
-            this.txtActSelectorID.TabIndex = 3;
-            // 
             // LevelSettingsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -437,6 +473,7 @@
             this.Load += new System.EventHandler(this.LevelSettingsForm_Load);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.nudGeneralMinimumNumberOfAreas)).EndInit();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
             this.groupBox3.ResumeLayout(false);
@@ -478,5 +515,7 @@
         private System.Windows.Forms.Label label11;
         private System.Windows.Forms.TextBox txtActSelectorID;
         private System.Windows.Forms.Label label10;
+        private System.Windows.Forms.NumericUpDown nudGeneralMinimumNumberOfAreas;
+        private System.Windows.Forms.Label lblGeneralMinimumNumberOfAreas;
     }
 }

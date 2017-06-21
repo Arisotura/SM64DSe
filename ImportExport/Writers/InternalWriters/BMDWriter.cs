@@ -308,6 +308,70 @@ namespace SM64DSe.ImportExport.Writers.InternalWriters
             GXDisplayListPacker dlpacker = new GXDisplayListPacker();
 
             ModelBase.BoneDefRoot boneTree = m_Model.m_BoneTree;
+
+            // Materials cannot be shared across root-level bones; iterate through each 
+            // pair or root-level bones and duplicate any materials that they share, assigning
+            // the original to one bone and the duplicate to the other e.g.: 
+            // - r0 has materials matA, matB and matC
+            // - r1 has materials matC and matD
+            // - duplicate matC into matC_1
+            // - assign matB to r0 polylists and matB_1 to r1 polylists so that: 
+            // - r0 has materials matA, matB and matC
+            // - r1 has materials matC_1 and matD
+            List<ModelBase.BoneDef> rootBones = boneTree.GetRootBones();
+            for (int i = 0; i < rootBones.Count; i++)
+            {
+                for (int j = i + 1; j < rootBones.Count; j++)
+                {
+                    ModelBase.BoneDef rootA = rootBones[i];
+                    ModelBase.BoneDef rootB = rootBones[j];
+
+                    foreach (string materialID in rootA.m_MaterialsInBranch)
+                    {
+                        if (rootB.m_MaterialsInBranch.Contains(materialID))
+                        {
+                            string duplicateMaterialID;
+                            int counter = 1;
+
+                            do
+                            {
+                                duplicateMaterialID = materialID + '_' + counter++;
+                            }
+                            while (m_Model.m_Materials.ContainsKey(duplicateMaterialID) && counter < 100);
+
+                            if (counter >= 100)
+                            {
+                                duplicateMaterialID = materialID + '_' + System.Guid.NewGuid().ToString();
+                            }
+
+                            ModelBase.MaterialDef duplicateMaterial =
+                                new ModelBase.MaterialDef(duplicateMaterialID, m_Model.m_Materials[materialID]);
+
+                            m_Model.m_Materials.Add(duplicateMaterialID, duplicateMaterial);
+
+                            foreach (ModelBase.BoneDef bone in rootB.GetBranch())
+                            {
+                                foreach (ModelBase.GeometryDef geometry in bone.m_Geometries.Values)
+                                {
+                                    foreach (ModelBase.PolyListDef polyList in geometry.m_PolyLists.Values)
+                                    {
+                                        polyList.m_MaterialName = duplicateMaterialID;
+                                    }
+                                }
+                            }
+
+                            rootB.m_MaterialsInBranch.Remove(materialID);
+                            rootB.m_MaterialsInBranch.Add(duplicateMaterialID);
+
+                            string msg = String.Format("Found duplicate material [{0}] between bones " +
+                                "[{1}] and [{2}], replacing with material [{3}] in [{2}]",
+                                materialID, rootA.m_ID, rootB.m_ID, duplicateMaterialID);
+                            Console.WriteLine(msg);
+                        }
+                    }
+                }
+            }
+
             List<ModelBase.MaterialDef> materialsInFixedOrder = m_Model.m_Materials.Values.ToList();
             Dictionary<string, int> materialFixedIndicesByID = new Dictionary<string, int>();
             foreach (ModelBase.MaterialDef material in materialsInFixedOrder)

@@ -563,12 +563,21 @@ namespace SM64DSe.ImportExport.Loaders.ExternalLoaders
                 }
             }
 
-            if (jointNames.Length > 31) Console.WriteLine("WARN: More than 31 matrices, your model will not import correctly.");
+            if (jointNames.Length > 31)
+            {
+                Console.WriteLine("DAELoader: WARN: More than 31 matrices, your model will not import correctly.");
+            }
 
             for (int i = 0; i < jointNames.Length; i++)
             {
                 Queue<ModelBase.BoneDef> hierarchy = new Queue<ModelBase.BoneDef>();
                 ModelBase.BoneDef child = m_Model.m_BoneTree.GetBoneByID(jointNames[i]);
+                if (child == null)
+                {
+                    Console.WriteLine("DAELoader: WARN: Skin controller ["+ id + "] contains reference to joint name [" +
+                        jointNames[i] + "] before joint has been read, skipping processing but failure likely");
+                    continue;
+                }
                 hierarchy.Enqueue(child);
                 while (child.m_Parent != null)
                 {

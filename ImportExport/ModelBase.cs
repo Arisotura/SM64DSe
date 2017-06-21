@@ -202,7 +202,7 @@ namespace SM64DSe.ImportExport
 
             public bool m_HasChildren { get { return m_Children.Count > 0; } }
 
-            public bool m_Billboard;// Not used as not working
+            public bool m_Billboard;
 
             public BoneDef(string id)
             {
@@ -572,6 +572,33 @@ namespace SM64DSe.ImportExport
                 m_TextureRotation = 0.0f;
                 m_TextureTranslation = new Vector2(0f, 0f);
                 m_TexGenMode = TexGenMode.None;
+            }
+
+            public MaterialDef(string id, MaterialDef that)
+            {
+                m_ID = id;
+                m_TextureDefID = that.m_TextureDefID;
+                m_Lights = new bool[4];
+                Array.Copy(that.m_Lights, m_Lights, 4);
+                m_PolygonDrawingFace = that.m_PolygonDrawingFace;
+                m_Alpha = that.m_Alpha;
+                m_WireMode = that.m_WireMode;
+                m_PolygonMode = that.m_PolygonMode;
+                m_FogFlag = that.m_FogFlag;
+                m_DepthTestDecal = that.m_DepthTestDecal;
+                m_RenderOnePixelPolygons = that.m_RenderOnePixelPolygons;
+                m_FarClipping = that.m_FarClipping;
+                m_Diffuse = that.m_Diffuse;
+                m_Ambient = that.m_Ambient;
+                m_Specular = that.m_Specular;
+                m_Emission = that.m_Emission;
+                m_ShininessTableEnabled = that.m_ShininessTableEnabled;
+                m_TexTiling = new TexTiling[2];
+                Array.Copy(that.m_TexTiling, m_TexTiling, 2);
+                m_TextureScale = that.m_TextureScale;
+                m_TextureRotation = that.m_TextureRotation;
+                m_TextureTranslation = that.m_TextureTranslation;
+                m_TexGenMode = that.m_TexGenMode;
             }
 
             public enum PolygonDrawingFace

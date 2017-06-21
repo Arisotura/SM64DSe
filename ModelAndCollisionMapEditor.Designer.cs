@@ -220,10 +220,12 @@
             this.mnitExportTextures = new System.Windows.Forms.ToolStripMenuItem();
             this.mnitExportTexturesPNG = new System.Windows.Forms.ToolStripMenuItem();
             this.mnitExportTexturesBMP = new System.Windows.Forms.ToolStripMenuItem();
+            this.grpModelBonesSettings = new System.Windows.Forms.GroupBox();
+            this.chkModelBonesSettingsBillboard = new System.Windows.Forms.CheckBox();
             this.ssMain.SuspendLayout();
             this.tcMain.SuspendLayout();
             this.tpgModel.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.splModel)).BeginInit();
+            //((System.ComponentModel.ISupportInitialize)(this.splModel)).BeginInit();
             this.splModel.Panel1.SuspendLayout();
             this.splModel.Panel2.SuspendLayout();
             this.splModel.SuspendLayout();
@@ -243,19 +245,19 @@
             this.grpModelMaterialSettings.SuspendLayout();
             this.grpModelMaterialTextureSettings.SuspendLayout();
             this.grpModelMaterialColours.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.nudModelMaterialAlpha)).BeginInit();
+            //((System.ComponentModel.ISupportInitialize)(this.nudModelMaterialAlpha)).BeginInit();
             this.grpModelMaterialFlags.SuspendLayout();
             this.tpgModelTextures.SuspendLayout();
             this.grpModelTexturesPreview.SuspendLayout();
             this.pnlModelTexturesPreviewPanel.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pbxModelTexturesPreview)).BeginInit();
+            //((System.ComponentModel.ISupportInitialize)(this.pbxModelTexturesPreview)).BeginInit();
             this.grpModelTexturesSettings.SuspendLayout();
             this.tpgPalettes.SuspendLayout();
             this.grpModelPalettesColours.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.gridModelPalettesPaletteColours)).BeginInit();
+            //((System.ComponentModel.ISupportInitialize)(this.gridModelPalettesPaletteColours)).BeginInit();
             this.tsModelPreview.SuspendLayout();
             this.tpgCollisionMap.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.splCollisionMap)).BeginInit();
+            //((System.ComponentModel.ISupportInitialize)(this.splCollisionMap)).BeginInit();
             this.splCollisionMap.Panel1.SuspendLayout();
             this.splCollisionMap.Panel2.SuspendLayout();
             this.splCollisionMap.SuspendLayout();
@@ -264,10 +266,11 @@
             this.grpCollisionMapGeneralScale.SuspendLayout();
             this.grpCollisionMapGeneralTarget.SuspendLayout();
             this.groupBox1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.gridCollisionMapGeneralMaterialCollisionTypes)).BeginInit();
+            //((System.ComponentModel.ISupportInitialize)(this.gridCollisionMapGeneralMaterialCollisionTypes)).BeginInit();
             this.tpgCollisionMapPlanes.SuspendLayout();
             this.grpCollisionMapPlanesDetails.SuspendLayout();
             this.mstrMain.SuspendLayout();
+            this.grpModelBonesSettings.SuspendLayout();
             this.SuspendLayout();
             // 
             // ssMain
@@ -534,6 +537,7 @@
             // tpgModelBones
             // 
             this.tpgModelBones.AutoScroll = true;
+            this.tpgModelBones.Controls.Add(this.grpModelBonesSettings);
             this.tpgModelBones.Controls.Add(this.btnModelBonesRenameBone);
             this.tpgModelBones.Controls.Add(this.txtModelBonesName);
             this.tpgModelBones.Controls.Add(this.grpModelBonesGeometries);
@@ -574,7 +578,7 @@
             this.grpModelBonesGeometries.Controls.Add(this.grpModelBonesPolylists);
             this.grpModelBonesGeometries.Controls.Add(this.btnModelBonesCutGeometry);
             this.grpModelBonesGeometries.Controls.Add(this.btnModelBonesRemoveGeometry);
-            this.grpModelBonesGeometries.Location = new System.Drawing.Point(6, 202);
+            this.grpModelBonesGeometries.Location = new System.Drawing.Point(6, 252);
             this.grpModelBonesGeometries.Name = "grpModelBonesGeometries";
             this.grpModelBonesGeometries.Size = new System.Drawing.Size(271, 338);
             this.grpModelBonesGeometries.TabIndex = 15;
@@ -2260,6 +2264,27 @@
             this.mnitExportTexturesBMP.Text = "Export as BMP";
             this.mnitExportTexturesBMP.Click += new System.EventHandler(this.mnitExportTexturesBMP_Click);
             // 
+            // grpModelBonesSettings
+            // 
+            this.grpModelBonesSettings.Controls.Add(this.chkModelBonesSettingsBillboard);
+            this.grpModelBonesSettings.Location = new System.Drawing.Point(6, 202);
+            this.grpModelBonesSettings.Name = "grpModelBonesSettings";
+            this.grpModelBonesSettings.Size = new System.Drawing.Size(271, 44);
+            this.grpModelBonesSettings.TabIndex = 21;
+            this.grpModelBonesSettings.TabStop = false;
+            this.grpModelBonesSettings.Text = "Settings";
+            // 
+            // chkModelBonesSettingsBillboard
+            // 
+            this.chkModelBonesSettingsBillboard.AutoSize = true;
+            this.chkModelBonesSettingsBillboard.Location = new System.Drawing.Point(9, 19);
+            this.chkModelBonesSettingsBillboard.Name = "chkModelBonesSettingsBillboard";
+            this.chkModelBonesSettingsBillboard.Size = new System.Drawing.Size(210, 17);
+            this.chkModelBonesSettingsBillboard.TabIndex = 0;
+            this.chkModelBonesSettingsBillboard.Text = "Always Render Facing Camera (\"Billboard\")";
+            this.chkModelBonesSettingsBillboard.UseVisualStyleBackColor = true;
+            this.chkModelBonesSettingsBillboard.CheckedChanged += new System.EventHandler(chkModelBonesSettingsBillboard_CheckedChanged);
+            // 
             // ModelAndCollisionMapEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -2281,7 +2306,7 @@
             this.splModel.Panel1.ResumeLayout(false);
             this.splModel.Panel2.ResumeLayout(false);
             this.splModel.Panel2.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.splModel)).EndInit();
+            //((System.ComponentModel.ISupportInitialize)(this.splModel)).EndInit();
             this.splModel.ResumeLayout(false);
             this.tcModelSettings.ResumeLayout(false);
             this.tpgModelGeneral.ResumeLayout(false);
@@ -2309,28 +2334,28 @@
             this.grpModelMaterialTextureSettings.PerformLayout();
             this.grpModelMaterialColours.ResumeLayout(false);
             this.grpModelMaterialColours.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.nudModelMaterialAlpha)).EndInit();
+            //((System.ComponentModel.ISupportInitialize)(this.nudModelMaterialAlpha)).EndInit();
             this.grpModelMaterialFlags.ResumeLayout(false);
             this.grpModelMaterialFlags.PerformLayout();
             this.tpgModelTextures.ResumeLayout(false);
             this.tpgModelTextures.PerformLayout();
             this.grpModelTexturesPreview.ResumeLayout(false);
             this.pnlModelTexturesPreviewPanel.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.pbxModelTexturesPreview)).EndInit();
+            //((System.ComponentModel.ISupportInitialize)(this.pbxModelTexturesPreview)).EndInit();
             this.grpModelTexturesSettings.ResumeLayout(false);
             this.grpModelTexturesSettings.PerformLayout();
             this.tpgPalettes.ResumeLayout(false);
             this.tpgPalettes.PerformLayout();
             this.grpModelPalettesColours.ResumeLayout(false);
             this.grpModelPalettesColours.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.gridModelPalettesPaletteColours)).EndInit();
+            //((System.ComponentModel.ISupportInitialize)(this.gridModelPalettesPaletteColours)).EndInit();
             this.tsModelPreview.ResumeLayout(false);
             this.tsModelPreview.PerformLayout();
             this.tpgCollisionMap.ResumeLayout(false);
             this.splCollisionMap.Panel1.ResumeLayout(false);
             this.splCollisionMap.Panel2.ResumeLayout(false);
             this.splCollisionMap.Panel2.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.splCollisionMap)).EndInit();
+            //((System.ComponentModel.ISupportInitialize)(this.splCollisionMap)).EndInit();
             this.splCollisionMap.ResumeLayout(false);
             this.tcCollisionMapSettings.ResumeLayout(false);
             this.tpgCollisionMapGeneral.ResumeLayout(false);
@@ -2340,12 +2365,14 @@
             this.grpCollisionMapGeneralTarget.PerformLayout();
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.gridCollisionMapGeneralMaterialCollisionTypes)).EndInit();
+            //((System.ComponentModel.ISupportInitialize)(this.gridCollisionMapGeneralMaterialCollisionTypes)).EndInit();
             this.tpgCollisionMapPlanes.ResumeLayout(false);
             this.grpCollisionMapPlanesDetails.ResumeLayout(false);
             this.grpCollisionMapPlanesDetails.PerformLayout();
             this.mstrMain.ResumeLayout(false);
             this.mstrMain.PerformLayout();
+            this.grpModelBonesSettings.ResumeLayout(false);
+            this.grpModelBonesSettings.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -2543,5 +2570,7 @@
         private System.Windows.Forms.ToolStripLabel lblModelPreviewScale;
         private System.Windows.Forms.ToolStripMenuItem mnitExportTexturesPNG;
         private System.Windows.Forms.ToolStripMenuItem mnitExportTexturesBMP;
+        private System.Windows.Forms.GroupBox grpModelBonesSettings;
+        private System.Windows.Forms.CheckBox chkModelBonesSettingsBillboard;
     }
 }

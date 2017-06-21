@@ -32,6 +32,7 @@ namespace SM64DSe.ImportExport.Loaders.InternalLoaders
                 bone.SetScale(mdchunk.m_20_12Scale);
                 bone.SetRotation(mdchunk.m_4_12Rotation);
                 bone.SetTranslation(mdchunk.m_20_12Translation);
+                bone.m_Billboard = mdchunk.m_Billboard;
 
                 if (mdchunk.m_ParentOffset == 0)
                 {

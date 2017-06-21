@@ -1555,7 +1555,7 @@ namespace SM64DSe
 
         private void btnLevelSettings_Click(object sender, EventArgs e)
         {
-            new LevelSettingsForm(m_Level.m_LevelSettings).ShowDialog(this);
+            new LevelSettingsForm(m_Level).ShowDialog(this);
             m_Level.DetermineAvailableObjects();
             tvObjectList.Refresh();
         }
