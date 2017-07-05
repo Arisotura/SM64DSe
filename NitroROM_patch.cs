@@ -36,6 +36,25 @@ namespace SM64DSe
         public const int NUM_LEVELS = 52;
         public const int NEW_LEVEL_OVERLAYS_START_INDEX = 103;
 
+        public uint LevelOvlOffset
+        {
+            get
+            {
+                switch (m_Version)
+                {
+                    default:
+                    case NitroROM.Version.EUR:
+                        return 0x214EAA0; // 34925216
+                    case NitroROM.Version.USA_v1:
+                        return 0x2143BA0; // 34880416
+                    case NitroROM.Version.USA_v2:
+                        return 0x2145720; // 34887456
+                    case NitroROM.Version.JAP:
+                        return 0x2143480; // 34878592
+                }
+            }
+        }
+
         private uint ARM_BL(uint src, uint dst) { return (0xEB000000 | (((dst - src - 8) >> 2) & 0x00FFFFFF)); }
         private uint ARM_B(uint src, uint dst) { return (0xEA000000 | (((dst - src - 8) >> 2) & 0x00FFFFFF)); }
 
@@ -551,8 +570,6 @@ namespace SM64DSe
 
         private void Patch_v4(BackgroundWorker lazyman)
         {
-            uint lvl_start = 0;
-
             // Music table address
             uint music_tbl_addr = 0;
             // Store locations of the music bytes (music table address, +1, +2) - update to point to within overlay
@@ -570,8 +587,6 @@ namespace SM64DSe
                     music_tbl_byte_1_addr = 0x2de60;
                     music_tbl_byte_2_addr = 0x2d608;
                     music_tbl_byte_3_addr = 0x2d644;
-
-                    lvl_start = 34925216;
                     break;
 
                 case Version.JAP:
@@ -582,8 +597,6 @@ namespace SM64DSe
                     music_tbl_byte_1_addr = 0x2cdb8;
                     music_tbl_byte_2_addr = 0x2c7b0;
                     music_tbl_byte_3_addr = 0x2c7ec;
-
-                    lvl_start = 34878592;
                     break;
 
                 case Version.USA_v1:
@@ -594,8 +607,6 @@ namespace SM64DSe
                     music_tbl_byte_1_addr = 0x2cae0;
                     music_tbl_byte_2_addr = 0x2c4d8;
                     music_tbl_byte_3_addr = 0x2c514;
-
-                    lvl_start = 34880416;
                     break;
 
                 case Version.USA_v2:
@@ -606,8 +617,6 @@ namespace SM64DSe
                     music_tbl_byte_1_addr = 0x2cdf4;
                     music_tbl_byte_2_addr = 0x2c7ec;
                     music_tbl_byte_3_addr = 0x2c828;
-
-                    lvl_start = 34887456;
                     break;
             }
 
@@ -630,15 +639,15 @@ namespace SM64DSe
             m_FileStream.Position = music_byte_1_offset;// Offset into table generated
             m_BinWriter.Write((uint)0xe3a03000);//MOV R3, #0    ;Set offset to 0
             m_FileStream.Position = music_tbl_byte_1_addr;// Stores location of music table byte 1
-            m_BinWriter.Write((uint)(lvl_start + 0x7C));// Write location in overlay of music data
+            m_BinWriter.Write((uint)(LevelOvlOffset + 0x7C));// Write location in overlay of music data
             m_FileStream.Position = music_byte_2_offset;
             m_BinWriter.Write((uint)0xe3a02001);//MOV R2, #1    ;Set offset to 1
             m_FileStream.Position = music_tbl_byte_2_addr;
-            m_BinWriter.Write((uint)(lvl_start + 0x7C));
+            m_BinWriter.Write((uint)(LevelOvlOffset + 0x7C));
             m_FileStream.Position = music_byte_3_offset;
             m_BinWriter.Write((uint)0xe3a01002);//MOV R1, #2    ;Set offset to 0
             m_FileStream.Position = music_tbl_byte_3_addr;
-            m_BinWriter.Write((uint)(lvl_start + 0x7C));
+            m_BinWriter.Write((uint)(LevelOvlOffset + 0x7C));
 
             lazyman.ReportProgress(499);
         }

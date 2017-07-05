@@ -26,7 +26,7 @@ namespace SM64DSe
 
         public List<KCL.ColFace> m_Planes;
 
-        private List<Color> m_Colours;
+        private KCLLoader.CollisionMapColours m_Colours = new KCLLoader.CollisionMapColours();
 
         private KCL m_KCL;
 
@@ -41,7 +41,6 @@ namespace SM64DSe
         {
             InitializeComponent();
             LoadKCL(kclIn);
-            LoadColours();
 
             cmbPolygonMode.Items.Add("Fill");
             cmbPolygonMode.Items.Add("Wireframe");
@@ -51,18 +50,6 @@ namespace SM64DSe
             glModelView.ProvidePickingDisplayLists(m_KCLMeshPickingDLists);
             glModelView.ProvideDisplayLists(m_KCLMeshDLists);
             glModelView.ProvideCallListForDisplayLists(CallListForKCLDisplayLists);
-        }
-
-        private void LoadColours()
-        {
-            List<int> uniqueCollisionTypes = new List<int>();
-            foreach (KCL.ColFace plane in m_Planes)
-            {
-                if (!uniqueCollisionTypes.Contains(plane.type))
-                    uniqueCollisionTypes.Add(plane.type);
-            }
-            uniqueCollisionTypes.Sort();
-            m_Colours = KCLLoader.GetColours(uniqueCollisionTypes[uniqueCollisionTypes.Count - 1] + 1);
         }
 
         public void LoadKCL(NitroFile kcl)
@@ -77,8 +64,6 @@ namespace SM64DSe
             {
                 lbxPlanes.Items.Add("Plane " + i.ToString("00000"));
             }
-
-            LoadColours();
         }
 
         private void WriteChanges()

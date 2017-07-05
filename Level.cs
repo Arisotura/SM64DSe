@@ -27,7 +27,6 @@ namespace SM64DSe
             LevelObject.Type.SIMPLE, 
             LevelObject.Type.STANDARD
         };
-        public static readonly uint k_LevelOvlOffset = 0x0214EAA0;
         public static readonly int k_MaxNumAreas = 8;
         public const byte k_LevelFormatVersion = 0x01;
 
@@ -571,7 +570,7 @@ namespace SM64DSe
 
         private void SaveCLPS(BinaryWriter binWriter)
         {
-            Helper.WritePosAndRestore(binWriter, 0x60, k_LevelOvlOffset);
+            Helper.WritePosAndRestore(binWriter, 0x60, Program.m_ROM.LevelOvlOffset);
             m_CLPS.SaveChanges(binWriter);
         }
 
@@ -582,7 +581,7 @@ namespace SM64DSe
                 .GroupBy(x => (int)x.m_Type | (int)x.m_Layer << 5);
 
             binWriter.Write(objGroups.Count());
-            binWriter.Write((uint)(binWriter.BaseStream.Position + 4 + k_LevelOvlOffset));
+            binWriter.Write((uint)(binWriter.BaseStream.Position + 4 + Program.m_ROM.LevelOvlOffset));
 
             uint basePos = (uint)binWriter.BaseStream.Position;
             binWriter.Write(new byte[8 * objGroups.Count()]);
@@ -600,7 +599,7 @@ namespace SM64DSe
                     binWriter.Write((byte)group.Key);
                     binWriter.Write((byte)group.Count());
                     binWriter.Write((ushort)0);
-                    binWriter.Write(oldPos + k_LevelOvlOffset);
+                    binWriter.Write(oldPos + Program.m_ROM.LevelOvlOffset);
                     binWriter.BaseStream.Position = oldPos;
 
                     group.ToList().ForEach(x => x.SaveChanges(binWriter));
@@ -613,7 +612,7 @@ namespace SM64DSe
 
         private void SaveMiscObjs(BinaryWriter binWriter)
         {
-            Helper.WritePosAndRestore(binWriter, 0x64, k_LevelOvlOffset);
+            Helper.WritePosAndRestore(binWriter, 0x64, Program.m_ROM.LevelOvlOffset);
             SaveObjList(binWriter, m_LevelObjects.Values, k_MiscLevelObjTypeOrder);
         }
 
@@ -638,7 +637,7 @@ namespace SM64DSe
 
             uint oldPos = (uint)binWriter.BaseStream.Position;
             binWriter.BaseStream.Position = 0x70;
-            binWriter.Write(oldPos + k_LevelOvlOffset);
+            binWriter.Write(oldPos + Program.m_ROM.LevelOvlOffset);
             binWriter.Write((byte)m_NumAreas);
             binWriter.BaseStream.Position = oldPos;
 
@@ -648,7 +647,7 @@ namespace SM64DSe
 
             for (int i = 0; i < m_NumAreas; ++i)
             {
-                Helper.WritePosAndRestore(binWriter, (uint)(areaTableOffset + 12 * i), k_LevelOvlOffset);
+                Helper.WritePosAndRestore(binWriter, (uint)(areaTableOffset + 12 * i), Program.m_ROM.LevelOvlOffset);
                 SaveObjList(binWriter, objsByArea[i], k_StandardLevelObjTypeOrder); //Order shouldn't matter here
             }
         }

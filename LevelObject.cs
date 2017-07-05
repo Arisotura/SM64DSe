@@ -1442,12 +1442,12 @@ namespace SM64DSe
                 texAnimList.Select(x => x.m_Defs.Select(y => y.m_CombinedTranslationValuesInt.ToList())
                     .ToList()).ToList());
 
-            uint scaleOffset = (uint)binWriter.BaseStream.Position + Level.k_LevelOvlOffset;
+            uint scaleOffset = (uint)binWriter.BaseStream.Position + Program.m_ROM.LevelOvlOffset;
             scaleValues.ForEach(x => binWriter.Write(x));
-            uint rotOffset   = (uint)binWriter.BaseStream.Position + Level.k_LevelOvlOffset;
+            uint rotOffset   = (uint)binWriter.BaseStream.Position + Program.m_ROM.LevelOvlOffset;
             rotationValues  .ForEach(x => binWriter.Write((short)x));
             Helper.AlignWriter(binWriter, 4);
-            uint transOffset = (uint)binWriter.BaseStream.Position + Level.k_LevelOvlOffset;
+            uint transOffset = (uint)binWriter.BaseStream.Position + Program.m_ROM.LevelOvlOffset;
             translationValues.ForEach(x => binWriter.Write(x));
 
             foreach (LevelTexAnim texAnim in texAnimList)
@@ -1456,14 +1456,14 @@ namespace SM64DSe
                     continue;
 
                 Helper.WritePosAndRestore(binWriter, (uint)(areaTableOffset + texAnim.m_Area * 12 + 4),
-                    Level.k_LevelOvlOffset);
+                    Program.m_ROM.LevelOvlOffset);
 
                 binWriter.Write(texAnim.m_NumFrames);
                 binWriter.Write(scaleOffset);
                 binWriter.Write(rotOffset);
                 binWriter.Write(transOffset);
                 binWriter.Write(texAnim.m_Defs.Count);
-                binWriter.Write((uint)binWriter.BaseStream.Position + Level.k_LevelOvlOffset + 4);
+                binWriter.Write((uint)binWriter.BaseStream.Position + Program.m_ROM.LevelOvlOffset + 4);
 
                 uint defStrPtrOffset = (uint)binWriter.BaseStream.Position + 0x04;
                 foreach (Def def in texAnim.m_Defs)
@@ -1486,7 +1486,7 @@ namespace SM64DSe
                 }
                 foreach (Def def in texAnim.m_Defs)
                 {
-                    Helper.WritePosAndRestore(binWriter, defStrPtrOffset, Level.k_LevelOvlOffset);
+                    Helper.WritePosAndRestore(binWriter, defStrPtrOffset, Program.m_ROM.LevelOvlOffset);
                     binWriter.Write(def.m_MaterialName.ToCharArray());
                     binWriter.Write((byte)0);
                     defStrPtrOffset += 0x1c;

@@ -40,12 +40,12 @@ namespace SM64DSe.ImportExport.Loaders.InternalLoaders
                     uniqueCollisionTypes.Add(plane.type);
             }
             uniqueCollisionTypes.Sort();
-            List<Color> uniqueColours = GetColours(uniqueCollisionTypes[uniqueCollisionTypes.Count - 1] + 1);
+            CollisionMapColours collisionMapColours = new CollisionMapColours();
 
             foreach (int type in uniqueCollisionTypes)
             {
                 ModelBase.MaterialDef material = new ModelBase.MaterialDef("material-" + type);
-                material.m_Diffuse = uniqueColours[type];
+                material.m_Diffuse = collisionMapColours[type];
                 m_Model.m_Materials.Add(material.m_ID, material);
 
                 rootBone.m_MaterialsInBranch.Add(material.m_ID);
@@ -76,27 +76,6 @@ namespace SM64DSe.ImportExport.Loaders.InternalLoaders
             return m_Model;
         }
 
-        public static List<Color> GetColours(int amount)
-        {
-            List<Color> theColours = new List<Color>();
-
-            for (int i = 255; i > 0; i = i - 50)
-            {
-                for (int j = 0; j < 255; j = j + 40)
-                {
-                    for (int k = 255; k > 0; k = k - 40)
-                    {
-                        Color newColour = Color.FromArgb(255, k, i, j);
-                        theColours.Add(newColour);
-
-                        if (theColours.Count >= amount)
-                            return theColours;
-                    }
-                }
-            }
-            return theColours;
-        }
-
         public override Dictionary<string, ModelBase.MaterialDef> GetModelMaterials()
         {
             if (m_Model.m_Materials.Count > 0)
@@ -105,6 +84,38 @@ namespace SM64DSe.ImportExport.Loaders.InternalLoaders
             {
                 LoadModel();
                 return m_Model.m_Materials;
+            }
+        }
+
+        public class CollisionMapColours
+        {
+            private SortedDictionary<int, Color> m_Colours;
+
+            public CollisionMapColours()
+            {
+                m_Colours = new SortedDictionary<int, Color>();
+            }
+
+            public Color this[int key]
+            {
+                get
+                {
+                    Color colour;
+                    if (!m_Colours.TryGetValue(key, out colour))
+                    {
+                        colour = GetColour(key);
+                        m_Colours[key] = colour;
+                    }
+                    return colour;
+                }
+            }
+
+            public static Color GetColour(int type)
+            {
+                byte r = (byte)(255 - (39 * type));
+                byte g = (byte)(255 - (49 * type));
+                byte b = (byte)(0 + (41 * type));
+                return Color.FromArgb(255, r, g, b);
             }
         }
     }

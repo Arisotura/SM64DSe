@@ -149,7 +149,7 @@ namespace SM64DSe
 
         private bool m_CollisionMapWireFrameView;
         private List<KCL.ColFace> m_CollisionMapPlanes;
-        private List<Color> m_CollisionMapColours;
+        private KCLLoader.CollisionMapColours m_CollisionMapColours;
         private int m_CollisionMapSelectedTriangle;
 
         private OpenFileDialog m_OpenFileDialogue;
@@ -456,7 +456,7 @@ namespace SM64DSe
             m_ImportedCollisionMap = DUMMY_KCL;
             m_CollisionMapMaterialTypeMap = new Dictionary<string, int>();
             m_CollisionMapPlanes = new List<KCL.ColFace>();
-            m_CollisionMapColours = new List<Color>();
+            m_CollisionMapColours = new KCLLoader.CollisionMapColours();
             m_CollisionMapSelectedTriangle = -1;
             m_CollisionMapWireFrameView = false;
         }
@@ -2730,25 +2730,6 @@ namespace SM64DSe
             cmbCollisionMapPreviewFillMode.SelectedIndex = 0;
         }
 
-        private void PopulateCollisionMapMaterialColours()
-        {
-            List<int> uniqueCollisionTypes = new List<int>();
-            foreach (KCL.ColFace plane in m_CollisionMapPlanes)
-            {
-                if (!uniqueCollisionTypes.Contains(plane.type))
-                    uniqueCollisionTypes.Add(plane.type);
-            }
-            uniqueCollisionTypes.Sort();
-            if (uniqueCollisionTypes.Count > m_CollisionMapColours.Count)
-            {
-                m_CollisionMapColours = KCLLoader.GetColours(uniqueCollisionTypes[uniqueCollisionTypes.Count - 1] + 1);
-            }
-            else if (uniqueCollisionTypes.Count < 1)
-            {
-                m_CollisionMapColours.Clear();
-            }
-        }
-
         private void PopulateCollisionMapMaterialCollisionTypes()
         {
             if (m_ModelBase != null)
@@ -2799,8 +2780,6 @@ namespace SM64DSe
             }
 
             txtCollisionMapPlanesCollisionType.BackColor = Color.White;
-
-            PopulateCollisionMapMaterialColours();
 
             SetEnabledStateCollisionMapPlanes(true);
         }
@@ -2919,7 +2898,6 @@ namespace SM64DSe
                     SetCollisionMapPlaneCollisionType(idx, collisionType);
                 }
 
-                PopulateCollisionMapMaterialColours();
                 RefreshCollisionMapView();
             }
         }
