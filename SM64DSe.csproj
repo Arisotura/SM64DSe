@@ -461,6 +461,7 @@
     <Content Include="Documentation\kcl_format.txt" />
     <Content Include="Documentation\SM64DS Level Format Doc v2.1x.txt" />
     <Content Include="Documentation\SM64DS Text Editing.txt" />
+    <None Include="Resources\collapseButton.png" />
     <Content Include="Templates\Enemy.cpp" />
     <Content Include="Templates\Enemy.h" />
     <Content Include="Templates\Platform.cpp" />

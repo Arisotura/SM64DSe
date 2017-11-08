@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!--SM64DS Editor v2.2 PRIVATE BETA 20141202-->
+<!--SM64DS Editor v2.3.5 2017-07-05-->
 <Patches>
   <Patch>
     <PatchName>Skip Introduction</PatchName>
@@ -44,6 +44,14 @@
         </Data>
       </AddressDataPair>
     </EURRestoreData>
+    <USv2RestoreData>
+      <AddressDataPair>
+        <Address>81224</Address>
+        <Data>
+          <Byte>8</Byte>
+        </Data>
+      </AddressDataPair>
+    </USv2RestoreData>
   </Patch>
   <Patch>
     <PatchName>All Minigames Unlocked</PatchName>
@@ -1101,5 +1109,8 @@
         </Data>
       </AddressDataPair>
     </EURRestoreData>
+  </Patch>
+  <Patch>
+    <PatchName />
   </Patch>
 </Patches>

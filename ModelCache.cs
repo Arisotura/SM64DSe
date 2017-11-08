@@ -92,6 +92,40 @@ namespace SM64DSe
             return dl;
         }
 
+        public static int[] GetDisplayLists(BMD model,BCA animation, int frame)
+        {
+            if (model == null || !m_Models.ContainsKey(model.m_FileName))
+                return null;
+
+            CachedModel cmdl = m_Models[model.m_FileName];
+            if (cmdl.m_DisplayLists != null)
+                return cmdl.m_DisplayLists;
+
+            int[] dl = new int[3];
+            bool keep = false;
+
+            dl[0] = GL.GenLists(1);
+            GL.NewList(dl[0], ListMode.Compile);
+            keep = cmdl.m_Model.Render(RenderMode.Opaque, 1f, animation, frame);
+            GL.EndList();
+            if (!keep) { GL.DeleteLists(dl[0], 1); dl[0] = 0; }
+
+            dl[1] = GL.GenLists(1);
+            GL.NewList(dl[1], ListMode.Compile);
+            keep = cmdl.m_Model.Render(RenderMode.Translucent, 1f, animation, frame);
+            GL.EndList();
+            if (!keep) { GL.DeleteLists(dl[1], 1); dl[1] = 0; }
+
+            dl[2] = GL.GenLists(1);
+            GL.NewList(dl[2], ListMode.Compile);
+            keep = cmdl.m_Model.Render(RenderMode.Picking, 1f, animation, frame);
+            GL.EndList();
+            if (!keep) { GL.DeleteLists(dl[2], 1); dl[2] = 0; }
+
+            cmdl.m_DisplayLists = dl;
+            return dl;
+        }
+
         public static void RemoveModel(BMD model)
         {
             if (!m_Models.ContainsKey(model.m_FileName))

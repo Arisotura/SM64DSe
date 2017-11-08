@@ -47,6 +47,8 @@
             this.mnitASMHackingCompilationFixCodeOffsets = new System.Windows.Forms.ToolStripMenuItem();
             this.mnitASMHackingGeneration = new System.Windows.Forms.ToolStripMenuItem();
             this.platformEditorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.tssASMHacking001 = new System.Windows.Forms.ToolStripSeparator();
+            this.mnitToggleSuitabilityForNSMBeASMPatchingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.btnTools = new System.Windows.Forms.ToolStripDropDownButton();
             this.mnitToolsModelAndCollisionMapImporter = new System.Windows.Forms.ToolStripMenuItem();
             this.mnitToolsCollisionMapEditor = new System.Windows.Forms.ToolStripMenuItem();
@@ -54,7 +56,6 @@
             this.mnitToolsBTPEditor = new System.Windows.Forms.ToolStripMenuItem();
             this.mnitToolsTextEditor = new System.Windows.Forms.ToolStripMenuItem();
             this.mnitToolsSoundBrowser = new System.Windows.Forms.ToolStripMenuItem();
-            this.mnitToggleSuitabilityForNSMBeASMPatchingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mnitToolsImageEditor = new System.Windows.Forms.ToolStripMenuItem();
             this.ofdOpenFile = new System.Windows.Forms.OpenFileDialog();
             this.sfdSaveFile = new System.Windows.Forms.SaveFileDialog();
@@ -85,7 +86,6 @@
             this.btnReplaceOverlay = new System.Windows.Forms.Button();
             this.btnExtractOverlay = new System.Windows.Forms.Button();
             this.btnDecompressOverlay = new System.Windows.Forms.Button();
-            this.tssASMHacking001 = new System.Windows.Forms.ToolStripSeparator();
             this.tsToolBar.SuspendLayout();
             this.ssStatusBar.SuspendLayout();
             this.tbcMainFormTabControl.SuspendLayout();
@@ -218,11 +218,9 @@
             // 
             // mnitEditSDATINFOBlockToolStripMenuItem
             // 
-            this.mnitEditSDATINFOBlockToolStripMenuItem.Enabled = false;
             this.mnitEditSDATINFOBlockToolStripMenuItem.Name = "mnitEditSDATINFOBlockToolStripMenuItem";
             this.mnitEditSDATINFOBlockToolStripMenuItem.Size = new System.Drawing.Size(259, 22);
             this.mnitEditSDATINFOBlockToolStripMenuItem.Text = "Edit SDAT INFO Block";
-            this.mnitEditSDATINFOBlockToolStripMenuItem.Visible = false;
             this.mnitEditSDATINFOBlockToolStripMenuItem.Click += new System.EventHandler(this.mnitEditSDATINFOBlockToolStripMenuItem_Click);
             // 
             // btnASMHacking
@@ -232,7 +230,7 @@
             this.btnASMHacking.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.mnitASMHackingCompilation,
             this.mnitASMHackingGeneration,
-            this.tssASMHacking001, 
+            this.tssASMHacking001,
             this.mnitToggleSuitabilityForNSMBeASMPatchingToolStripMenuItem});
             this.btnASMHacking.Enabled = false;
             this.btnASMHacking.ImageTransparentColor = System.Drawing.Color.Magenta;
@@ -246,7 +244,7 @@
             this.mnitASMHackingCompilationCodeCompiler,
             this.mnitASMHackingCompilationFixCodeOffsets});
             this.mnitASMHackingCompilation.Name = "mnitASMHackingCompilation";
-            this.mnitASMHackingCompilation.Size = new System.Drawing.Size(152, 22);
+            this.mnitASMHackingCompilation.Size = new System.Drawing.Size(303, 22);
             this.mnitASMHackingCompilation.Text = "Compilation";
             // 
             // mnitASMHackingCompilationCodeCompiler
@@ -268,7 +266,7 @@
             this.mnitASMHackingGeneration.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.platformEditorToolStripMenuItem});
             this.mnitASMHackingGeneration.Name = "mnitASMHackingGeneration";
-            this.mnitASMHackingGeneration.Size = new System.Drawing.Size(152, 22);
+            this.mnitASMHackingGeneration.Size = new System.Drawing.Size(303, 22);
             this.mnitASMHackingGeneration.Text = "Generation";
             // 
             // platformEditorToolStripMenuItem
@@ -277,6 +275,18 @@
             this.platformEditorToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
             this.platformEditorToolStripMenuItem.Text = "Platform Editor";
             this.platformEditorToolStripMenuItem.Click += new System.EventHandler(this.platformEditorToolStripMenuItem_Click);
+            // 
+            // tssASMHacking001
+            // 
+            this.tssASMHacking001.Name = "tssASMHacking001";
+            this.tssASMHacking001.Size = new System.Drawing.Size(300, 6);
+            // 
+            // mnitToggleSuitabilityForNSMBeASMPatchingToolStripMenuItem
+            // 
+            this.mnitToggleSuitabilityForNSMBeASMPatchingToolStripMenuItem.Name = "mnitToggleSuitabilityForNSMBeASMPatchingToolStripMenuItem";
+            this.mnitToggleSuitabilityForNSMBeASMPatchingToolStripMenuItem.Size = new System.Drawing.Size(303, 22);
+            this.mnitToggleSuitabilityForNSMBeASMPatchingToolStripMenuItem.Text = "Toggle Suitability for NSMBe ASM Patching";
+            this.mnitToggleSuitabilityForNSMBeASMPatchingToolStripMenuItem.Click += new System.EventHandler(this.mnitToggleSuitabilityForNSMBeASMPatchingToolStripMenuItem_Click);
             // 
             // btnTools
             // 
@@ -292,7 +302,7 @@
             this.btnTools.Enabled = false;
             this.btnTools.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnTools.Name = "btnTools";
-            this.btnTools.Size = new System.Drawing.Size(49, 22);
+            this.btnTools.Size = new System.Drawing.Size(48, 22);
             this.btnTools.Text = "Tools";
             // 
             // mnitToolsModelAndCollisionMapImporter
@@ -336,13 +346,6 @@
             this.mnitToolsSoundBrowser.Size = new System.Drawing.Size(256, 22);
             this.mnitToolsSoundBrowser.Text = "Sound Browser";
             this.mnitToolsSoundBrowser.Click += new System.EventHandler(this.mnitToolsSoundBrowser_Click);
-            // 
-            // mnitToggleSuitabilityForNSMBeASMPatchingToolStripMenuItem
-            // 
-            this.mnitToggleSuitabilityForNSMBeASMPatchingToolStripMenuItem.Name = "mnitToggleSuitabilityForNSMBeASMPatchingToolStripMenuItem";
-            this.mnitToggleSuitabilityForNSMBeASMPatchingToolStripMenuItem.Size = new System.Drawing.Size(304, 22);
-            this.mnitToggleSuitabilityForNSMBeASMPatchingToolStripMenuItem.Text = "Toggle Suitability for NSMBe ASM Patching";
-            this.mnitToggleSuitabilityForNSMBeASMPatchingToolStripMenuItem.Click += new System.EventHandler(this.mnitToggleSuitabilityForNSMBeASMPatchingToolStripMenuItem_Click);
             // 
             // mnitToolsImageEditor
             // 
@@ -675,11 +678,6 @@
             this.btnDecompressOverlay.TabIndex = 9;
             this.btnDecompressOverlay.Text = "Decompress Overlay";
             this.btnDecompressOverlay.UseVisualStyleBackColor = true;
-            // 
-            // tssASMHacking001
-            // 
-            this.tssASMHacking001.Name = "tssASMHacking001";
-            this.tssASMHacking001.Size = new System.Drawing.Size(149, 6);
             // 
             // MainForm
             // 

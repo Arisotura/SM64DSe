@@ -49,10 +49,12 @@ namespace SM64DSe
         public virtual string GetDescription() { return "LevelObject"; }
 
         public virtual bool SupportsRotation() { return true; }
+        public virtual bool SupportsActs() { return false; }
+        public virtual bool HasPosition() { return true; }
         // return value: bit0=refresh display, bit1=refresh propertygrid, bit2=refresh object list
         public virtual int SetProperty(string field, object newval) { return 0; }
         public virtual void SaveChanges(System.IO.BinaryWriter binWriter) { }
-
+        
         public virtual void Render(RenderMode mode)
         {
             if (!m_Renderer.GottaRender(mode))
@@ -104,6 +106,19 @@ namespace SM64DSe
             return copy;
         }
 
+        public static object[] ComboBoxInfoFromStrings(string[] strings)
+        {
+            object[] list = new object[strings.Length * 2];
+            int index = 0;
+            for (int i = 0; i<strings.Length;i++)
+            {
+                list[index++] = i;
+                list[index++] = strings[i];
+            }
+            Console.WriteLine("List length: " + list.Length);
+            return list;
+        }
+
         public enum Type
         {
             STANDARD = 0,
@@ -138,6 +153,8 @@ namespace SM64DSe
 
         public ObjectRenderer m_Renderer;
         public PropertyTable m_Properties;
+        public ParameterField[] m_ParameterFields = null;
+
         public string m_KCLName = null; // For blocks and whomp's towers only ;)
     }
 
@@ -176,7 +193,13 @@ namespace SM64DSe
 
             m_Renderer = InitialiseRenderer();
             m_KCLName = InitializeKCL();
-            // m_PParams = new Hashtable();
+            Console.WriteLine(m_KCLName);
+            m_ParameterFields = new ParameterField[]
+            {
+                new DefaultField("Parameter 1",0,16){ Name = "1. Parameter" },
+                new DefaultField("Parameter 2",0,16){ Name = "2. Parameter" },
+                new DefaultField("Parameter 3",0,16){ Name = "3. Parameter" }
+            };
             m_Properties = new PropertyTable();
             GenerateProperties();
         }
@@ -201,6 +224,8 @@ namespace SM64DSe
             return String.Format("{0} - {1} {2}", ID, ObjectDatabase.m_ObjectInfo[ID].m_Name, k_Layers[m_Layer]);
         }
 
+        public override System.Boolean SupportsActs() { return true; }
+
         public override void GenerateProperties()
         {
             m_Properties.Properties.Clear();
@@ -212,7 +237,6 @@ namespace SM64DSe
             m_Properties.Properties.Add(new PropertySpec("Y position", typeof(float), "General", "The object's position along the Y axis.", Position.Y, "", typeof(FloatTypeConverter)));
             m_Properties.Properties.Add(new PropertySpec("Z position", typeof(float), "General", "The object's position along the Z axis.", Position.Z, "", typeof(FloatTypeConverter)));
             m_Properties.Properties.Add(new PropertySpec("Y rotation", typeof(float), "General", "The angle in degrees the object is rotated around the Y axis.", YRotation, "", typeof(FloatTypeConverter)));
-
             /*foreach (ObjectDatabase.ObjectInfo.ParamInfo oparam in ObjectDatabase.m_ObjectInfo[ID].m_ParamInfo)
             {
                 uint pmask = (uint)(Math.Pow(2, oparam.m_Length) - 1);
@@ -323,6 +347,10 @@ namespace SM64DSe
 
             m_Renderer = InitialiseRenderer();
             m_KCLName = InitializeKCL();
+            m_ParameterFields = new ParameterField[]
+            {
+                new DefaultField("Parameter 1",0,16){ Name = "1. Parameter" },
+            };
             m_Properties = new PropertyTable();
             GenerateProperties();
         }
@@ -337,6 +365,8 @@ namespace SM64DSe
             if (ID == 511) return "511 - Minimap change " + k_Layers[m_Layer];
             return String.Format("{0} - {1} {2}", ID, ObjectDatabase.m_ObjectInfo[ID].m_Name, k_Layers[m_Layer]);
         }
+
+        public override System.Boolean SupportsActs() { return true; }
 
         public override void GenerateProperties()
         {
@@ -421,6 +451,29 @@ namespace SM64DSe
 
             m_Renderer = InitialiseRenderer();
             m_KCLName = InitializeKCL();
+            m_ParameterFields = new ParameterField[]
+            {
+                new ListField("Parameter 4",0,9,new object[]{
+                    0, "Spawns on ground standing.",
+                    1, "Wingcap Mario for ? Switch only, else falls and takes damage.",
+                    2, "Mario has Wingcap, other characters Spin in with Star wipe.",
+                    3, "Spin in with Circle wipe.",
+                    4, "Fall in, Star Wipe.",
+                    5, "Fall in, Star Wipe. (Duplicate?)",
+                    6, "Fall in, No Wipe.",
+                    7, "Fall in, No Wipe. (Duplicate?)",
+                    8, "Like jumping out of a pit/pipe, but lets you save.",
+                    9, "Like jumping out of a pit/pipe, but lets you save. (Duplicate?)",
+                    10, "Spin in, No Wipe.",
+                    11, "Acts like painting, makes sound, lets you save.",
+                    12, "Acts like painting, makes sound, lets you save. (Duplicate?)",
+                    13, "Jumps with fist in air, like coming out of a pipe.",
+                    14, "Spawns on ground standing (Castle Door Entrance).",
+                    15, "Fall in with Mario Wipe."
+                }) {Name = "EntranceMode" },
+                new DefaultField("Parameter 4",9,4){ Name = "ViewId", DislpayInHex = false },
+                new DefaultField("Parameter 4",13,3){ Name = "Area" },
+            };
             m_Properties = new PropertyTable(); 
             GenerateProperties();
         }
@@ -473,6 +526,7 @@ namespace SM64DSe
                 case "Parameter 3": Parameters[2] = (ushort)newval; return 0;
                 case "Parameter 4": Parameters[3] = (ushort)newval; return 0;
             }
+            
 
             return 0;
         }
@@ -494,6 +548,7 @@ namespace SM64DSe
     {
         public int LevelID, EntranceID;
         public ushort Param1, Param2;
+        public byte width, height;
 
         public ExitObject(INitroROMBlock data, int num, int layer)
             : base(data, layer)
@@ -513,19 +568,30 @@ namespace SM64DSe
 
             m_Renderer = InitialiseRenderer();
             m_KCLName = InitializeKCL();
-            m_Properties = new PropertyTable(); 
+            m_Properties = new PropertyTable();
+            m_ParameterFields = new ParameterField[]
+            {
+                new ListField("Destination level",8,8,ComboBoxInfoFromStrings(Strings.LevelNames)){Name = "Destination level"},
+                new DefaultField("Destination entrance",8,8){ Name = "Destination entrance", Description = "The Entrance you spawn at in the level", DislpayInHex = false },
+                new DefaultField("Parameter 1",0,16){ Name = "X-rotation" },
+                new DefaultField("Parameter 2",4,4){ Name = "width", Description = "The width of the exits trigger area", DislpayInHex = false },
+                new DefaultField("Parameter 2",0,4){ Name = "height", Description = "The height of the exits trigger area", DislpayInHex = false },
+                new DefaultField("Parameter 2",8,8){ Name = "returnEntrance", Description = "The Entrance you spawn at, if you die or collect a star/key, 255 means you spawn at the default Entrance in Peachs Castle", DislpayInHex = false }
+            };
             GenerateProperties();
         }
 
         public override ObjectRenderer BuildRenderer()
         {
-            return new ColorCubeRenderer(Color.FromArgb(255, 0, 0), Color.FromArgb(64, 0, 0), true);
+            return new ExitRenderer(Param1,Param2);
         }
 
         public override string GetDescription()
         {
             return string.Format("Exit ({0}, entrance {1}) {2}", Strings.LevelNames[LevelID], EntranceID, k_Layers[m_Layer]);
         }
+
+        public override System.Boolean SupportsActs() { return true; }
 
         public override void GenerateProperties()
         {
@@ -538,8 +604,10 @@ namespace SM64DSe
             m_Properties.Properties.Add(new PropertySpec("Y rotation", typeof(float), "General", "The angle in degrees the exit is rotated around the Y axis.", YRotation, "", typeof(FloatTypeConverter)));
             m_Properties.Properties.Add(new PropertySpec("Destination level", typeof(int), "Specific", "The level the exit leads to.", LevelID, "", typeof(LevelIDTypeConverter)));
             m_Properties.Properties.Add(new PropertySpec("Destination entrance", typeof(int), "Specific", "The ID of the entrance in the destination level, the exit is connected to.", EntranceID));
-            m_Properties.Properties.Add(new PropertySpec("Parameter 1", typeof(ushort), "Specific", "Purpose unknown.", Param1, "", typeof(HexNumberTypeConverter)));
-            m_Properties.Properties.Add(new PropertySpec("Parameter 2", typeof(ushort), "Specific", "Purpose unknown.", Param2, "", typeof(HexNumberTypeConverter)));
+            m_Properties.Properties.Add(new PropertySpec("width", typeof(byte), "Specific", "The width of the exit trigger area", width, "", typeof(Size16TypeConverter)));
+            m_Properties.Properties.Add(new PropertySpec("height", typeof(byte), "Specific", "The height of the exit trigger area", height, "", typeof(Size16TypeConverter)));
+            m_Properties.Properties.Add(new PropertySpec("Parameter 1", typeof(ushort), "Specific(raw)", "Purpose unknown.", Param1, "", typeof(HexNumberTypeConverter)));
+            m_Properties.Properties.Add(new PropertySpec("Parameter 2", typeof(ushort), "Specific(raw)", "Purpose unknown.", Param2, "", typeof(HexNumberTypeConverter)));
 
             m_Properties["Star"] = m_Layer;
             m_Properties["X position"] = Position.X;
@@ -565,8 +633,18 @@ namespace SM64DSe
                     else LevelID = (int)newval; 
                     return 4;
                 case "Destination entrance": EntranceID = (int)newval; return 4;
-                case "Parameter 1": Param1 = (ushort)newval; return 0;
-                case "Parameter 2": Param2 = (ushort)newval; return 0;
+                case "Parameter 1":
+                    Param1 = (ushort)newval;
+                    m_Renderer.Release();
+                    m_Renderer = InitialiseRenderer();
+                    m_KCLName = InitializeKCL();
+                    return 5;
+                case "Parameter 2":
+                    Param2 = (ushort)newval;
+                    m_Renderer.Release();
+                    m_Renderer = InitialiseRenderer();
+                    m_KCLName = InitializeKCL();
+                    return 5;
             }
 
             return 0;
@@ -614,6 +692,14 @@ namespace SM64DSe
 
             m_Renderer = InitialiseRenderer();
             m_KCLName = InitializeKCL();
+            m_ParameterFields = new ParameterField[]
+            {
+                new ListField("Door type",8,8, ComboBoxInfoFromStrings(Strings.DoorTypes)){Name = "DoorType"},
+                new DefaultField("Inside area",13,3){Name = "Inside area", Description = "The area that gets loaded, if you enter from the front side"},
+                new DefaultField("Outside area",13,3){Name = "Outside area", Description = "The area that gets loaded, if you enter from the back side"},
+                new DefaultField("Plane width",12,4){Name = "Plane width", Description = "The width of the plane (only for Virtual doors)", DislpayInHex = false},
+                new DefaultField("Plane height",12,4){Name = "Plane height", Description = "The height of the plane (only for Virtual doors)", DislpayInHex = false}
+            };
             m_Properties = new PropertyTable(); 
             GenerateProperties();
         }
@@ -781,6 +867,14 @@ namespace SM64DSe
             Parameters[3] = (ushort)data.Read8 (0x4);
             Parameters[4] = (ushort)data.Read8 (0x5);
 
+            m_ParameterFields = new ParameterField[]
+            {
+                new DefaultField("Start Node",0,16){Name = "startNode", Description = "The index of the first node in this Path", DislpayInHex = false},
+                new DefaultField("Length",8,8){Name = "pathLength", Description = "How many nodes are in this Path", DislpayInHex = false},
+                new DefaultField("Parameter 3",8,8){Name = "1. Parameter"},
+                new DefaultField("Parameter 4",8,8){Name = "2. Parameter", Description = "1 to 3 are different speeds for wind/quicksand/water/conveyorBelt paths?"},
+                new DefaultField("Parameter 5",8,8){Name = "3. Parameter", Description = "FF means path is closed, everything else is Unkown"}
+            };
             m_Properties = new PropertyTable();
             GenerateProperties();
         }
@@ -808,6 +902,8 @@ namespace SM64DSe
         }
 
         public override bool SupportsRotation() { return false; }
+
+        public override bool HasPosition() { return false; }
 
         public override int SetProperty(string field, object newval)
         {
@@ -856,6 +952,20 @@ namespace SM64DSe
 
             m_Renderer = InitialiseRenderer();
             m_KCLName = InitializeKCL();
+            m_ParameterFields = new ParameterField[]
+            {
+                new ListField("Parameter 1",8,8,new object[]{
+                    0,"Outside cylinder",
+                    1,"Inside cylinder",
+                    2,"Normal camera",
+                    3,"Point for MultiFocus camera",
+                    4,"RotationOnly camera",
+                    5,"Spiraling stairs?",
+                    6,"PathFollowing camera",
+                    7,"PauseCamera CenterPoint"
+                }) {Name = "ViewMode" },
+                new DefaultField("Parameter 1",0,8) {Name = "View Parameter"}
+            };
             m_Properties = new PropertyTable(); 
             GenerateProperties();
         }
@@ -939,6 +1049,11 @@ namespace SM64DSe
 
             m_Renderer = InitialiseRenderer();
             m_KCLName = InitializeKCL();
+            m_ParameterFields = new ParameterField[]
+            {
+                new DefaultField("Parameter 2",4,8){Name = "Destination", DislpayInHex = false},
+                new DefaultField("Parameter 1",0,16)
+            };
             m_Properties = new PropertyTable();
             GenerateProperties();
         }
@@ -1013,6 +1128,10 @@ namespace SM64DSe
 
             m_Renderer = InitialiseRenderer();
             m_KCLName = InitializeKCL();
+            m_ParameterFields = new ParameterField[]
+            {
+                new DefaultField("Parameter",0,16)
+            };
             m_Properties = new PropertyTable();
             GenerateProperties();
         }
@@ -1097,6 +1216,8 @@ namespace SM64DSe
 
         public override bool SupportsRotation() { return false; }
 
+        public override bool HasPosition() { return false; }
+
         public override int SetProperty(string field, object newval)
         {
             switch (field)
@@ -1164,6 +1285,8 @@ namespace SM64DSe
 
         public override bool SupportsRotation() { return false; }
 
+        public override bool HasPosition() { return false; }
+
         public override int SetProperty(string field, object newval)
         {
             switch (field)
@@ -1208,13 +1331,43 @@ namespace SM64DSe
             Parameters[2] = data.Read8(2);
             Parameters[3] = data.Read8(3);
 
+            object[] cameraModes = new object[]{
+                0, "Zoom in when the player thrusts the star in the air.",
+                1, "Rotate to face FF07 view and zoom out.",
+                2, "Stand Still.",
+                3, "Spin around.",
+                4, "Stand Still. Used for castle and 100 coin stars.",
+                5, "Zooms in, then spins around crazily.",
+                6, "Freeze Game.",
+                7, "Freeze Game.",
+                8, "Freeze Game.",
+                9, "Player collects star, but wipe freezes game.",
+                10, "0, but without zooming.",
+                11, "Freezes Game.",
+                12, "Cuts to FF07 camera???",
+                13, "Same as 10. (DUPLICATE?)",
+                14, "Same as 10. (DUPLICATE?)",
+                15, "Same as 10. (DUPLICATE?)"
+            };
+
+            m_ParameterFields = new ParameterField[]
+            {
+                new ListField("Parameter 1", 12, 4, cameraModes) {Name = "100coins" },
+                new ListField("Parameter 1", 8, 4, cameraModes) {Name = "1. Star" },
+                new ListField("Parameter 2", 12, 4, cameraModes) {Name = "2. Star" },
+                new ListField("Parameter 2", 8, 4, cameraModes) {Name = "3. Star" },
+                new ListField("Parameter 3", 12, 4, cameraModes) {Name = "4. Star" },
+                new ListField("Parameter 3", 8, 4, cameraModes) {Name = "5. Star" },
+                new ListField("Parameter 4", 12, 4, cameraModes) {Name = "6. Star" },
+                new ListField("Parameter 4", 8, 4, cameraModes) {Name = "7. Star" }
+            };
             m_Properties = new PropertyTable();
             GenerateProperties();
         }
 
         public override string GetDescription()
         {
-            return "Unknown Type 14 Object";
+            return "Star Cameras";
         }
 
         public override void GenerateProperties()
@@ -1233,6 +1386,8 @@ namespace SM64DSe
         }
 
         public override bool SupportsRotation() { return false; }
+
+        public override bool HasPosition() { return false; }
 
         public override int SetProperty(string field, object newval)
         {
@@ -1273,6 +1428,11 @@ namespace SM64DSe
             Parameters = new ushort[2];
             Parameters[0] = data.Read16(0);
 
+            m_ParameterFields = new ParameterField[]
+            {
+                new DefaultField("Tile ID",0,16){Name = "Tile ID", DislpayInHex = false}
+            };
+
             m_Properties = new PropertyTable();
             GenerateProperties();
         }
@@ -1292,6 +1452,8 @@ namespace SM64DSe
         }
 
         public override bool SupportsRotation() { return false; }
+
+        public override bool HasPosition() { return false; }
 
         public override int SetProperty(string field, object newval)
         {
@@ -1540,4 +1702,207 @@ namespace SM64DSe
         public List<Def> m_Defs;
         public int m_NumDefs { get { return (m_Defs != null) ? m_Defs.Count : 0; } }
     }
+
+
+    public class ParameterField
+    {
+
+        public String Name;
+        public String Description;
+
+        public ParameterField(string pgFieldName, int offset, int length)
+        {
+            Name = "Unknown";
+            Description = "No Description Provided";
+
+            m_offset = Math.Min(offset, 16);
+            Console.WriteLine("offset: " + m_offset);
+            m_length = Math.Min(length, 16 - m_offset);
+            Console.WriteLine("length: " + m_length);
+            m_pgFieldName = pgFieldName;
+        }
+
+        public virtual ushort getValue() { return (ushort)Math.Pow(2, m_length); }
+
+        public virtual void setValue(object value) { }
+
+        public virtual Control GetControl(LevelEditorForm editorForm)
+        {
+            if (m_Control == null)
+            {
+                Label label = new Label();
+                label.Text = "Parameter " + m_offset + "+" + m_length;
+                m_Control = label;
+            }
+            return m_Control;
+        }
+
+        public virtual Label GetLabel()
+        {
+            if(m_label == null)
+            {
+                m_label = new Label();
+            }
+            return m_label;
+        }
+
+        public int m_offset;
+        public int m_length;
+        public String m_description = "";
+        public String m_pgFieldName;
+        private Control m_Control;
+        private Label m_label;
+    }
+
+    public class DefaultField : ParameterField
+    {
+        public bool DislpayInHex;
+
+        private NumericUpDown m_input;
+        private Label m_label;
+        public DefaultField(string pgFieldName, int offset, int length)
+            : base(pgFieldName,offset, length)
+        {
+            DislpayInHex = true;
+        }
+
+        public override ushort getValue() {
+            ushort val = (ushort)m_input.Value;
+            ushort bitMask = ((ushort)(Math.Pow(2, m_length) - 1));
+            return (ushort)(val & bitMask);
+        }
+
+        public override void setValue(object newValue) {
+            Console.WriteLine(newValue);
+
+            m_input.Value = Convert.ToDecimal(newValue);
+        }
+
+        public override Control GetControl(LevelEditorForm editorForm)
+        {
+            if (m_input == null)
+            {
+                m_input = new NumericUpDown
+                {
+                    Hexadecimal = DislpayInHex,
+                    Maximum = ((ushort)(Math.Pow(2, m_length) - 1))
+                };
+                m_input.ValueChanged += new EventHandler(editorForm.ValueChanged);
+
+                editorForm.defaultToolTip.SetToolTip(this.m_input, Description);
+            }
+            return m_input;
+        }
+
+        public override Label GetLabel()
+        {
+            if (m_label == null)
+            {
+                m_label = new Label();
+                m_label.Text = Name;
+            }
+            return m_label;
+        }
+    }
+
+    public class ListField : ParameterField
+    {
+        private object[] m_comboBoxInfos;
+        private List<ushort> m_valueList;
+        private ComboBox m_comboBox;
+        private Label m_label;
+        public ListField(string pgFieldName, int offset, int length, object[] comboBoxInfos)
+            : base(pgFieldName, offset, length)
+        {
+            m_comboBoxInfos = comboBoxInfos;
+            m_valueList = new List<ushort>();
+        }
+
+        public override ushort getValue()
+        {
+            ushort val = m_valueList[m_comboBox.SelectedIndex];
+            ushort bitMask = ((ushort)(Math.Pow(2, m_length) - 1));
+            return (ushort)(val & bitMask);
+        }
+
+        public override void setValue(object value)
+        {
+            ushort newValue = Convert.ToUInt16(value);
+            Console.WriteLine(newValue);
+
+            int index = m_valueList.IndexOf(newValue);
+
+            if (index==-1)
+            {
+                m_valueList.Add(newValue);
+                m_comboBox.Items.Add(newValue + " (unknown)");
+                m_comboBox.SelectedIndex = m_comboBox.Items.Count-1;
+            } else
+            {
+                m_comboBox.SelectedIndex = index;
+            }
+        }
+
+        public override Control GetControl(LevelEditorForm editorForm)
+        {
+            if (m_comboBox == null)
+            {
+                System.Boolean needsName = false;
+                m_comboBox = new ComboBox();
+                
+                for (int i = 0; i < m_comboBoxInfos.Length; i++)
+                {
+                    if (m_comboBoxInfos[i] is int)
+                    {
+                        m_valueList.Add((ushort)(int)m_comboBoxInfos[i]);
+                        needsName = true;
+                    } else if(needsName)
+                    {
+                        if (m_comboBoxInfos[i] is string)
+                        {
+                            m_comboBox.Items.Add(m_comboBoxInfos[i]);
+                        } else
+                        {
+                            m_comboBox.Items.Add("unknown");
+                        }
+                        needsName = false;
+                    }
+                }
+                if (needsName)
+                {
+                    m_comboBox.Items.Add("unknown");
+                }
+                m_comboBox.DropDownWidth = 300;
+                m_comboBox.DropDownStyle = ComboBoxStyle.DropDownList;
+                m_comboBox.SelectedIndexChanged += new EventHandler(editorForm.ValueChanged);
+            }
+            return m_comboBox;
+        }
+
+        public override Label GetLabel()
+        {
+            if (m_label == null)
+            {
+                m_label = new Label
+                {
+                    Text = Name
+                };
+            }
+            return m_label;
+        }
+    }
+
+    public class FloatField : ParameterField
+    {
+        public string Name;
+        public string Description;
+        public bool updateAfterChange;
+        public FloatField(string pgFieldname)
+            : base(pgFieldname,0,0)
+        {
+            Name = "Unknown";
+            Description = "No Desc. provided";
+        }
+    }
+
 }
