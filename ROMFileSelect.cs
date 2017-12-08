@@ -13,28 +13,36 @@ namespace SM64DSe
     {
         public String m_SelectedFile = "";
 
+        private String[] m_fileFilters;
+
         public ROMFileSelect()
         {
             InitializeComponent();
-
             LoadFileList(this.tvFiles);
         }
 
-        public ROMFileSelect(String title)
+        public ROMFileSelect(String title, String[] filters = null)
         {
             InitializeComponent();
             this.Text = title;
 
-            LoadFileList(this.tvFiles);
+            LoadFileList(this.tvFiles,filters);
         }
 
-        public static void LoadFileList(TreeView tvFileList)
+        public void ReInitialize(String title, String[] filters = null)
+        {
+            this.Text = title;
+            this.tvFiles.Nodes.Clear();
+            LoadFileList(this.tvFiles, filters);
+        }
+
+        public static void LoadFileList(TreeView tvFileList, String[] filters = null)
         {
             NitroROM.FileEntry[] files = Program.m_ROM.GetFileEntries();
             TreeNode node = tvFileList.Nodes.Add("root", "ROM File System");
 
             EnsureAllDirsExist(tvFileList); //just in case a directory doesn't have files
-            LoadFiles(tvFileList, node, files, new NARC.FileEntry[] { });
+            LoadFiles(tvFileList, node, files, new NARC.FileEntry[] { },filters);
 
             node.Expand();
         }
@@ -47,7 +55,7 @@ namespace SM64DSe
                 EnsureDirExists(dirs[i].FullName, dirs[i].FullName, tvFileList.Nodes["root"]);
         }
 
-        private static void LoadFiles(TreeView tvFileList, TreeNode node, NitroROM.FileEntry[] files, NARC.FileEntry[] filesNARC)
+        private static void LoadFiles(TreeView tvFileList, TreeNode node, NitroROM.FileEntry[] files, NARC.FileEntry[] filesNARC, String[] filters = null)
         {
             TreeNode parent = node;
             String[] names = new String[0];
@@ -66,6 +74,21 @@ namespace SM64DSe
 
             for (int i = 0; i < names.Length; i++)
             {
+                if (filters != null)
+                {
+                    bool passedFilters = false;
+                    foreach (String filter in filters)
+                    {
+                        if (names[i].EndsWith(filter))
+                        {
+                            passedFilters = true;
+                            break;
+                        }
+                    }
+                    if ( !(passedFilters || names[i].EndsWith(".narc")) )
+                        continue;
+                }
+                
                 String[] parts = names[i].Split('/');
 
                 if (parts.Length == 1)
@@ -96,7 +119,7 @@ namespace SM64DSe
                         if (parts[j].EndsWith(".narc"))
                         {
                             LoadFiles(tvFileList, node, new NitroROM.FileEntry[] { }, 
-                                new NARC(Program.m_ROM, Program.m_ROM.GetFileIDFromName(files[i].FullName)).GetFileEntries());
+                                new NARC(Program.m_ROM, Program.m_ROM.GetFileIDFromName(files[i].FullName)).GetFileEntries(),filters);
                         }
                     }
                 }

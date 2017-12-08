@@ -97,6 +97,10 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
+    <Reference Include="Xceed.Wpf.AvalonDock, Version=2.0.2000.0, Culture=neutral, PublicKeyToken=3e4669d2f30244f4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>.\Xceed.Wpf.AvalonDock.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="3DStuff.cs" />
@@ -314,6 +318,12 @@
     <Compile Include="TextureEditorForm.Designer.cs">
       <DependentUpon>TextureEditorForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="UshortEditorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UshortEditorForm.Designer.cs">
+      <DependentUpon>UshortEditorForm.cs</DependentUpon>
+    </Compile>
     <EmbeddedResource Include="AdditionalPatchesForm.resx">
       <DependentUpon>AdditionalPatchesForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -410,6 +420,9 @@
     </Compile>
     <EmbeddedResource Include="TextureEditorForm.resx">
       <DependentUpon>TextureEditorForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UshortEditorForm.resx">
+      <DependentUpon>UshortEditorForm.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="app.config" />
     <None Include="dynamic_library_loader.bin" />

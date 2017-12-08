@@ -10,10 +10,16 @@
 
 	<object id='0'>
 		<category>1</category>
-		<name>Test</name>
-		<internalname>TEST</internalname>
+		<name>Player</name>
+		<internalname>PLAYER</internalname>
 		<actorid>0</actorid>
-		<description></description>
+		<description>Creates a player clone if placed in a level. That clone mimics all of the player's actions, including grabbing and throwing objects (underwater as well) and swimming. It also seems that the clone's voice always has priority over the main player's voice. Punching, kicking or ground-pounding the clone hurts the player, but stomping him does not hurt the player. The clone does not seem to always interact with other objects right, namely, he will go through certain (random) objects.
+
+Parameters (standard):
+Need to be documented better. Parameter 1 does affect character the clone is.
+If you set Parameter 1 to 0001, he loads as a mario, but when hit turns into Luigi. If you set it to 0002, loads as Mario but when hit turns into Wario. 0003 loads as Mario, gets hit, turns into Yoshi. 0004 seems to be same as 0001. 0005 loads as mario, but when hit freezes the game. 0006 loads as Mario, and when hit, turns invisible. The invisible character can still walk around and interact with things, but I can't tell what character it is. (Mario, Luigi, Yoshi, Wario..?)
+
+Parameters 2 and 3 do nothing.</description>
 		<bankreq>none</bankreq>
 	</object>
 
@@ -3890,14 +3896,12 @@ YY - The order of the current chest.
 	</object>
 
 	<object id='293'>
-		<category>5</category>
-		<name>CG Water</name>
+		<category>1</category>
+		<name>CG water</name>
 		<internalname>MC_WATER</internalname>
-		<actorid>338</actorid>
-		<description>The water box used in Castle grounds.
-
-Appears lower than its position if the two pillars in the castle basement have been groundpounded.</description>
-		<bankreq>7=2</bankreq>
+		<actorid>0</actorid>
+		<description></description>
+		<bankreq>none</bankreq>
 	</object>
 
 	<object id='294'>

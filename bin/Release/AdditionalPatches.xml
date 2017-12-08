@@ -44,6 +44,14 @@
         </Data>
       </AddressDataPair>
     </EURRestoreData>
+    <USv1RestoreData>
+      <AddressDataPair>
+        <Address>81104</Address>
+        <Data>
+          <Byte>136</Byte>
+        </Data>
+      </AddressDataPair>
+    </USv1RestoreData>
     <USv2RestoreData>
       <AddressDataPair>
         <Address>81224</Address>
@@ -615,6 +623,14 @@
         </Data>
       </AddressDataPair>
     </EURRestoreData>
+    <USv1RestoreData>
+      <AddressDataPair>
+        <Address>165520</Address>
+        <Data>
+          <Byte>0</Byte>
+        </Data>
+      </AddressDataPair>
+    </USv1RestoreData>
   </Patch>
   <Patch>
     <PatchName>Change Starting Level. Replace the data value with the ID of the level you want loaded.</PatchName>

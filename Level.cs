@@ -44,6 +44,8 @@ namespace SM64DSe
         public byte[] m_MinimapIndices;
 
         private int m_EntranceID = 0;
+        private int m_ViewID = 0;
+        private int m_PathID = 0;
         private int m_PathNodeID = 0;
         private int m_MinimapTileIDNum = 0;
 
@@ -190,11 +192,11 @@ namespace SM64DSe
                             break;
 
                         case 3: // Path
-                            obj = new PathObject(objData, m_LevelObjects.Count);
+                            obj = new PathObject(objData, m_LevelObjects.Count, (ushort)m_PathID++);
                             break;
 
                         case 4:
-                            obj = new ViewObject(objData, m_LevelObjects.Count);
+                            obj = new ViewObject(objData, m_LevelObjects.Count, m_ViewID++);
                             break;
 
                         case 5:
@@ -304,35 +306,98 @@ namespace SM64DSe
         public EntranceObject AddEntranceObject(int layer)
         {
             IEnumerable<LevelObject> entrances = GetAllObjectsByType(LevelObject.Type.ENTRANCE);
-            int maxid = (entrances.Count() < 1) ? 0 : entrances.Max(obj2 => ((EntranceObject)obj2).m_EntranceID);
+            int maxid = (entrances.Count() < 1) ? -1 : entrances.Max(obj2 => ((EntranceObject)obj2).m_EntranceID);
             EntranceObject obj = new EntranceObject(
                 InitialiseDataForObject(LevelObject.Type.ENTRANCE), (int)GetNextUniqueID(), layer, maxid + 1);
             m_LevelObjects.Add(obj.m_UniqueID, obj);
             return obj;
         }
 
-        public PathPointObject AddPathPointObject(PathObject parent)
+        public PathPointObject AddPathPointObject(int pathID, int index = -1)
         {
             // Calculate the Node ID using the parent path's start offset and length
-            int nodeID = parent.Parameters[0] + parent.Parameters[1];
+
+            Console.WriteLine("PathID for adding: " + pathID);
+
+            List<LevelObject> paths = this.GetAllObjectsByType(LevelObject.Type.PATH).ToList();
+            List<LevelObject> pathNodes = this.GetAllObjectsByType(LevelObject.Type.PATH_NODE)
+                .OrderBy(obj1 => ((PathPointObject)obj1).m_NodeID).ToList();
+
+            PathObject path = (PathObject)paths[pathID];
+
+            int indexInPath;
+            if (index < 0)
+            {
+                indexInPath = path.Parameters[1];
+            }
+            else
+            {
+                indexInPath = index;
+            }
+            int nodeID = path.Parameters[0] + indexInPath;
+
+            Console.WriteLine("NodeIndex: " + nodeID);
+
+            // Update Node ID's of following path nodes
+            if (pathNodes.Count>0)
+            {
+                for (int i = pathNodes.Count - 1; i >= nodeID; i--)
+                {
+                    PathPointObject node = (PathPointObject)pathNodes[i];
+                    node.m_NodeID++;
+                }
+            }
+            // If possible, create object after last node in path
             PathPointObject obj = new PathPointObject(
                 InitialiseDataForObject(LevelObject.Type.PATH_NODE), (int)GetNextUniqueID(), nodeID);
+
+            obj.m_IndexInPath = (byte)indexInPath;
+            obj.ParentPath = (ushort)pathID;
+            if (indexInPath > 0)
+            {
+                obj.Position = pathNodes[nodeID - 1].Position;
+            }
+
+            obj.GenerateProperties();
             m_LevelObjects.Add(obj.m_UniqueID, obj);
+            
+            // Update start indices and lengths of paths
+            for (int i = pathID; i < paths.Count; i++)
+            {
+                if (i == pathID)
+                {
+                    // Increase length of parent path
+                    paths[i].Parameters[1] += 1;
+                }
+                else if (i > pathID)
+                {
+                    // Increase start node index for all following paths
+                    paths[i].Parameters[0] += 1;
+                }
+                paths[i].GenerateProperties();
+            }
             return obj;
         }
 
         public PathObject AddPathObject()
         {
+            IEnumerable<LevelObject> paths = GetAllObjectsByType(LevelObject.Type.PATH);
+            IEnumerable<LevelObject> pathNodes = GetAllObjectsByType(LevelObject.Type.PATH_NODE);
+            int maxid = (paths.Count() < 1) ? -1 : paths.Max(obj2 => ((PathObject)obj2).m_PathID);
+            int maxNode = (pathNodes.Count() < 1) ? -1 : pathNodes.Max(obj2 => ((PathPointObject)obj2).m_NodeID);
             PathObject obj = new PathObject(
-                InitialiseDataForObject(LevelObject.Type.PATH), (int)GetNextUniqueID());
+                InitialiseDataForObject(LevelObject.Type.PATH), (int)GetNextUniqueID(), (ushort)(maxid + 1));
+            obj.Parameters[0] = (ushort)(maxNode+1);
             m_LevelObjects.Add(obj.m_UniqueID, obj);
             return obj;
         }
 
         public ViewObject AddViewObject()
         {
+            IEnumerable<LevelObject> views = GetAllObjectsByType(LevelObject.Type.VIEW);
+            int maxid = (views.Count() < 1) ? -1 : views.Max(obj2 => ((ViewObject)obj2).m_ViewID);
             ViewObject obj = new ViewObject(
-                InitialiseDataForObject(LevelObject.Type.VIEW), (int)GetNextUniqueID());
+                InitialiseDataForObject(LevelObject.Type.VIEW), (int)GetNextUniqueID(), maxid+1);
             m_LevelObjects.Add(obj.m_UniqueID, obj);
             return obj;
         }
@@ -424,15 +489,63 @@ namespace SM64DSe
                 if (obj.m_Type == LevelObject.Type.ENTRANCE)
                 {
                     IEnumerable<LevelObject> toUpdate = GetAllObjectsByType(LevelObject.Type.ENTRANCE)
-                        .Where(obj2 => ((EntranceObject)obj2).m_EntranceID > ((EntranceObject)obj).m_EntranceID);
+                        .Where(obj2 => ((EntranceObject)obj2).m_EntranceID >= ((EntranceObject)obj).m_EntranceID);
                     foreach (LevelObject entrance in toUpdate)
                     {
                         ((EntranceObject)entrance).m_EntranceID--;
                     }
                 }
+                else if (obj.m_Type == LevelObject.Type.VIEW)
+                {
+                    IEnumerable<LevelObject> toUpdate = GetAllObjectsByType(LevelObject.Type.VIEW)
+                        .Where(obj2 => ((ViewObject)obj2).m_ViewID >= ((ViewObject)obj).m_ViewID);
+                    foreach (LevelObject view in toUpdate)
+                    {
+                        ((ViewObject)view).m_ViewID--;
+                    }
+                }
                 else if (obj.m_Type == LevelObject.Type.PATH_NODE)
                 {
                     UpdatePathsNodeRemoved((PathPointObject)obj);
+                }
+                else if (obj.m_Type == LevelObject.Type.PATH)
+                {
+                    if (obj.Parameters[1] < 1)
+                        return true;
+                    //remove the paths nodes
+                    List<LevelObject> toRemove = GetAllObjectsByType(LevelObject.Type.PATH_NODE)
+                        .Where(obj2 => ((PathPointObject)obj2).ParentPath == ((PathObject)obj).m_PathID).ToList();
+                    if (toRemove.Count > 0)
+                    {
+                        for (int i = toRemove.Count - 1; i >= 0; i--)
+                        {
+                            Console.WriteLine("PathID: "+((PathPointObject)toRemove[i]).ParentPath);
+                            toRemove[i].Release();
+                            m_LevelObjects.Remove(toRemove[i].m_UniqueID);
+                        }
+                    }
+
+                    //shift the following paths
+                    IEnumerable<LevelObject> toUpdate = GetAllObjectsByType(LevelObject.Type.PATH)
+                        .Where(obj2 => ((PathObject)obj2).m_PathID >= ((PathObject)obj).m_PathID);
+                    int maxNodeId = obj.Parameters[0];
+                    foreach (PathObject path in toUpdate)
+                    {
+                        path.m_PathID--;
+                        path.Parameters[0] = (ushort)maxNodeId;
+                        path.GenerateProperties();
+                        maxNodeId += path.Parameters[1];
+                    }
+
+                    // Update Node ID's and parentPaths of following path nodes
+                    int gapSize = obj.Parameters[1];
+                    IEnumerable<LevelObject> followingPathNodes = GetAllObjectsByType(LevelObject.Type.PATH_NODE).
+                        Where(obj0 => ((PathPointObject)obj0).m_NodeID >= obj.Parameters[0]+gapSize);
+                    foreach (PathPointObject node in followingPathNodes)
+                    {
+                        node.m_NodeID -= gapSize;
+                        node.ParentPath--;
+                    }
                 }
 
                 return true;
@@ -601,8 +714,13 @@ namespace SM64DSe
                     binWriter.Write((ushort)0);
                     binWriter.Write(oldPos + Program.m_ROM.LevelOvlOffset);
                     binWriter.BaseStream.Position = oldPos;
-
-                    group.ToList().ForEach(x => x.SaveChanges(binWriter));
+                    if (type == (int)LevelObject.Type.PATH_NODE)
+                    {
+                        group.OrderBy(obj => ((PathPointObject)obj).m_NodeID).ToList().ForEach(x => x.SaveChanges(binWriter));
+                    } else
+                    {
+                        group.ToList().ForEach(x => x.SaveChanges(binWriter));
+                    }
                     Helper.AlignWriter(binWriter, 4);
 
                     ++i;

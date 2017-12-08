@@ -2328,8 +2328,8 @@ $objinfo = array
 	(
 		'id' => 0x0125,
 		'internalname' => 'MC_WATER',
-		'actorid' => 0x0152,
-		'requirement' => 'bank7=2',
+		'actorid' => 0x0000,
+		'requirement' => 'none',
 		0
 	), 
 	array
