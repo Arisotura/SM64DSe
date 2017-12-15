@@ -905,7 +905,7 @@ namespace SM64DSe
 
         private void btnModelGeneralSelectTarget_Click(object sender, EventArgs e)
         {
-            m_ROMFileSelect.Text = "Select a model (BMD) file to replace";
+            m_ROMFileSelect.ReInitialize("Select a model (BMD) file to replace", new String[] { ".bmd" });
             DialogResult result = m_ROMFileSelect.ShowDialog();
             if (result == DialogResult.OK)
             {
@@ -949,7 +949,7 @@ namespace SM64DSe
 
         private void mnitLoadInternalModelCollisionMap_Click(object sender, EventArgs e)
         {
-            m_ROMFileSelect.Text = "Select a model (BMD) or collision map (KCL) to load";
+            m_ROMFileSelect.ReInitialize("Select a model (BMD) or collision map (KCL) to load", new String[] { ".bmd",".kcl" });
             DialogResult result = m_ROMFileSelect.ShowDialog();
             if (result == DialogResult.OK)
             {
@@ -2601,7 +2601,7 @@ namespace SM64DSe
 
         private void btnCollisionMapGeneralSelectTarget_Click(object sender, EventArgs e)
         {
-            m_ROMFileSelect.Text = "Select a collision map (KCL) file to replace";
+            m_ROMFileSelect.ReInitialize("Select a collision map (KCL) file to replace", new String[] { ".kcl" });
             var result = m_ROMFileSelect.ShowDialog();
             if (result == DialogResult.OK)
             {

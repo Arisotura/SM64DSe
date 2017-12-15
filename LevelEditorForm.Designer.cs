@@ -33,7 +33,48 @@ namespace SM64DSe
             this.spcMainContainer = new System.Windows.Forms.SplitContainer();
             this.spcLeftPanel = new System.Windows.Forms.SplitContainer();
             this.tvObjectList = new System.Windows.Forms.TreeView();
-            this.pgObjectProperties = new System.Windows.Forms.PropertyGrid();
+            this.spcPropertyInterface = new System.Windows.Forms.SplitContainer();
+            this.box_general = new System.Windows.Forms.GroupBox();
+            this.btnOpenObjectList = new System.Windows.Forms.Button();
+            this.val_act = new System.Windows.Forms.ComboBox();
+            this.btnToogleCollapseGeneral = new System.Windows.Forms.PictureBox();
+            this.val_objectId = new System.Windows.Forms.NumericUpDown();
+            this.lbl_objectId = new System.Windows.Forms.Label();
+            this.lbl_star = new System.Windows.Forms.Label();
+            this.val_area = new System.Windows.Forms.NumericUpDown();
+            this.lbl_area = new System.Windows.Forms.Label();
+            this.box_fogSettings = new System.Windows.Forms.GroupBox();
+            this.box_color = new System.Windows.Forms.Panel();
+            this.lbl_r = new System.Windows.Forms.Label();
+            this.val_r = new System.Windows.Forms.NumericUpDown();
+            this.lbl_g = new System.Windows.Forms.Label();
+            this.val_b = new System.Windows.Forms.NumericUpDown();
+            this.lbl_b = new System.Windows.Forms.Label();
+            this.val_g = new System.Windows.Forms.NumericUpDown();
+            this.check_displayFog = new System.Windows.Forms.CheckBox();
+            this.val_endDistance = new System.Windows.Forms.NumericUpDown();
+            this.lbl_endDistance = new System.Windows.Forms.Label();
+            this.val_startDistance = new System.Windows.Forms.NumericUpDown();
+            this.lbl_startDistance = new System.Windows.Forms.Label();
+            this.btnToogleCollapseColor = new System.Windows.Forms.PictureBox();
+            this.box_parameters = new System.Windows.Forms.GroupBox();
+            this.btnToogleCollapseParameters = new System.Windows.Forms.PictureBox();
+            this.box_rotation = new System.Windows.Forms.GroupBox();
+            this.btnToogleCollapseRotation = new System.Windows.Forms.PictureBox();
+            this.val_rotY = new System.Windows.Forms.NumericUpDown();
+            this.val_rotX = new System.Windows.Forms.NumericUpDown();
+            this.lbl_rotY = new System.Windows.Forms.Label();
+            this.lbl_rotX = new System.Windows.Forms.Label();
+            this.box_position = new System.Windows.Forms.GroupBox();
+            this.btnToogleCollapsePosition = new System.Windows.Forms.PictureBox();
+            this.val_posZ = new System.Windows.Forms.NumericUpDown();
+            this.val_posY = new System.Windows.Forms.NumericUpDown();
+            this.label4 = new System.Windows.Forms.Label();
+            this.lbl_posY = new System.Windows.Forms.Label();
+            this.val_posX = new System.Windows.Forms.NumericUpDown();
+            this.lbl_posX = new System.Windows.Forms.Label();
+            this.btnPasteCoordinates = new System.Windows.Forms.Button();
+            this.btnCopyCoordinates = new System.Windows.Forms.Button();
             this.tsEditActions = new System.Windows.Forms.ToolStrip();
             this.btnImportModel = new System.Windows.Forms.ToolStripButton();
             this.btnExportLevelModel = new System.Windows.Forms.ToolStripButton();
@@ -44,11 +85,12 @@ namespace SM64DSe
             this.btnAddAreaWarp = new System.Windows.Forms.ToolStripMenuItem();
             this.btnAddTpSrc = new System.Windows.Forms.ToolStripMenuItem();
             this.btnAddTpDst = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem5 = new System.Windows.Forms.ToolStripMenuItem();
             this.btnAddView = new System.Windows.Forms.ToolStripButton();
             this.btnRemoveSel = new System.Windows.Forms.ToolStripButton();
+            this.btnRemoveAll = new System.Windows.Forms.ToolStripButton();
             this.btnReplaceObjModel = new System.Windows.Forms.ToolStripButton();
             this.btnExportObjectModel = new System.Windows.Forms.ToolStripButton();
-            this.btnAddPathNodes = new System.Windows.Forms.ToolStripDropDownButton();
             this.btnAddPath = new System.Windows.Forms.ToolStripButton();
             this.btnAddMisc = new System.Windows.Forms.ToolStripDropDownButton();
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
@@ -58,7 +100,8 @@ namespace SM64DSe
             this.btnImportOtherModel = new System.Windows.Forms.ToolStripButton();
             this.btnExportOtherModel = new System.Windows.Forms.ToolStripButton();
             this.btnOffsetAllCoords = new System.Windows.Forms.ToolStripButton();
-            this.glLevelView = new OpenTK.GLControl(new GraphicsMode(new ColorFormat(32), 24, 8));
+            this.btnAddPathNode = new System.Windows.Forms.ToolStripButton();
+            this.glLevelView = new OpenTK.GLControl();
             this.tsViewActions = new System.Windows.Forms.ToolStrip();
             this.btnLOL = new System.Windows.Forms.ToolStripButton();
             this.btnImportXML = new System.Windows.Forms.ToolStripButton();
@@ -110,15 +153,41 @@ namespace SM64DSe
             this.btnStarAll = new System.Windows.Forms.ToolStripButton();
             this.ssStatusBar = new System.Windows.Forms.StatusStrip();
             this.slStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
-            this.btnRemoveAll = new System.Windows.Forms.ToolStripButton();
-            //((System.ComponentModel.ISupportInitialize)(this.spcMainContainer)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.spcMainContainer)).BeginInit();
             this.spcMainContainer.Panel1.SuspendLayout();
             this.spcMainContainer.Panel2.SuspendLayout();
             this.spcMainContainer.SuspendLayout();
-            //((System.ComponentModel.ISupportInitialize)(this.spcLeftPanel)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.spcLeftPanel)).BeginInit();
             this.spcLeftPanel.Panel1.SuspendLayout();
             this.spcLeftPanel.Panel2.SuspendLayout();
             this.spcLeftPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.spcPropertyInterface)).BeginInit();
+            this.spcPropertyInterface.Panel1.SuspendLayout();
+            this.spcPropertyInterface.Panel2.SuspendLayout();
+            this.spcPropertyInterface.SuspendLayout();
+            this.box_general.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.btnToogleCollapseGeneral)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.val_objectId)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.val_area)).BeginInit();
+            this.box_fogSettings.SuspendLayout();
+            this.box_color.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.val_r)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.val_b)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.val_g)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.val_endDistance)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.val_startDistance)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.btnToogleCollapseColor)).BeginInit();
+            this.box_parameters.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.btnToogleCollapseParameters)).BeginInit();
+            this.box_rotation.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.btnToogleCollapseRotation)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.val_rotY)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.val_rotX)).BeginInit();
+            this.box_position.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.btnToogleCollapsePosition)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.val_posZ)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.val_posY)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.val_posX)).BeginInit();
             this.tsEditActions.SuspendLayout();
             this.tsViewActions.SuspendLayout();
             this.tsToolBar.SuspendLayout();
@@ -127,9 +196,9 @@ namespace SM64DSe
             // 
             // spcMainContainer
             // 
-            this.spcMainContainer.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.spcMainContainer.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.spcMainContainer.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
             this.spcMainContainer.Location = new System.Drawing.Point(0, 25);
             this.spcMainContainer.Margin = new System.Windows.Forms.Padding(0);
@@ -145,14 +214,14 @@ namespace SM64DSe
             this.spcMainContainer.Panel2.Controls.Add(this.glLevelView);
             this.spcMainContainer.Panel2.Controls.Add(this.tsViewActions);
             this.spcMainContainer.Size = new System.Drawing.Size(957, 486);
-            this.spcMainContainer.SplitterDistance = 264;
+            this.spcMainContainer.SplitterDistance = 289;
             this.spcMainContainer.TabIndex = 0;
             // 
             // spcLeftPanel
             // 
             this.spcLeftPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.spcLeftPanel.FixedPanel = System.Windows.Forms.FixedPanel.Panel2;
-            this.spcLeftPanel.Location = new System.Drawing.Point(0, 154);
+            this.spcLeftPanel.Location = new System.Drawing.Point(0, 132);
             this.spcLeftPanel.Name = "spcLeftPanel";
             this.spcLeftPanel.Orientation = System.Windows.Forms.Orientation.Horizontal;
             // 
@@ -162,9 +231,9 @@ namespace SM64DSe
             // 
             // spcLeftPanel.Panel2
             // 
-            this.spcLeftPanel.Panel2.Controls.Add(this.pgObjectProperties);
-            this.spcLeftPanel.Size = new System.Drawing.Size(264, 332);
-            this.spcLeftPanel.SplitterDistance = 54;
+            this.spcLeftPanel.Panel2.Controls.Add(this.spcPropertyInterface);
+            this.spcLeftPanel.Size = new System.Drawing.Size(289, 354);
+            this.spcLeftPanel.SplitterDistance = 75;
             this.spcLeftPanel.TabIndex = 1;
             // 
             // tvObjectList
@@ -174,22 +243,603 @@ namespace SM64DSe
             this.tvObjectList.HideSelection = false;
             this.tvObjectList.Location = new System.Drawing.Point(0, 0);
             this.tvObjectList.Name = "tvObjectList";
-            this.tvObjectList.Size = new System.Drawing.Size(264, 54);
+            this.tvObjectList.Size = new System.Drawing.Size(289, 75);
             this.tvObjectList.TabIndex = 0;
             this.tvObjectList.TabStop = false;
             this.tvObjectList.DrawNode += new System.Windows.Forms.DrawTreeNodeEventHandler(this.tvObjectList_DrawNode);
             this.tvObjectList.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tvObjectList_AfterSelect);
+            this.tvObjectList.DoubleClick += new System.EventHandler(this.tvObjectList_DoubleClick);
             // 
-            // pgObjectProperties
+            // spcPropertyInterface
             // 
-            this.pgObjectProperties.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pgObjectProperties.Location = new System.Drawing.Point(0, 0);
-            this.pgObjectProperties.Name = "pgObjectProperties";
-            this.pgObjectProperties.PropertySort = System.Windows.Forms.PropertySort.Categorized;
-            this.pgObjectProperties.Size = new System.Drawing.Size(264, 274);
-            this.pgObjectProperties.TabIndex = 0;
-            this.pgObjectProperties.ToolbarVisible = false;
-            this.pgObjectProperties.PropertyValueChanged += new System.Windows.Forms.PropertyValueChangedEventHandler(this.pgObjectProperties_PropertyValueChanged);
+            this.spcPropertyInterface.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.spcPropertyInterface.Location = new System.Drawing.Point(0, 0);
+            this.spcPropertyInterface.Name = "spcPropertyInterface";
+            this.spcPropertyInterface.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            // 
+            // spcPropertyInterface.Panel1
+            // 
+            this.spcPropertyInterface.Panel1.AutoScroll = true;
+            this.spcPropertyInterface.Panel1.Controls.Add(this.box_position);
+            this.spcPropertyInterface.Panel1.Controls.Add(this.box_rotation);
+            this.spcPropertyInterface.Panel1.Controls.Add(this.box_parameters);
+            this.spcPropertyInterface.Panel1.Controls.Add(this.box_fogSettings);
+            this.spcPropertyInterface.Panel1.Controls.Add(this.box_general);
+            // 
+            // spcPropertyInterface.Panel2
+            // 
+            this.spcPropertyInterface.Panel2.Controls.Add(this.btnPasteCoordinates);
+            this.spcPropertyInterface.Panel2.Controls.Add(this.btnCopyCoordinates);
+            this.spcPropertyInterface.Size = new System.Drawing.Size(289, 275);
+            this.spcPropertyInterface.SplitterDistance = 245;
+            this.spcPropertyInterface.TabIndex = 1;
+            // 
+            // box_general
+            // 
+            this.box_general.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.box_general.Controls.Add(this.btnOpenObjectList);
+            this.box_general.Controls.Add(this.val_act);
+            this.box_general.Controls.Add(this.btnToogleCollapseGeneral);
+            this.box_general.Controls.Add(this.val_objectId);
+            this.box_general.Controls.Add(this.lbl_objectId);
+            this.box_general.Controls.Add(this.lbl_star);
+            this.box_general.Controls.Add(this.val_area);
+            this.box_general.Controls.Add(this.lbl_area);
+            this.box_general.Cursor = System.Windows.Forms.Cursors.Default;
+            this.box_general.Location = new System.Drawing.Point(3, -18);
+            this.box_general.Name = "box_general";
+            this.box_general.Size = new System.Drawing.Size(266, 68);
+            this.box_general.TabIndex = 10;
+            this.box_general.TabStop = false;
+            this.box_general.Text = "General";
+            this.box_general.Visible = false;
+            // 
+            // btnOpenObjectList
+            // 
+            this.btnOpenObjectList.Location = new System.Drawing.Point(140, 45);
+            this.btnOpenObjectList.Name = "btnOpenObjectList";
+            this.btnOpenObjectList.Size = new System.Drawing.Size(75, 23);
+            this.btnOpenObjectList.TabIndex = 11;
+            this.btnOpenObjectList.Text = "ObjectList";
+            this.btnOpenObjectList.UseVisualStyleBackColor = true;
+            this.btnOpenObjectList.Click += new System.EventHandler(this.btnOpenObjectList_Click);
+            // 
+            // val_act
+            // 
+            this.val_act.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.val_act.FormattingEnabled = true;
+            this.val_act.Items.AddRange(new object[] {
+            "All",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7"});
+            this.val_act.Location = new System.Drawing.Point(76, 20);
+            this.val_act.Name = "val_act";
+            this.val_act.Size = new System.Drawing.Size(58, 21);
+            this.val_act.TabIndex = 10;
+            this.val_act.SelectedValueChanged += new System.EventHandler(this.ValueChanged);
+            // 
+            // btnToogleCollapseGeneral
+            // 
+            this.btnToogleCollapseGeneral.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnToogleCollapseGeneral.Image = global::SM64DSe.Properties.Resources.collapseButton;
+            this.btnToogleCollapseGeneral.Location = new System.Drawing.Point(250, 0);
+            this.btnToogleCollapseGeneral.Name = "btnToogleCollapseGeneral";
+            this.btnToogleCollapseGeneral.Size = new System.Drawing.Size(16, 16);
+            this.btnToogleCollapseGeneral.TabIndex = 9;
+            this.btnToogleCollapseGeneral.TabStop = false;
+            this.btnToogleCollapseGeneral.Click += new System.EventHandler(this.btnToogleCollapseGeneral_Click);
+            // 
+            // val_objectId
+            // 
+            this.val_objectId.Location = new System.Drawing.Point(76, 47);
+            this.val_objectId.Margin = new System.Windows.Forms.Padding(1, 3, 3, 3);
+            this.val_objectId.Maximum = new decimal(new int[] {
+            65535,
+            0,
+            0,
+            0});
+            this.val_objectId.Name = "val_objectId";
+            this.val_objectId.Size = new System.Drawing.Size(58, 20);
+            this.val_objectId.TabIndex = 5;
+            this.val_objectId.ValueChanged += new System.EventHandler(this.ValueChanged);
+            // 
+            // lbl_objectId
+            // 
+            this.lbl_objectId.AutoSize = true;
+            this.lbl_objectId.Location = new System.Drawing.Point(147, 22);
+            this.lbl_objectId.Name = "lbl_objectId";
+            this.lbl_objectId.Size = new System.Drawing.Size(29, 13);
+            this.lbl_objectId.TabIndex = 4;
+            this.lbl_objectId.Text = "Area";
+            // 
+            // lbl_star
+            // 
+            this.lbl_star.AutoSize = true;
+            this.lbl_star.Location = new System.Drawing.Point(7, 21);
+            this.lbl_star.Name = "lbl_star";
+            this.lbl_star.Size = new System.Drawing.Size(47, 13);
+            this.lbl_star.TabIndex = 3;
+            this.lbl_star.Text = "Star/Act";
+            // 
+            // val_area
+            // 
+            this.val_area.Location = new System.Drawing.Point(180, 20);
+            this.val_area.Margin = new System.Windows.Forms.Padding(1, 3, 3, 3);
+            this.val_area.Maximum = new decimal(new int[] {
+            7,
+            0,
+            0,
+            0});
+            this.val_area.Name = "val_area";
+            this.val_area.Size = new System.Drawing.Size(58, 20);
+            this.val_area.TabIndex = 3;
+            this.val_area.ValueChanged += new System.EventHandler(this.ValueChanged);
+            // 
+            // lbl_area
+            // 
+            this.lbl_area.AutoSize = true;
+            this.lbl_area.Location = new System.Drawing.Point(7, 49);
+            this.lbl_area.Name = "lbl_area";
+            this.lbl_area.Size = new System.Drawing.Size(65, 13);
+            this.lbl_area.TabIndex = 2;
+            this.lbl_area.Text = "Object Type";
+            // 
+            // box_fogSettings
+            // 
+            this.box_fogSettings.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.box_fogSettings.Controls.Add(this.box_color);
+            this.box_fogSettings.Controls.Add(this.check_displayFog);
+            this.box_fogSettings.Controls.Add(this.val_endDistance);
+            this.box_fogSettings.Controls.Add(this.lbl_endDistance);
+            this.box_fogSettings.Controls.Add(this.val_startDistance);
+            this.box_fogSettings.Controls.Add(this.lbl_startDistance);
+            this.box_fogSettings.Controls.Add(this.btnToogleCollapseColor);
+            this.box_fogSettings.Cursor = System.Windows.Forms.Cursors.Default;
+            this.box_fogSettings.Location = new System.Drawing.Point(3, 266);
+            this.box_fogSettings.Name = "box_fogSettings";
+            this.box_fogSettings.Size = new System.Drawing.Size(266, 132);
+            this.box_fogSettings.TabIndex = 6;
+            this.box_fogSettings.TabStop = false;
+            this.box_fogSettings.Text = "Fog Settings";
+            this.box_fogSettings.Visible = false;
+            // 
+            // box_color
+            // 
+            this.box_color.Controls.Add(this.lbl_r);
+            this.box_color.Controls.Add(this.val_r);
+            this.box_color.Controls.Add(this.lbl_g);
+            this.box_color.Controls.Add(this.val_b);
+            this.box_color.Controls.Add(this.lbl_b);
+            this.box_color.Controls.Add(this.val_g);
+            this.box_color.Location = new System.Drawing.Point(0, 37);
+            this.box_color.Name = "box_color";
+            this.box_color.Size = new System.Drawing.Size(242, 34);
+            this.box_color.TabIndex = 16;
+            // 
+            // lbl_r
+            // 
+            this.lbl_r.AutoSize = true;
+            this.lbl_r.Location = new System.Drawing.Point(3, 10);
+            this.lbl_r.Name = "lbl_r";
+            this.lbl_r.Size = new System.Drawing.Size(13, 13);
+            this.lbl_r.TabIndex = 2;
+            this.lbl_r.Text = "r:";
+            // 
+            // val_r
+            // 
+            this.val_r.Location = new System.Drawing.Point(20, 8);
+            this.val_r.Margin = new System.Windows.Forms.Padding(1, 3, 3, 3);
+            this.val_r.Maximum = new decimal(new int[] {
+            255,
+            0,
+            0,
+            0});
+            this.val_r.Name = "val_r";
+            this.val_r.Size = new System.Drawing.Size(58, 20);
+            this.val_r.TabIndex = 3;
+            this.val_r.ValueChanged += new System.EventHandler(this.ValueChanged);
+            // 
+            // lbl_g
+            // 
+            this.lbl_g.AutoSize = true;
+            this.lbl_g.Location = new System.Drawing.Point(84, 10);
+            this.lbl_g.Name = "lbl_g";
+            this.lbl_g.Size = new System.Drawing.Size(16, 13);
+            this.lbl_g.TabIndex = 3;
+            this.lbl_g.Text = "g:";
+            // 
+            // val_b
+            // 
+            this.val_b.Location = new System.Drawing.Point(180, 8);
+            this.val_b.Margin = new System.Windows.Forms.Padding(1, 3, 3, 3);
+            this.val_b.Maximum = new decimal(new int[] {
+            255,
+            0,
+            0,
+            0});
+            this.val_b.Name = "val_b";
+            this.val_b.Size = new System.Drawing.Size(58, 20);
+            this.val_b.TabIndex = 5;
+            this.val_b.ValueChanged += new System.EventHandler(this.ValueChanged);
+            // 
+            // lbl_b
+            // 
+            this.lbl_b.AutoSize = true;
+            this.lbl_b.Location = new System.Drawing.Point(160, 10);
+            this.lbl_b.Name = "lbl_b";
+            this.lbl_b.Size = new System.Drawing.Size(16, 13);
+            this.lbl_b.TabIndex = 4;
+            this.lbl_b.Text = "b:";
+            // 
+            // val_g
+            // 
+            this.val_g.Location = new System.Drawing.Point(102, 8);
+            this.val_g.Margin = new System.Windows.Forms.Padding(1, 3, 3, 3);
+            this.val_g.Maximum = new decimal(new int[] {
+            255,
+            0,
+            0,
+            0});
+            this.val_g.Name = "val_g";
+            this.val_g.Size = new System.Drawing.Size(52, 20);
+            this.val_g.TabIndex = 4;
+            this.val_g.ValueChanged += new System.EventHandler(this.ValueChanged);
+            // 
+            // check_displayFog
+            // 
+            this.check_displayFog.AutoSize = true;
+            this.check_displayFog.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.check_displayFog.Location = new System.Drawing.Point(16, 19);
+            this.check_displayFog.Name = "check_displayFog";
+            this.check_displayFog.Size = new System.Drawing.Size(78, 17);
+            this.check_displayFog.TabIndex = 15;
+            this.check_displayFog.Text = "Display fog";
+            this.check_displayFog.UseVisualStyleBackColor = true;
+            this.check_displayFog.CheckedChanged += new System.EventHandler(this.ValueChanged);
+            // 
+            // val_endDistance
+            // 
+            this.val_endDistance.DecimalPlaces = 4;
+            this.val_endDistance.Location = new System.Drawing.Point(73, 103);
+            this.val_endDistance.Margin = new System.Windows.Forms.Padding(1, 3, 3, 3);
+            this.val_endDistance.Maximum = new decimal(new int[] {
+            65,
+            0,
+            0,
+            0});
+            this.val_endDistance.Name = "val_endDistance";
+            this.val_endDistance.Size = new System.Drawing.Size(77, 20);
+            this.val_endDistance.TabIndex = 13;
+            this.val_endDistance.ValueChanged += new System.EventHandler(this.ValueChanged);
+            // 
+            // lbl_endDistance
+            // 
+            this.lbl_endDistance.AutoSize = true;
+            this.lbl_endDistance.Location = new System.Drawing.Point(-3, 105);
+            this.lbl_endDistance.Name = "lbl_endDistance";
+            this.lbl_endDistance.Size = new System.Drawing.Size(69, 13);
+            this.lbl_endDistance.TabIndex = 12;
+            this.lbl_endDistance.Text = "End distance";
+            // 
+            // val_startDistance
+            // 
+            this.val_startDistance.DecimalPlaces = 4;
+            this.val_startDistance.Location = new System.Drawing.Point(73, 77);
+            this.val_startDistance.Margin = new System.Windows.Forms.Padding(1, 3, 3, 3);
+            this.val_startDistance.Maximum = new decimal(new int[] {
+            65,
+            0,
+            0,
+            0});
+            this.val_startDistance.Name = "val_startDistance";
+            this.val_startDistance.Size = new System.Drawing.Size(77, 20);
+            this.val_startDistance.TabIndex = 11;
+            this.val_startDistance.ValueChanged += new System.EventHandler(this.ValueChanged);
+            // 
+            // lbl_startDistance
+            // 
+            this.lbl_startDistance.AutoSize = true;
+            this.lbl_startDistance.Location = new System.Drawing.Point(-3, 79);
+            this.lbl_startDistance.Name = "lbl_startDistance";
+            this.lbl_startDistance.Size = new System.Drawing.Size(72, 13);
+            this.lbl_startDistance.TabIndex = 10;
+            this.lbl_startDistance.Text = "Start distance";
+            // 
+            // btnToogleCollapseColor
+            // 
+            this.btnToogleCollapseColor.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnToogleCollapseColor.Image = global::SM64DSe.Properties.Resources.collapseButton;
+            this.btnToogleCollapseColor.Location = new System.Drawing.Point(250, 0);
+            this.btnToogleCollapseColor.Name = "btnToogleCollapseColor";
+            this.btnToogleCollapseColor.Size = new System.Drawing.Size(16, 16);
+            this.btnToogleCollapseColor.TabIndex = 9;
+            this.btnToogleCollapseColor.TabStop = false;
+            this.btnToogleCollapseColor.Click += new System.EventHandler(this.btnToogleCollapseColor_Click);
+            // 
+            // box_parameters
+            // 
+            this.box_parameters.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.box_parameters.Controls.Add(this.btnToogleCollapseParameters);
+            this.box_parameters.Cursor = System.Windows.Forms.Cursors.Default;
+            this.box_parameters.Location = new System.Drawing.Point(3, 145);
+            this.box_parameters.Name = "box_parameters";
+            this.box_parameters.Size = new System.Drawing.Size(266, 115);
+            this.box_parameters.TabIndex = 9;
+            this.box_parameters.TabStop = false;
+            this.box_parameters.Text = "Parameters";
+            this.box_parameters.Visible = false;
+            // 
+            // btnToogleCollapseParameters
+            // 
+            this.btnToogleCollapseParameters.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnToogleCollapseParameters.Image = global::SM64DSe.Properties.Resources.collapseButton;
+            this.btnToogleCollapseParameters.Location = new System.Drawing.Point(250, 0);
+            this.btnToogleCollapseParameters.Name = "btnToogleCollapseParameters";
+            this.btnToogleCollapseParameters.Size = new System.Drawing.Size(16, 16);
+            this.btnToogleCollapseParameters.TabIndex = 10;
+            this.btnToogleCollapseParameters.TabStop = false;
+            this.btnToogleCollapseParameters.Click += new System.EventHandler(this.btnToogleCollapseParameters_Click);
+            // 
+            // box_rotation
+            // 
+            this.box_rotation.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.box_rotation.Controls.Add(this.btnToogleCollapseRotation);
+            this.box_rotation.Controls.Add(this.val_rotY);
+            this.box_rotation.Controls.Add(this.val_rotX);
+            this.box_rotation.Controls.Add(this.lbl_rotY);
+            this.box_rotation.Controls.Add(this.lbl_rotX);
+            this.box_rotation.Cursor = System.Windows.Forms.Cursors.Default;
+            this.box_rotation.Location = new System.Drawing.Point(3, 101);
+            this.box_rotation.Name = "box_rotation";
+            this.box_rotation.Size = new System.Drawing.Size(266, 39);
+            this.box_rotation.TabIndex = 6;
+            this.box_rotation.TabStop = false;
+            this.box_rotation.Text = "Rotation";
+            this.box_rotation.Visible = false;
+            // 
+            // btnToogleCollapseRotation
+            // 
+            this.btnToogleCollapseRotation.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnToogleCollapseRotation.Image = global::SM64DSe.Properties.Resources.collapseButton;
+            this.btnToogleCollapseRotation.Location = new System.Drawing.Point(250, -1);
+            this.btnToogleCollapseRotation.Name = "btnToogleCollapseRotation";
+            this.btnToogleCollapseRotation.Size = new System.Drawing.Size(16, 16);
+            this.btnToogleCollapseRotation.TabIndex = 8;
+            this.btnToogleCollapseRotation.TabStop = false;
+            this.btnToogleCollapseRotation.Click += new System.EventHandler(this.btnToogleCollapseRotation_Click);
+            // 
+            // val_rotY
+            // 
+            this.val_rotY.Cursor = System.Windows.Forms.Cursors.Default;
+            this.val_rotY.DecimalPlaces = 4;
+            this.val_rotY.Increment = new decimal(new int[] {
+            225,
+            0,
+            0,
+            65536});
+            this.val_rotY.Location = new System.Drawing.Point(109, 18);
+            this.val_rotY.Margin = new System.Windows.Forms.Padding(1, 3, 3, 3);
+            this.val_rotY.Maximum = new decimal(new int[] {
+            2025,
+            0,
+            0,
+            65536});
+            this.val_rotY.Minimum = new decimal(new int[] {
+            180,
+            0,
+            0,
+            -2147483648});
+            this.val_rotY.Name = "val_rotY";
+            this.val_rotY.Size = new System.Drawing.Size(92, 20);
+            this.val_rotY.TabIndex = 8;
+            this.val_rotY.Tag = "";
+            this.val_rotY.ValueChanged += new System.EventHandler(this.ValueChanged);
+            // 
+            // val_rotX
+            // 
+            this.val_rotX.Cursor = System.Windows.Forms.Cursors.Default;
+            this.val_rotX.DecimalPlaces = 1;
+            this.val_rotX.Enabled = false;
+            this.val_rotX.Increment = new decimal(new int[] {
+            225,
+            0,
+            0,
+            65536});
+            this.val_rotX.Location = new System.Drawing.Point(26, 18);
+            this.val_rotX.Margin = new System.Windows.Forms.Padding(1, 3, 3, 3);
+            this.val_rotX.Maximum = new decimal(new int[] {
+            3375,
+            0,
+            0,
+            65536});
+            this.val_rotX.Name = "val_rotX";
+            this.val_rotX.Size = new System.Drawing.Size(58, 20);
+            this.val_rotX.TabIndex = 7;
+            this.val_rotX.Tag = "";
+            this.val_rotX.ValueChanged += new System.EventHandler(this.ValueChanged);
+            // 
+            // lbl_rotY
+            // 
+            this.lbl_rotY.AutoSize = true;
+            this.lbl_rotY.Location = new System.Drawing.Point(90, 20);
+            this.lbl_rotY.Name = "lbl_rotY";
+            this.lbl_rotY.Size = new System.Drawing.Size(15, 13);
+            this.lbl_rotY.TabIndex = 3;
+            this.lbl_rotY.Text = "y:";
+            // 
+            // lbl_rotX
+            // 
+            this.lbl_rotX.AutoSize = true;
+            this.lbl_rotX.Location = new System.Drawing.Point(7, 20);
+            this.lbl_rotX.Name = "lbl_rotX";
+            this.lbl_rotX.Size = new System.Drawing.Size(15, 13);
+            this.lbl_rotX.TabIndex = 2;
+            this.lbl_rotX.Text = "x:";
+            // 
+            // box_position
+            // 
+            this.box_position.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.box_position.Controls.Add(this.btnToogleCollapsePosition);
+            this.box_position.Controls.Add(this.val_posZ);
+            this.box_position.Controls.Add(this.val_posY);
+            this.box_position.Controls.Add(this.label4);
+            this.box_position.Controls.Add(this.lbl_posY);
+            this.box_position.Controls.Add(this.val_posX);
+            this.box_position.Controls.Add(this.lbl_posX);
+            this.box_position.Cursor = System.Windows.Forms.Cursors.Default;
+            this.box_position.Location = new System.Drawing.Point(3, 56);
+            this.box_position.Name = "box_position";
+            this.box_position.Size = new System.Drawing.Size(266, 39);
+            this.box_position.TabIndex = 2;
+            this.box_position.TabStop = false;
+            this.box_position.Text = "Position";
+            this.box_position.Visible = false;
+            // 
+            // btnToogleCollapsePosition
+            // 
+            this.btnToogleCollapsePosition.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnToogleCollapsePosition.Image = global::SM64DSe.Properties.Resources.collapseButton;
+            this.btnToogleCollapsePosition.Location = new System.Drawing.Point(250, 0);
+            this.btnToogleCollapsePosition.Name = "btnToogleCollapsePosition";
+            this.btnToogleCollapsePosition.Size = new System.Drawing.Size(16, 16);
+            this.btnToogleCollapsePosition.TabIndex = 7;
+            this.btnToogleCollapsePosition.TabStop = false;
+            this.btnToogleCollapsePosition.Click += new System.EventHandler(this.btnToogleCollapsePosition_Click);
+            // 
+            // val_posZ
+            // 
+            this.val_posZ.DecimalPlaces = 3;
+            this.val_posZ.Increment = new decimal(new int[] {
+            1,
+            0,
+            0,
+            65536});
+            this.val_posZ.Location = new System.Drawing.Point(186, 18);
+            this.val_posZ.Margin = new System.Windows.Forms.Padding(1, 3, 3, 3);
+            this.val_posZ.Maximum = new decimal(new int[] {
+            32,
+            0,
+            0,
+            0});
+            this.val_posZ.Minimum = new decimal(new int[] {
+            32,
+            0,
+            0,
+            -2147483648});
+            this.val_posZ.Name = "val_posZ";
+            this.val_posZ.Size = new System.Drawing.Size(58, 20);
+            this.val_posZ.TabIndex = 5;
+            this.val_posZ.ValueChanged += new System.EventHandler(this.ValueChanged);
+            // 
+            // val_posY
+            // 
+            this.val_posY.DecimalPlaces = 3;
+            this.val_posY.Increment = new decimal(new int[] {
+            1,
+            0,
+            0,
+            65536});
+            this.val_posY.Location = new System.Drawing.Point(109, 18);
+            this.val_posY.Margin = new System.Windows.Forms.Padding(1, 3, 3, 3);
+            this.val_posY.Maximum = new decimal(new int[] {
+            32,
+            0,
+            0,
+            0});
+            this.val_posY.Minimum = new decimal(new int[] {
+            32,
+            0,
+            0,
+            -2147483648});
+            this.val_posY.Name = "val_posY";
+            this.val_posY.Size = new System.Drawing.Size(58, 20);
+            this.val_posY.TabIndex = 4;
+            this.val_posY.ValueChanged += new System.EventHandler(this.ValueChanged);
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(173, 20);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(15, 13);
+            this.label4.TabIndex = 4;
+            this.label4.Text = "z:";
+            // 
+            // lbl_posY
+            // 
+            this.lbl_posY.AutoSize = true;
+            this.lbl_posY.Location = new System.Drawing.Point(90, 20);
+            this.lbl_posY.Name = "lbl_posY";
+            this.lbl_posY.Size = new System.Drawing.Size(15, 13);
+            this.lbl_posY.TabIndex = 3;
+            this.lbl_posY.Text = "y:";
+            // 
+            // val_posX
+            // 
+            this.val_posX.DecimalPlaces = 3;
+            this.val_posX.Increment = new decimal(new int[] {
+            1,
+            0,
+            0,
+            65536});
+            this.val_posX.Location = new System.Drawing.Point(26, 18);
+            this.val_posX.Margin = new System.Windows.Forms.Padding(1, 3, 3, 3);
+            this.val_posX.Maximum = new decimal(new int[] {
+            32,
+            0,
+            0,
+            0});
+            this.val_posX.Minimum = new decimal(new int[] {
+            32,
+            0,
+            0,
+            -2147483648});
+            this.val_posX.Name = "val_posX";
+            this.val_posX.Size = new System.Drawing.Size(58, 20);
+            this.val_posX.TabIndex = 3;
+            this.val_posX.ValueChanged += new System.EventHandler(this.ValueChanged);
+            // 
+            // lbl_posX
+            // 
+            this.lbl_posX.AutoSize = true;
+            this.lbl_posX.Location = new System.Drawing.Point(7, 20);
+            this.lbl_posX.Name = "lbl_posX";
+            this.lbl_posX.Size = new System.Drawing.Size(15, 13);
+            this.lbl_posX.TabIndex = 2;
+            this.lbl_posX.Text = "x:";
+            // 
+            // btnPasteCoordinates
+            // 
+            this.btnPasteCoordinates.Enabled = false;
+            this.btnPasteCoordinates.Location = new System.Drawing.Point(134, 0);
+            this.btnPasteCoordinates.Name = "btnPasteCoordinates";
+            this.btnPasteCoordinates.Size = new System.Drawing.Size(130, 23);
+            this.btnPasteCoordinates.TabIndex = 2;
+            this.btnPasteCoordinates.Text = "PasteCoordinates";
+            this.btnPasteCoordinates.UseVisualStyleBackColor = true;
+            this.btnPasteCoordinates.Visible = false;
+            this.btnPasteCoordinates.Click += new System.EventHandler(this.btnPasteCoordinates_Click);
+            // 
+            // btnCopyCoordinates
+            // 
+            this.btnCopyCoordinates.Location = new System.Drawing.Point(0, 0);
+            this.btnCopyCoordinates.Name = "btnCopyCoordinates";
+            this.btnCopyCoordinates.Size = new System.Drawing.Size(128, 23);
+            this.btnCopyCoordinates.TabIndex = 1;
+            this.btnCopyCoordinates.Text = "CopyCoordinates";
+            this.btnCopyCoordinates.UseVisualStyleBackColor = true;
+            this.btnCopyCoordinates.Visible = false;
+            this.btnCopyCoordinates.Click += new System.EventHandler(this.btnCopyCoordinates_Click);
             // 
             // tsEditActions
             // 
@@ -203,16 +853,16 @@ namespace SM64DSe
             this.btnRemoveAll,
             this.btnReplaceObjModel,
             this.btnExportObjectModel,
-            this.btnAddPathNodes,
             this.btnAddPath,
             this.btnAddMisc,
             this.btnImportOtherModel,
             this.btnExportOtherModel,
-            this.btnOffsetAllCoords});
+            this.btnOffsetAllCoords,
+            this.btnAddPathNode});
             this.tsEditActions.LayoutStyle = System.Windows.Forms.ToolStripLayoutStyle.Flow;
             this.tsEditActions.Location = new System.Drawing.Point(0, 0);
             this.tsEditActions.Name = "tsEditActions";
-            this.tsEditActions.Size = new System.Drawing.Size(264, 154);
+            this.tsEditActions.Size = new System.Drawing.Size(289, 132);
             this.tsEditActions.TabIndex = 0;
             this.tsEditActions.Text = "toolStrip1";
             // 
@@ -256,7 +906,8 @@ namespace SM64DSe
             this.btnAddExit,
             this.btnAddAreaWarp,
             this.btnAddTpSrc,
-            this.btnAddTpDst});
+            this.btnAddTpDst,
+            this.toolStripMenuItem5});
             this.btnAddWarp.Image = ((System.Drawing.Image)(resources.GetObject("btnAddWarp.Image")));
             this.btnAddWarp.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnAddWarp.Name = "btnAddWarp";
@@ -304,6 +955,12 @@ namespace SM64DSe
             this.btnAddTpDst.Text = "Teleport destination";
             this.btnAddTpDst.Click += new System.EventHandler(this.btnAddWhatever_Click);
             // 
+            // toolStripMenuItem5
+            // 
+            this.toolStripMenuItem5.Name = "toolStripMenuItem5";
+            this.toolStripMenuItem5.Size = new System.Drawing.Size(180, 22);
+            this.toolStripMenuItem5.Text = "toolStripMenuItem5";
+            // 
             // btnAddView
             // 
             this.btnAddView.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
@@ -327,6 +984,15 @@ namespace SM64DSe
             this.btnRemoveSel.ToolTipText = "Remove an object.";
             this.btnRemoveSel.Click += new System.EventHandler(this.btnRemoveSel_Click);
             // 
+            // btnRemoveAll
+            // 
+            this.btnRemoveAll.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.btnRemoveAll.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnRemoveAll.Name = "btnRemoveAll";
+            this.btnRemoveAll.Size = new System.Drawing.Size(69, 19);
+            this.btnRemoveAll.Text = "Remove all";
+            this.btnRemoveAll.Click += new System.EventHandler(this.btnRemoveAll_Click);
+            // 
             // btnReplaceObjModel
             // 
             this.btnReplaceObjModel.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
@@ -341,20 +1007,9 @@ namespace SM64DSe
             this.btnExportObjectModel.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.btnExportObjectModel.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnExportObjectModel.Name = "btnExportObjectModel";
-            this.btnExportObjectModel.Size = new System.Drawing.Size(117, 19);
+            this.btnExportObjectModel.Size = new System.Drawing.Size(81, 19);
             this.btnExportObjectModel.Text = "Export model";
             this.btnExportObjectModel.Click += new System.EventHandler(this.btnExportObjectModel_Click);
-            // 
-            // btnAddPathNodes
-            // 
-            this.btnAddPathNodes.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.btnAddPathNodes.Image = ((System.Drawing.Image)(resources.GetObject("btnAddPathNodes.Image")));
-            this.btnAddPathNodes.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnAddPathNodes.Name = "btnAddPathNodes";
-            this.btnAddPathNodes.Size = new System.Drawing.Size(101, 19);
-            this.btnAddPathNodes.Text = "Add Path Node";
-            this.btnAddPathNodes.ToolTipText = "Add Node To Path";
-            this.btnAddPathNodes.DropDownItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.btnAddPathNodes_DropDownItemClicked);
             // 
             // btnAddPath
             // 
@@ -383,28 +1038,28 @@ namespace SM64DSe
             // toolStripMenuItem1
             // 
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(162, 22);
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(161, 22);
             this.toolStripMenuItem1.Tag = "8";
             this.toolStripMenuItem1.Text = "Fog";
             // 
             // toolStripMenuItem2
             // 
             this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-            this.toolStripMenuItem2.Size = new System.Drawing.Size(162, 22);
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(161, 22);
             this.toolStripMenuItem2.Tag = "12";
             this.toolStripMenuItem2.Text = "Minimap Scale";
             // 
             // toolStripMenuItem3
             // 
             this.toolStripMenuItem3.Name = "toolStripMenuItem3";
-            this.toolStripMenuItem3.Size = new System.Drawing.Size(162, 22);
+            this.toolStripMenuItem3.Size = new System.Drawing.Size(161, 22);
             this.toolStripMenuItem3.Tag = "11";
             this.toolStripMenuItem3.Text = "Minimap Tile ID";
             // 
             // toolStripMenuItem4
             // 
             this.toolStripMenuItem4.Name = "toolStripMenuItem4";
-            this.toolStripMenuItem4.Size = new System.Drawing.Size(162, 22);
+            this.toolStripMenuItem4.Size = new System.Drawing.Size(161, 22);
             this.toolStripMenuItem4.Tag = "14";
             this.toolStripMenuItem4.Text = "Unkown Type 14";
             // 
@@ -433,7 +1088,15 @@ namespace SM64DSe
             this.btnOffsetAllCoords.Name = "btnOffsetAllCoords";
             this.btnOffsetAllCoords.Size = new System.Drawing.Size(106, 19);
             this.btnOffsetAllCoords.Text = "Offset All Co-ords";
-            this.btnOffsetAllCoords.Click += new System.EventHandler(this.btnOffsetAllCoords_Click);
+            // 
+            // btnAddPathNode
+            // 
+            this.btnAddPathNode.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.btnAddPathNode.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnAddPathNode.Name = "btnAddPathNode";
+            this.btnAddPathNode.Size = new System.Drawing.Size(92, 19);
+            this.btnAddPathNode.Text = "Add Path Node";
+            this.btnAddPathNode.Click += new System.EventHandler(this.btnAddPathNode_Click);
             // 
             // glLevelView
             // 
@@ -441,7 +1104,7 @@ namespace SM64DSe
             this.glLevelView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.glLevelView.Location = new System.Drawing.Point(0, 25);
             this.glLevelView.Name = "glLevelView";
-            this.glLevelView.Size = new System.Drawing.Size(689, 461);
+            this.glLevelView.Size = new System.Drawing.Size(664, 461);
             this.glLevelView.TabIndex = 1;
             this.glLevelView.VSync = false;
             this.glLevelView.Load += new System.EventHandler(this.glLevelView_Load);
@@ -468,7 +1131,7 @@ namespace SM64DSe
             this.btnMakeOverlay});
             this.tsViewActions.Location = new System.Drawing.Point(0, 0);
             this.tsViewActions.Name = "tsViewActions";
-            this.tsViewActions.Size = new System.Drawing.Size(689, 25);
+            this.tsViewActions.Size = new System.Drawing.Size(664, 25);
             this.tsViewActions.TabIndex = 0;
             this.tsViewActions.Text = "toolStrip2";
             // 
@@ -488,7 +1151,6 @@ namespace SM64DSe
             // btnImportXML
             // 
             this.btnImportXML.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.btnImportXML.Enabled = true;
             this.btnImportXML.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnImportXML.Name = "btnImportXML";
             this.btnImportXML.Size = new System.Drawing.Size(74, 22);
@@ -498,7 +1160,6 @@ namespace SM64DSe
             // btnExportXML
             // 
             this.btnExportXML.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.btnExportXML.Enabled = true;
             this.btnExportXML.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnExportXML.Name = "btnExportXML";
             this.btnExportXML.Size = new System.Drawing.Size(71, 22);
@@ -744,7 +1405,7 @@ namespace SM64DSe
             this.btnEditTexAnim.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.btnEditTexAnim.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnEditTexAnim.Name = "btnEditTexAnim";
-            this.btnEditTexAnim.Size = new System.Drawing.Size(107, 22);
+            this.btnEditTexAnim.Size = new System.Drawing.Size(106, 22);
             this.btnEditTexAnim.Text = "Texture animation";
             this.btnEditTexAnim.Click += new System.EventHandler(this.btnEditTexAnim_Click);
             // 
@@ -776,7 +1437,7 @@ namespace SM64DSe
             this.btnEdit3DModel.Name = "btnEdit3DModel";
             this.btnEdit3DModel.Size = new System.Drawing.Size(62, 22);
             this.btnEdit3DModel.Tag = "0";
-            this.btnEdit3DModel.Text = "3D model";
+            this.btnEdit3DModel.Text = "3D Model";
             this.btnEdit3DModel.ToolTipText = "Let\'s add polygons!";
             this.btnEdit3DModel.Click += new System.EventHandler(this.btnEditXXX_Click);
             // 
@@ -962,19 +1623,11 @@ namespace SM64DSe
             this.slStatusLabel.Paint += new System.Windows.Forms.PaintEventHandler(this.slStatusLabel_Paint);
             this.slStatusLabel.TextChanged += new System.EventHandler(this.slStatusLabel_TextChanged);
             // 
-            // btnRemoveAll
-            // 
-            this.btnRemoveAll.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.btnRemoveAll.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnRemoveAll.Name = "btnRemoveAll";
-            this.btnRemoveAll.Size = new System.Drawing.Size(69, 19);
-            this.btnRemoveAll.Text = "Remove all";
-            this.btnRemoveAll.Click += new System.EventHandler(this.btnRemoveAll_Click);
-            // 
             // LevelEditorForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(957, 533);
             this.Controls.Add(this.ssStatusBar);
             this.Controls.Add(this.tsToolBar);
@@ -983,16 +1636,49 @@ namespace SM64DSe
             this.Name = "LevelEditorForm";
             this.Text = "LevelEditorForm";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.LevelEditorForm_FormClosing);
+            this.Load += new System.EventHandler(this.LevelEditorForm_Load);
             this.spcMainContainer.Panel1.ResumeLayout(false);
             this.spcMainContainer.Panel1.PerformLayout();
             this.spcMainContainer.Panel2.ResumeLayout(false);
             this.spcMainContainer.Panel2.PerformLayout();
-            //((System.ComponentModel.ISupportInitialize)(this.spcMainContainer)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.spcMainContainer)).EndInit();
             this.spcMainContainer.ResumeLayout(false);
             this.spcLeftPanel.Panel1.ResumeLayout(false);
             this.spcLeftPanel.Panel2.ResumeLayout(false);
-            //((System.ComponentModel.ISupportInitialize)(this.spcLeftPanel)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.spcLeftPanel)).EndInit();
             this.spcLeftPanel.ResumeLayout(false);
+            this.spcPropertyInterface.Panel1.ResumeLayout(false);
+            this.spcPropertyInterface.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.spcPropertyInterface)).EndInit();
+            this.spcPropertyInterface.ResumeLayout(false);
+            this.box_general.ResumeLayout(false);
+            this.box_general.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.btnToogleCollapseGeneral)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.val_objectId)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.val_area)).EndInit();
+            this.box_fogSettings.ResumeLayout(false);
+            this.box_fogSettings.PerformLayout();
+            this.box_color.ResumeLayout(false);
+            this.box_color.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.val_r)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.val_b)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.val_g)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.val_endDistance)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.val_startDistance)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.btnToogleCollapseColor)).EndInit();
+            this.box_parameters.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.btnToogleCollapseParameters)).EndInit();
+            this.box_rotation.ResumeLayout(false);
+            this.box_rotation.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.btnToogleCollapseRotation)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.val_rotY)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.val_rotX)).EndInit();
+            this.box_position.ResumeLayout(false);
+            this.box_position.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.btnToogleCollapsePosition)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.val_posZ)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.val_posY)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.val_posX)).EndInit();
             this.tsEditActions.ResumeLayout(false);
             this.tsEditActions.PerformLayout();
             this.tsViewActions.ResumeLayout(false);
@@ -1036,7 +1722,6 @@ namespace SM64DSe
         private System.Windows.Forms.SplitContainer spcLeftPanel;
         private System.Windows.Forms.TreeView tvObjectList;
         private System.Windows.Forms.ToolStrip tsEditActions;
-        private System.Windows.Forms.PropertyGrid pgObjectProperties;
         private System.Windows.Forms.ToolStripStatusLabel slStatusLabel;
         private System.Windows.Forms.ToolStripButton btnImportModel;
         private System.Windows.Forms.ToolStripButton btnRemoveSel;
@@ -1055,7 +1740,6 @@ namespace SM64DSe
         private System.Windows.Forms.ToolStripButton btnExportObjectModel;
         private System.Windows.Forms.ToolStripButton btnEditTexAnim;
         private System.Windows.Forms.ToolStripButton btnCLPS;
-        private System.Windows.Forms.ToolStripDropDownButton btnAddPathNodes;
         private System.Windows.Forms.ToolStripButton btnAddPath;
         private System.Windows.Forms.ToolStripDropDownButton btnAddMisc;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem1;
@@ -1064,7 +1748,7 @@ namespace SM64DSe
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem4;
         private System.Windows.Forms.ToolStripButton btnImportOtherModel;
         private System.Windows.Forms.ToolStripButton btnExportOtherModel;
-        private System.Windows.Forms.ToolStripButton btnOffsetAllCoords;
+        private System.Windows.Forms.ToolStripButton btnAddPathNode;
         private System.Windows.Forms.ToolStripButton btnExportLevelModel;
         private System.Windows.Forms.ToolStripButton btnImportXML;
         private System.Windows.Forms.ToolStripButton btnExportXML;
@@ -1089,5 +1773,49 @@ namespace SM64DSe
         private System.Windows.Forms.ToolStripTextBox txtRstPlaneOffY;
         private System.Windows.Forms.ToolStripButton btnMakeOverlay;
         private System.Windows.Forms.ToolStripButton btnRemoveAll;
+        private System.Windows.Forms.Button btnCopyCoordinates;
+        private System.Windows.Forms.Button btnPasteCoordinates;
+        private System.Windows.Forms.GroupBox box_parameters;
+        private System.Windows.Forms.GroupBox box_rotation;
+        private System.Windows.Forms.NumericUpDown val_rotX;
+        private System.Windows.Forms.Label lbl_rotY;
+        private System.Windows.Forms.Label lbl_rotX;
+        private System.Windows.Forms.GroupBox box_position;
+        private System.Windows.Forms.NumericUpDown val_posZ;
+        private System.Windows.Forms.NumericUpDown val_posY;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Label lbl_posY;
+        private System.Windows.Forms.NumericUpDown val_posX;
+        private System.Windows.Forms.Label lbl_posX;
+        private System.Windows.Forms.GroupBox box_fogSettings;
+        private System.Windows.Forms.NumericUpDown val_b;
+        private System.Windows.Forms.NumericUpDown val_g;
+        private System.Windows.Forms.Label lbl_b;
+        private System.Windows.Forms.Label lbl_g;
+        private System.Windows.Forms.NumericUpDown val_r;
+        private System.Windows.Forms.Label lbl_r;
+        private System.Windows.Forms.NumericUpDown val_rotY;
+        private System.Windows.Forms.PictureBox btnToogleCollapsePosition;
+        private System.Windows.Forms.PictureBox btnToogleCollapseColor;
+        private System.Windows.Forms.PictureBox btnToogleCollapseParameters;
+        private System.Windows.Forms.PictureBox btnToogleCollapseRotation;
+        private System.Windows.Forms.GroupBox box_general;
+        private System.Windows.Forms.PictureBox btnToogleCollapseGeneral;
+        private System.Windows.Forms.NumericUpDown val_objectId;
+        private System.Windows.Forms.Label lbl_objectId;
+        private System.Windows.Forms.Label lbl_star;
+        private System.Windows.Forms.NumericUpDown val_area;
+        private System.Windows.Forms.Label lbl_area;
+        private System.Windows.Forms.ComboBox val_act;
+        private System.Windows.Forms.Button btnOpenObjectList;
+        private System.Windows.Forms.NumericUpDown val_startDistance;
+        private System.Windows.Forms.Label lbl_startDistance;
+        private System.Windows.Forms.CheckBox check_displayFog;
+        private System.Windows.Forms.NumericUpDown val_endDistance;
+        private System.Windows.Forms.Label lbl_endDistance;
+        private System.Windows.Forms.Panel box_color;
+        private System.Windows.Forms.SplitContainer spcPropertyInterface;
+        private System.Windows.Forms.ToolStripButton btnOffsetAllCoords;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem5;
     }
 }

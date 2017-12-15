@@ -76,7 +76,7 @@ namespace SM64DSe
                 case 39: ret = new NormalBMDRenderer("data/normal_obj/coin/coin_blue_poly32.bmd", 0.008f); break;
                 case 40: ret = new NormalBMDRenderer("data/enemy/koopa/koopa_model.bmd", 0.008f); break;
                 case 41: ret = new TreeRenderer((obj.Parameters[0] >> 4) & 0x7); break;
-                case 42: ret = new PaintingRenderer(obj.Parameters[0]); break;
+                case 42: ret = new PaintingRenderer(obj.Parameters[0], obj.Parameters[1]); break;
                 case 43: ret = new NormalBMDRenderer("data/normal_obj/obj_box_switch/obj_box_switch.bmd", 0.008f); break;
                 case 44: ret = new NormalBMDRenderer("data/normal_obj/obj_star_switch/obj_star_switch.bmd", 0.008f); break;
                 case 45: ret = new NormalBMDRenderer("data/special_obj/b_ana_shutter/b_ana_shutter.bmd", 0.008f); break;
@@ -95,9 +95,9 @@ namespace SM64DSe
                 case 58: ret = new NormalBMDRenderer("data/enemy/piano/piano.bmd", 0.008f); break;
                 case 59: ret = new NormalBMDRenderer("data/enemy/pakkun/pakkun_model.bmd", 0.008f); break;
                     // 60 STAR CAMERA
-                case 61: ret = new NormalBMDRenderer("data/normal_obj/star/obj_star.bmd", 0.008f); break;
+                case 61: ret = new StarRenderer(obj); break;
                 case 62: ret = new NormalBMDRenderer("data/normal_obj/star/obj_star_silver.bmd", 0.008f); break;
-                    // 63 STAR MARKER
+                case 63: ret = new StarRenderer(obj); break;
                 case 64: ret = new NormalBMDRenderer("data/enemy/battan/battan.bmd", 0.008f); break;
                 case 65: ret = new NormalBMDRenderer("data/enemy/battan_king/battan_king.bmd", 0.008f); break;
                 case 66: ret = new NormalBMDRenderer("data/enemy/dosune/dosune.bmd", 0.008f); break;
@@ -277,7 +277,7 @@ namespace SM64DSe
                 case 240: ret = new NormalBMDRenderer("data/enemy/donketu/donketu.bmd", 0.008f); break;
                 case 241: ret = new NormalBMDRenderer("data/enemy/donketu/boss_donketu.bmd", 0.008f); break;
                 case 242: ret = new ToxboxRenderer(); break;
-                // 243 -- BAR -- non-graphical
+                case 243: ret = new PoleRenderer(Color.FromArgb(0, 0, 255), Color.FromArgb(0, 0, 64), obj.Parameters[0]); break;
                 case 244: ret = new NormalBMDRenderer("data/enemy/c_jugem/c_jugem.bmd", 0.008f); break;
                 case 245: ret = new NormalBMDRenderer("data/normal_obj/obj_pushblock/obj_pushblock.bmd", 0.008f); break;
                 case 246: ret = new NormalBMDRenderer("data/special_obj/fl_amilift/fl_amilift.bmd", 0.008f); break;
@@ -340,7 +340,7 @@ namespace SM64DSe
                 case 320: ret = new NormalBMDRenderer("data/enemy/sand_tornado/sand_tornado.bmd", 0.008f); break;
                     // 321-325
 
-                default: ret = new ColorCubeRenderer(Color.FromArgb(0, 0, 255), Color.FromArgb(0, 0, 64), obj.SupportsRotation()); break;
+                default: ret = new ColorCubeRenderer(Color.FromArgb(0, 0, 255), Color.FromArgb(0,0,64), obj.SupportsRotation()); break;
             }
 
             ret.m_ObjUniqueID = obj.m_UniqueID;
@@ -419,7 +419,7 @@ namespace SM64DSe
 
             if (mode != RenderMode.Picking)
             {
-                GL.LineWidth(1.5f);
+                GL.LineWidth(2.0f);
                 GL.Color4(m_BorderColor);
 
                 GL.Begin(PrimitiveType.LineStrip);
@@ -467,6 +467,317 @@ namespace SM64DSe
 
         private Color m_BorderColor, m_FillColor;
         private bool m_ShowAxes;
+    }
+
+
+    class PoleRenderer : ObjectRenderer
+    {
+        public PoleRenderer(Color border, Color fill, ushort param)
+        {
+            m_BorderColor = border;
+            m_FillColor = fill;
+            m_height = (byte)param * 0.01f;
+
+        }
+
+        public override bool GottaRender(RenderMode mode)
+        {
+            if (mode == RenderMode.Opaque) return false;
+            else return true;
+        }
+
+        public override void Render(RenderMode mode)
+        {
+            const float s = 0.04f;
+
+            if (mode != RenderMode.Picking)
+            {
+                GL.BindTexture(TextureTarget.Texture2D, 0);
+                GL.Color4(Color.FromArgb(100, m_FillColor));
+                GL.Disable(EnableCap.Lighting);
+            }
+
+            GL.Begin(PrimitiveType.TriangleStrip);
+            GL.Vertex3(-s, -s, -s);
+            GL.Vertex3(-s, m_height, -s);
+            GL.Vertex3(s, -s, -s);
+            GL.Vertex3(s, m_height, -s);
+            GL.Vertex3(s, -s, s);
+            GL.Vertex3(s, m_height, s);
+            GL.Vertex3(-s, -s, s);
+            GL.Vertex3(-s, m_height, s);
+            GL.Vertex3(-s, -s, -s);
+            GL.Vertex3(-s, m_height, -s);
+            GL.End();
+
+            GL.Begin(PrimitiveType.TriangleStrip);
+            GL.Vertex3(-s, m_height, -s);
+            GL.Vertex3(-s, m_height, s);
+            GL.Vertex3(s, m_height, -s);
+            GL.Vertex3(s, m_height, s);
+            GL.End();
+
+            GL.Begin(PrimitiveType.TriangleStrip);
+            GL.Vertex3(-s, -s, -s);
+            GL.Vertex3(s, -s, -s);
+            GL.Vertex3(-s, -s, s);
+            GL.Vertex3(s, -s, s);
+            GL.End();
+
+            if (mode != RenderMode.Picking)
+            {
+                GL.LineWidth(2.0f);
+                GL.Color4(m_BorderColor);
+
+                GL.Begin(PrimitiveType.LineStrip);
+                GL.Vertex3(s, m_height, s);
+                GL.Vertex3(-s, m_height, s);
+                GL.Vertex3(-s, m_height, -s);
+                GL.Vertex3(s, m_height, -s);
+                GL.Vertex3(s, m_height, s);
+                GL.Vertex3(s, -s, s);
+                GL.Vertex3(-s, -s, s);
+                GL.Vertex3(-s, -s, -s);
+                GL.Vertex3(s, -s, -s);
+                GL.Vertex3(s, -s, s);
+                GL.End();
+
+                GL.Begin(PrimitiveType.Lines);
+                GL.Vertex3(-s, m_height, s);
+                GL.Vertex3(-s, -s, s);
+                GL.Vertex3(-s, m_height, -s);
+                GL.Vertex3(-s, -s, -s);
+                GL.Vertex3(s, m_height, -s);
+                GL.Vertex3(s, -s, -s);
+                GL.End();
+            }
+        }
+
+
+        private Color m_BorderColor, m_FillColor;
+        private float m_height;
+    }
+
+    class StarRenderer : ObjectRenderer
+    {
+        private bool m_showsStar = false;
+        private NormalBMDRenderer m_ModelRenderer = null;
+        private NormalBMDRenderer m_StarRenderer = null;
+
+        public StarRenderer(LevelObject obj)
+        {
+            char startype = obj.Parameters[0].ToString("X4")[2];
+            if (obj.ID == 63)
+            {
+                switch (startype)
+                {
+                    case '0':
+                        m_ModelRenderer = new NormalBMDRenderer("data/normal_obj/star/star_base.bmd", 0.008f);
+                        m_Filename = "data/normal_obj/star/star_base.bmd";
+                        break;
+                    case '1':
+                        m_ModelRenderer = new NormalBMDRenderer("data/normal_obj/star_box/star_box.bmd", 0.008f);
+                        m_Filename = "data/normal_obj/star_box/star_box.bmd";
+                        break;
+                    case '4':
+                        m_ModelRenderer = new NormalBMDRenderer("data/normal_obj/star_box/star_box.bmd", 0.008f);
+                        m_Filename = "data/normal_obj/star_box/star_box.bmd";
+                        break;
+                    case '6':
+                        m_ModelRenderer = new NormalBMDRenderer("data/normal_obj/star_box/star_box.bmd", 0.008f);
+                        m_Filename = "data/normal_obj/star_box/star_box.bmd";
+                        m_showsStar = true;
+                        break;
+                    default:
+                        m_showsStar = true;
+                        break;
+                }
+            }
+            else if (obj.ID == 61)
+            {
+                switch (startype)
+                {
+                    case '6':
+                        m_ModelRenderer = new NormalBMDRenderer("data/normal_obj/star_box/star_box.bmd", 0.008f);
+                        m_Filename = "data/normal_obj/star_box/star_box.bmd";
+                        m_showsStar = true;
+                        break;
+                    default:
+                        m_StarRenderer = new NormalBMDRenderer("data/normal_obj/star/obj_star.bmd", 0.008f);
+                        m_Filename = "data/normal_obj/star/obj_star.bmd";
+                        m_showsStar = true;
+                        break;
+                }
+            }
+            else
+            {
+                m_showsStar = true;
+            }
+        }
+
+        public override bool GottaRender(RenderMode mode)
+        {
+            bool star = false;
+            bool additional = false;
+            if (m_showsStar)
+                star = (m_StarRenderer != null) ? m_StarRenderer.GottaRender(mode) : mode != RenderMode.Opaque;
+            
+            additional = (m_ModelRenderer != null) ? m_ModelRenderer.GottaRender(mode) : false;
+            return star || additional;
+        }
+
+        public override void Render(RenderMode mode)
+        {
+            if (m_showsStar)
+            {
+                if (m_StarRenderer != null)
+                {
+                    m_StarRenderer.Render(mode);
+                }
+                else
+                {
+                    const float s = 0.08f;
+
+                    if (mode != RenderMode.Picking)
+                    {
+                        GL.BindTexture(TextureTarget.Texture2D, 0);
+                        GL.Color4(Color.FromArgb(100, 255, 200, 0));
+                        GL.Disable(EnableCap.Lighting);
+                    }
+                    GL.Begin(PrimitiveType.TriangleFan);
+                    GL.Vertex3(0, 0, 0.25 * s);
+                    GL.Vertex3(0, s, 0);
+                    for (int i = 0; i <= 5; i++)
+                    {
+                        GL.Vertex3(Math.Sin(i * 1.25664) * s, Math.Cos(i * 1.25664) * s, 0);
+                        GL.Vertex3(Math.Sin(i * 1.25664 + 0.62832) * s * 0.5, Math.Cos(i * 1.25664 + 0.62832) * s * 0.5, 0);
+                    }
+                    GL.End();
+
+                    GL.Begin(PrimitiveType.TriangleFan);
+                    GL.Vertex3(0, 0, -0.25 * s);
+                    GL.Vertex3(0, s, 0);
+                    for (int i = 4; i >= 0; i--)
+                    {
+                        GL.Vertex3(Math.Sin(i * 1.25664 + 0.62832) * s * 0.5, Math.Cos(i * 1.25664 + 0.62832) * s * 0.5, 0);
+                        GL.Vertex3(Math.Sin(i * 1.25664) * s, Math.Cos(i * 1.25664) * s, 0);
+                    }
+                    GL.End();
+
+
+                    if (mode != RenderMode.Picking)
+                    {
+                        GL.LineWidth(2.0f);
+                        GL.Color4(Color.FromArgb(255, 200, 0));
+
+                        GL.Begin(PrimitiveType.LineLoop);
+                        GL.Vertex3(0, s, 0);
+                        for (int i = 0; i < 5; i++)
+                        {
+                            GL.Vertex3(Math.Sin(i * 1.25664) * s, Math.Cos(i * 1.25664) * s, 0);
+                            GL.Vertex3(Math.Sin(i * 1.25664 + 0.62832) * s * 0.5, Math.Cos(i * 1.25664 + 0.62832) * s * 0.5, 0);
+                        }
+                        GL.End();
+
+                    }
+                }
+            }
+            if (m_ModelRenderer != null) m_ModelRenderer.Render(mode);
+        }
+
+        public override void Release()
+        {
+            if (m_ModelRenderer != null) m_ModelRenderer.Release();
+            if (m_StarRenderer != null) m_StarRenderer.Release();
+        }
+    }
+
+    class ExitRenderer : ObjectRenderer
+    {
+        private float m_XScale, m_YScale, m_XRotation;
+
+        public ExitRenderer(ushort param, ushort param2)
+        {
+            m_XScale = (float)(((param2 >> 8) & 0xF) + 1) * 0.1f;
+            m_YScale = (float)(((param2 >> 12) & 0xF) + 1) * 0.1f;
+            m_XRotation = 360.0f / 65536.0f * (float)param;
+
+        }
+
+        public override bool GottaRender(RenderMode mode)
+        {
+            if (mode == RenderMode.Opaque) return false;
+            else return true;
+        }
+
+        public override void Render(RenderMode mode)
+        {
+            const float s = 0.02f;
+            float halfWidth = m_XScale*0.5f;
+            GL.Rotate(m_XRotation, 1f, 0f, 0f);
+
+            if (mode != RenderMode.Picking)
+            {
+                GL.BindTexture(TextureTarget.Texture2D, 0);
+                GL.Color4(Color.FromArgb(100, 255, 0, 0));
+                GL.Disable(EnableCap.Lighting);
+            }
+
+            GL.Begin(PrimitiveType.TriangleStrip);
+            GL.Vertex3(-halfWidth, 0, -s);
+            GL.Vertex3(-halfWidth, m_YScale, -s);
+            GL.Vertex3(halfWidth, 0, -s);
+            GL.Vertex3(halfWidth, m_YScale, -s);
+            GL.Vertex3(halfWidth, 0, s);
+            GL.Vertex3(halfWidth, m_YScale, s);
+            GL.Vertex3(-halfWidth, 0, s);
+            GL.Vertex3(-halfWidth, m_YScale, s);
+            GL.Vertex3(-halfWidth, 0, -s);
+            GL.Vertex3(-halfWidth, m_YScale, -s);
+            GL.End();
+
+            GL.Begin(PrimitiveType.TriangleStrip);
+            GL.Vertex3(-halfWidth, m_YScale, -s);
+            GL.Vertex3(-halfWidth, m_YScale, s);
+            GL.Vertex3(halfWidth, m_YScale, -s);
+            GL.Vertex3(halfWidth, m_YScale, s);
+            GL.End();
+
+            GL.Begin(PrimitiveType.TriangleStrip);
+            GL.Vertex3(-halfWidth, 0, -s);
+            GL.Vertex3(halfWidth, 0, -s);
+            GL.Vertex3(-halfWidth, 0, s);
+            GL.Vertex3(halfWidth, 0, s);
+            GL.End();
+
+            if (mode != RenderMode.Picking)
+            {
+                GL.LineWidth(2.0f);
+                GL.Color4(Color.FromArgb(255,0,0));
+
+                GL.Begin(PrimitiveType.LineStrip);
+                GL.Vertex3(halfWidth, m_YScale, s);
+                GL.Vertex3(-halfWidth, m_YScale, s);
+                GL.Vertex3(-halfWidth, m_YScale, -s);
+                GL.Vertex3(halfWidth, m_YScale, -s);
+                GL.Vertex3(halfWidth, m_YScale, s);
+                GL.Vertex3(halfWidth, 0, s);
+                GL.Vertex3(-halfWidth, 0, s);
+                GL.Vertex3(-halfWidth, 0, -s);
+                GL.Vertex3(halfWidth, 0, -s);
+                GL.Vertex3(halfWidth, 0, s);
+                GL.End();
+
+                GL.Begin(PrimitiveType.Lines);
+                GL.Vertex3(-halfWidth, m_YScale, s);
+                GL.Vertex3(-halfWidth, 0, s);
+                GL.Vertex3(-halfWidth, s, -s);
+                GL.Vertex3(-halfWidth, 0, -s);
+                GL.Vertex3(halfWidth, m_YScale, -s);
+                GL.Vertex3(halfWidth, 0, -s);
+                GL.End();
+            }
+        }
     }
 
     class DoorRenderer : ObjectRenderer
@@ -647,10 +958,11 @@ namespace SM64DSe
 
     class PaintingRenderer : NormalBMDRenderer
     {
-        private float m_XScale, m_YScale;
-        private bool m_Horizontal = false;//, m_Mirror = false;
+        private float m_XScale, m_YScale, m_XRotation;
 
-        public PaintingRenderer(ushort param)
+        private bool m_Mirror;
+
+        public PaintingRenderer(ushort param, ushort param2)
         {
             string[] ptgnames = { "for_bh", "for_bk", "for_ki", "for_sm", "for_cv_ex5", "for_fl", "for_dl", "for_wl",
                                   "for_sl", "for_wc", "for_hm", "for_hs", "for_td_tt", "for_ct", "for_ex_mario", "for_ex_luigi",
@@ -660,18 +972,18 @@ namespace SM64DSe
             string filename = "data/picture/" + ptgnames[ptgid] + ".bmd";
             m_XScale = (float)((param & 0xF) + 1) / 16f;
             m_YScale = (float)(((param >> 4) & 0xF) + 1) / 16f;
-            if ((param & 0x1F00) == 0x0400)
-                m_Horizontal = true;
+            m_Mirror = (((param >> 13) & 0x3) == 3); //no way to show it properly
+
+            m_XRotation = 360.0f / 65536.0f*(float)param2;
 
             Construct(filename, 0.128f);
         }
 
         public override void Render(RenderMode mode)
         {
-            if (m_Horizontal) GL.Rotate(-90f, 1f, 0f, 0f);
+            GL.Rotate(m_XRotation, 1f, 0f, 0f);
             GL.Scale(m_XScale, m_YScale, 1f);
             GL.Translate(0f, 0.8f, 0f);
-            //if (m_Mirror) GL.Scale(-1f, 1f, 1f);
             base.Render(mode);
         }
     }
@@ -770,6 +1082,8 @@ namespace SM64DSe
     {
         public FlPuzzleRenderer(int npart)
         {
+            if (npart > 13)
+                npart = 13;
             string filename = "data/special_obj/fl_puzzle/fl_14_" + npart.ToString("D2") + ".bmd";
             Construct(filename, 0.008f);
         }

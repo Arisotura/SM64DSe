@@ -141,6 +141,22 @@ namespace SM64DSe
             return index;
         }
 
+        public static int snapControlHorizontally(Control control, int snapPos)
+        {
+            int newX = snapPos;
+            int newY = control.Location.Y;
+            control.Location = new Point(newX, newY);
+            return snapPos + control.Width;
+        }
+
+        public static int snapControlVertically(Control control, int snapPos, int padding = 0)
+        {
+            int newX = control.Location.X;
+            int newY = snapPos+padding;
+            control.Location = new Point(newX, newY);
+            return snapPos + control.Height;
+        }
+
         public static Matrix4 SRTToMatrix(Vector3 scale, Vector3 rot, Vector3 trans)
         {
             Matrix4 ret = Matrix4.Identity;

@@ -118,106 +118,109 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="DPad" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Images\DPad.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="StarFull" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Images\StarFull.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="StarEmpty" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Images\StarEmpty.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="obj_list" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\obj_list.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
-  </data>
-  <data name="btnX" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Images\btnX.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="DS_Glyphs" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Images\DS_Glyphs.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="level_ovl_init_USAv1" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\level_ovl_init_USAv1.bin;System.Byte[], mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="Coins" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Images\Coins.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="btnA" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Images\btnA.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="level_ovl_init_USAv2" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\level_ovl_init_USAv2.bin;System.Byte[], mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="btnB" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Images\btnB.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="btnY" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Images\btnY.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="btnL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Images\btnL.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="Stop" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Images\Stop.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="ae17ki" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Images\ae17ki.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="DPad1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Images\Small\DPad.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="1zm1hxc" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Images\1zm1hxc.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="level_ovl_init_JAP" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\level_ovl_init_JAP.bin;System.Byte[], mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="btnR" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Images\btnR.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="btnA1" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Images\Small\btnA.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="btnB1" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Images\Small\btnB.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="btnL1" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Images\Small\btnL.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="btnR1" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Images\Small\btnR.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="StarFull" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Images\StarFull.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="btnX1" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Images\Small\btnX.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="btnY1" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Images\Small\btnY.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="obj_list" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\obj_list.txt;System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
-  <data name="Coins1" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Images\Small\Coins.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="btnA" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Images\btnA.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="DPad1" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Images\Small\DPad.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="btnR" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Images\btnR.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="level_ovl_init_JAP" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\level_ovl_init_JAP.bin;System.Byte[], mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="StarEmpty1" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Images\Small\StarEmpty.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="StarFull1" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Images\Small\StarFull.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="Pause" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Images\Pause.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="Play" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Images\Play.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="Stop" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Images\Stop.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="level_ovl_init_EUR_000" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\level_ovl_init_EUR.000.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="btnL" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Images\btnL.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="level_ovl_init_EUR_001" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\level_ovl_init_EUR.001.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="level_ovl_init_USAv2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\level_ovl_init_USAv2.bin;System.Byte[], mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="btnA1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Images\Small\btnA.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Pause" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Images\Pause.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="btnX" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Images\btnX.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="dynamic_library_loader" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\dynamic_library_loader.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="btnB1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Images\Small\btnB.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="DPad" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Images\DPad.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="btnL1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Images\Small\btnL.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Coins" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Images\Coins.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="btnY1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Images\Small\btnY.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="StarEmpty" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Images\StarEmpty.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="level_ovl_init_EUR_000" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\level_ovl_init_EUR.000.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="DS_Glyphs" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Images\DS_Glyphs.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="btnY" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Images\btnY.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="btnR1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Images\Small\btnR.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="StarFull1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Images\Small\StarFull.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Play" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Images\Play.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="level_ovl_init_USAv1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\level_ovl_init_USAv1.bin;System.Byte[], mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="Coins1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Images\Small\Coins.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="btnB" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Images\btnB.png;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="static_overlay_loader" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\static_overlay_loader.bin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="collapseButton" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\collapseButton.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
 </root>

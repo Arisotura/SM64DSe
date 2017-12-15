@@ -40,7 +40,7 @@ namespace SM64DSe
         {
             if (m_ModelName == null)
             {
-                m_ROMFileSelect.Text = "Select a BMD file to load";
+                m_ROMFileSelect.ReInitialize("Select a BMD file to load",new String[] {".bmd"});
                 DialogResult result = m_ROMFileSelect.ShowDialog();
                 if (result != DialogResult.OK)
                 {
@@ -103,10 +103,13 @@ namespace SM64DSe
             if (lbxTextures.SelectedIndex == -1 || lbxTextures.SelectedIndex >= lbxTextures.Items.Count)
                 return;
             string texName = lbxTextures.Items[lbxTextures.SelectedIndex].ToString();
+            Console.WriteLine(m_Model.m_Textures[texName].m_PaletteID);
             if (rbTexAllInBMD.Checked && m_Model.m_Textures.ContainsKey(texName))
             {
                 if (m_Model.m_Textures[texName].m_PaletteID >= 0 && m_Model.m_Textures[texName].m_PaletteID < lbxPalettes.Items.Count)
+                {
                     lbxPalettes.SelectedIndex = (int)m_Model.m_Textures[texName].m_PaletteID;
+                }
             }
             if (rbTexAllInBMD.Checked && lbxPalettes.SelectedIndex != -1)
             {
@@ -329,7 +332,7 @@ namespace SM64DSe
 
         private void btnLoadBTP_Click(object sender, EventArgs e)
         {
-            m_ROMFileSelect.Text = "Select a BTP file to load";
+            m_ROMFileSelect.ReInitialize("Select a BTP file to load", new String[] { ".btp" });
             DialogResult result = m_ROMFileSelect.ShowDialog();
             if (result == DialogResult.OK)
             {

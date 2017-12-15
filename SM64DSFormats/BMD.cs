@@ -538,6 +538,18 @@ namespace SM64DSe
                         matgroup.m_BoneMatrices[b] = m_ModelChunks[matgroup.m_BoneIDs[b]].m_Transform;
                 }
             }
+
+            int index = 0;
+            foreach (KeyValuePair<string,uint> entry in m_TextureIDs)
+            {
+                if (!m_Textures.ContainsKey(entry.Key))
+                {
+                    Console.WriteLine("NOT IN TEXTURES: "+entry.Key);
+                    uint palID = Math.Min(m_PaletteIDs.ElementAt(index).Value, (uint)m_PaletteIDs.Count-1);
+                    ReadTexture(entry.Value, palID);
+                }
+                index++;
+            }
         }
 
         private NitroTexture ReadTexture(uint texID, uint palID)
