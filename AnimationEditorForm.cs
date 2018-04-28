@@ -132,7 +132,7 @@ namespace SM64DSe
 
         private void btnOpenBMD_Click(object sender, EventArgs e)
         {
-            m_ROMFileSelect.Text = "Please select a model (BMD) file to open.";
+            m_ROMFileSelect.ReInitialize("Please select a model (BMD) file to open.", new String[] { ".bmd" });
             var result = m_ROMFileSelect.ShowDialog();
             if (result == DialogResult.OK)
             {
@@ -149,7 +149,7 @@ namespace SM64DSe
         {
             bool wasRunning = m_Running;
 
-            m_ROMFileSelect.Text = "Please select an animation (BCA) file to open.";
+            m_ROMFileSelect.ReInitialize("Please select an animation (BCA) file to open.", new String[] { ".bca" });
             var result = m_ROMFileSelect.ShowDialog();
             if (result == DialogResult.OK)
             {
@@ -356,6 +356,11 @@ namespace SM64DSe
                 m_BMD = new BMD(Program.m_ROM.GetFileFromName(m_BMD.m_FileName));
                 m_BCA = new BCA(Program.m_ROM.GetFileFromName(m_BCA.m_FileName));
             }
+        }
+
+        private void AnimationEditorForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            StopTimer();
         }
     }
 }

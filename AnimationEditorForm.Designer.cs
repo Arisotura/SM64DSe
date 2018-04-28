@@ -31,6 +31,7 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(AnimationEditorForm));
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.gbImportAnimation = new System.Windows.Forms.GroupBox();
+            this.chkOptimise = new System.Windows.Forms.CheckBox();
             this.txtScale = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
             this.btnImportAnimation = new System.Windows.Forms.Button();
@@ -60,8 +61,7 @@
             this.glModelView = new SM64DSe.FormControls.ModelGLControl();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.btnExportDAE = new System.Windows.Forms.ToolStripButton();
-            this.chkOptimise = new System.Windows.Forms.CheckBox();
-            //((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
@@ -71,9 +71,9 @@
             // 
             // splitContainer1
             // 
-            this.splitContainer1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.splitContainer1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.splitContainer1.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
             this.splitContainer1.Location = new System.Drawing.Point(0, 25);
             this.splitContainer1.Margin = new System.Windows.Forms.Padding(0);
@@ -125,6 +125,19 @@
             this.gbImportAnimation.TabIndex = 19;
             this.gbImportAnimation.TabStop = false;
             this.gbImportAnimation.Text = "Import Animation";
+            // 
+            // chkOptimise
+            // 
+            this.chkOptimise.AutoSize = true;
+            this.chkOptimise.Checked = true;
+            this.chkOptimise.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkOptimise.Location = new System.Drawing.Point(3, 106);
+            this.chkOptimise.Name = "chkOptimise";
+            this.chkOptimise.Size = new System.Drawing.Size(66, 17);
+            this.chkOptimise.TabIndex = 11;
+            this.chkOptimise.Text = "Optimise";
+            this.chkOptimise.UseVisualStyleBackColor = true;
+            this.chkOptimise.CheckedChanged += new System.EventHandler(this.chkOptimise_CheckedChanged);
             // 
             // txtScale
             // 
@@ -398,18 +411,6 @@
             this.btnExportDAE.ToolTipText = "Export model and animation to COLLADA DAE";
             this.btnExportDAE.Click += new System.EventHandler(this.btnExportToDAE_Click);
             // 
-            // chkOptimise
-            // 
-            this.chkOptimise.AutoSize = true;
-            this.chkOptimise.Checked = true;
-            this.chkOptimise.Location = new System.Drawing.Point(3, 106);
-            this.chkOptimise.Name = "chkOptimise";
-            this.chkOptimise.Size = new System.Drawing.Size(66, 17);
-            this.chkOptimise.TabIndex = 11;
-            this.chkOptimise.Text = "Optimise";
-            this.chkOptimise.UseVisualStyleBackColor = true;
-            this.chkOptimise.CheckedChanged += new System.EventHandler(this.chkOptimise_CheckedChanged);
-            // 
             // AnimationEditorForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -420,10 +421,11 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "AnimationEditorForm";
             this.Text = "Model Animation Editor";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.AnimationEditorForm_FormClosing);
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel1.PerformLayout();
             this.splitContainer1.Panel2.ResumeLayout(false);
-            //((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
             this.gbImportAnimation.ResumeLayout(false);
             this.gbImportAnimation.PerformLayout();

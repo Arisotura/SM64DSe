@@ -20,4 +20,4 @@ Desktop.ini
 $RECYCLE.BIN/
 
 # Mac crap
-.DS_Store
+**/.DS_Store

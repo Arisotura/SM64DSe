@@ -450,9 +450,9 @@
             this.label11.AutoSize = true;
             this.label11.Location = new System.Drawing.Point(15, 22);
             this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(186, 13);
+            this.label11.Size = new System.Drawing.Size(92, 13);
             this.label11.TabIndex = 1;
-            this.label11.Text = "Byte 01: (SWAR entry address - 4) / 4";
+            this.label11.Text = "Byte 01: Group ID";
             // 
             // LevelSettingsForm
             // 

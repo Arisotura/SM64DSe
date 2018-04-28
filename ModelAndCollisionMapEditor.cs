@@ -710,10 +710,10 @@ namespace SM64DSe
             chkModelMaterialFarClipping.Checked = false;
             chkModelMaterialShiniessTable.Checked = false;
 
-            ResetColourButtonValue(btnModelMaterialDiffuse);
-            ResetColourButtonValue(btnModelMaterialAmbient);
-            ResetColourButtonValue(btnModelMaterialSpecular);
-            ResetColourButtonValue(btnModelMaterialEmission);
+            btnModelMaterialDiffuse.ResetColourButtonValue();
+            btnModelMaterialAmbient.ResetColourButtonValue();
+            btnModelMaterialSpecular.ResetColourButtonValue();
+            btnModelMaterialEmission.ResetColourButtonValue();
             nudModelMaterialAlpha.Value = 0;
 
             cmbModelMaterialTextureID.SelectedIndex = -1;
@@ -760,10 +760,10 @@ namespace SM64DSe
             chkModelMaterialFarClipping.Checked = material.m_FarClipping;
             chkModelMaterialShiniessTable.Checked = material.m_ShininessTableEnabled;
 
-            SetColourButtonValue(btnModelMaterialDiffuse, material.m_Diffuse);
-            SetColourButtonValue(btnModelMaterialAmbient, material.m_Ambient);
-            SetColourButtonValue(btnModelMaterialSpecular, material.m_Specular);
-            SetColourButtonValue(btnModelMaterialEmission, material.m_Emission);
+            btnModelMaterialDiffuse.Colour = material.m_Diffuse;
+            btnModelMaterialAmbient.Colour = material.m_Ambient;
+            btnModelMaterialSpecular.Colour = material.m_Specular;
+            btnModelMaterialEmission.Colour = material.m_Emission;
             nudModelMaterialAlpha.Value = material.m_Alpha;
 
             bool hasTexture = (material.m_TextureDefID != null);
@@ -845,29 +845,6 @@ namespace SM64DSe
             btnModelMaterialApplySettings.Enabled = state;
         }
 
-        private void SetColourButtonValue(Button button, Color colour)
-        {
-            string hexColourString = Helper.GetHexColourString(colour);
-            button.Text = hexColourString;
-            button.BackColor = colour;
-            float luma = 0.2126f * colour.R + 0.7152f * colour.G + 0.0722f * colour.B;
-            if (luma < 50)
-            {
-                button.ForeColor = Color.White;
-            }
-            else
-            {
-                button.ForeColor = Color.Black;
-            }
-        }
-
-        private void ResetColourButtonValue(Button button)
-        {
-            button.Text = null;
-            button.BackColor = Color.Transparent;
-            button.ForeColor = Color.Black;
-        }
-
         private void PopulateTextureAndPaletteLists()
         {
             lbxModelTextures.Items.Clear();
@@ -897,7 +874,7 @@ namespace SM64DSe
 
             gridModelPalettesPaletteColours.ClearColours();
 
-            ResetColourButtonValue(btnModelPalettesSelectedColour);
+            btnModelPalettesSelectedColour.ResetColourButtonValue();
 
             SetEnabledStateModelTextureControls(false);
             SetEnabledStateModelPaletteControls(false);
@@ -905,7 +882,7 @@ namespace SM64DSe
 
         private void btnModelGeneralSelectTarget_Click(object sender, EventArgs e)
         {
-            m_ROMFileSelect.Text = "Select a model (BMD) file to replace";
+            m_ROMFileSelect.ReInitialize("Select a model (BMD) file to replace", new String[] { ".bmd" });
             DialogResult result = m_ROMFileSelect.ShowDialog();
             if (result == DialogResult.OK)
             {
@@ -949,7 +926,7 @@ namespace SM64DSe
 
         private void mnitLoadInternalModelCollisionMap_Click(object sender, EventArgs e)
         {
-            m_ROMFileSelect.Text = "Select a model (BMD) or collision map (KCL) to load";
+            m_ROMFileSelect.ReInitialize("Select a model (BMD) or collision map (KCL) to load", new String[] { ".bmd",".kcl" });
             DialogResult result = m_ROMFileSelect.ShowDialog();
             if (result == DialogResult.OK)
             {
@@ -995,22 +972,22 @@ namespace SM64DSe
 
         private void btnModelMaterialDiffuse_Click(object sender, EventArgs e)
         {
-            GetColourDialogueResult(btnModelMaterialDiffuse);
+            btnModelMaterialDiffuse.SelectColour();
         }
 
         private void btnModelMaterialAmbient_Click(object sender, EventArgs e)
         {
-            GetColourDialogueResult(btnModelMaterialAmbient);
+            btnModelMaterialAmbient.SelectColour();
         }
 
         private void btnModelMaterialSpecular_Click(object sender, EventArgs e)
         {
-            GetColourDialogueResult(btnModelMaterialSpecular);
+            btnModelMaterialSpecular.SelectColour();
         }
 
         private void btnModelMaterialEmission_Click(object sender, EventArgs e)
         {
-            GetColourDialogueResult(btnModelMaterialEmission);
+            btnModelMaterialEmission.SelectColour();
         }
 
         private void chkModelMaterialWireMode_CheckedChanged(object sender, EventArgs e)
@@ -1632,20 +1609,6 @@ namespace SM64DSe
             SetEnabledStateModelPaletteControls(true);
         }
 
-        private Color? GetColourDialogueResult(Button button)
-        {
-            ColorDialog colourDialogue = new ColorDialog();
-            DialogResult result = colourDialogue.ShowDialog(this);
-
-            if (result == DialogResult.OK)
-            {
-                Color colour = colourDialogue.Color;
-                SetColourButtonValue(button, colour);
-                return colour;
-            }
-            return null;
-        }
-
         private void lbxModelTextures_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (lbxModelTextures.SelectedIndex < 0) return;
@@ -1894,12 +1857,11 @@ namespace SM64DSe
         {
             if (!gridModelPalettesPaletteColours.IsAColourSelected())
             {
-                ResetColourButtonValue(btnModelPalettesSelectedColour);
+                btnModelPalettesSelectedColour.ResetColourButtonValue();
                 return;
             }
 
-            Color colour = (Color)gridModelPalettesPaletteColours.GetSelectedColour();
-            SetColourButtonValue(btnModelPalettesSelectedColour, colour);
+            btnModelPalettesSelectedColour.Colour = (Color)gridModelPalettesPaletteColours.GetSelectedColour();
         }
 
         private void btnModelPalettesSelectedColour_Click(object sender, EventArgs e)
@@ -1908,8 +1870,8 @@ namespace SM64DSe
 
             string paletteID = GetSelectedPaletteID();
 
-            Color? selectedColour = GetColourDialogueResult(btnModelPalettesSelectedColour);
-            if (selectedColour == null) return;
+            Color? selectedColour = btnModelPalettesSelectedColour.SelectColour();
+            if (!selectedColour.HasValue) return;
 
             ushort colourBGR15 = Helper.ColorToBGR15((Color)selectedColour);
             int selectedColourIndex = gridModelPalettesPaletteColours.GetSelectedColourIndex();
@@ -2601,7 +2563,7 @@ namespace SM64DSe
 
         private void btnCollisionMapGeneralSelectTarget_Click(object sender, EventArgs e)
         {
-            m_ROMFileSelect.Text = "Select a collision map (KCL) file to replace";
+            m_ROMFileSelect.ReInitialize("Select a collision map (KCL) file to replace", new String[] { ".kcl" });
             var result = m_ROMFileSelect.ShowDialog();
             if (result == DialogResult.OK)
             {

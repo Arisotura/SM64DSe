@@ -729,7 +729,7 @@ namespace SM64DSe
 
         private void btnSelNCG_Click(object sender, EventArgs e)
         {
-            m_ROMFileSelect.Text = "Please select a Graphic (NCG) file.";
+            m_ROMFileSelect.ReInitialize("Please select a Graphic (ICG/NCG) file.", new String[] { "_icg.bin","_ncg.bin" });
             var result = m_ROMFileSelect.ShowDialog();
             if (result == DialogResult.OK)
             {
@@ -739,7 +739,7 @@ namespace SM64DSe
 
         private void btnSelNCL_Click(object sender, EventArgs e)
         {
-            m_ROMFileSelect.Text = "Please select a Palette (NCL) file.";
+            m_ROMFileSelect.ReInitialize("Please select a Palette (ICL/NCL) file.", new String[] { "_icl.bin", "_ncl.bin" });
             var result = m_ROMFileSelect.ShowDialog();
             if (result == DialogResult.OK)
             {
@@ -749,7 +749,7 @@ namespace SM64DSe
 
         private void btnSelNSC_Click(object sender, EventArgs e)
         {
-            m_ROMFileSelect.Text = "Please select a Tile (NSC) file.";
+            m_ROMFileSelect.ReInitialize("Please select a Tile (ISC/NSC) file.", new String[] { "_isc.bin", "_nsc.bin" });
             var result = m_ROMFileSelect.ShowDialog();
             if (result == DialogResult.OK)
             {

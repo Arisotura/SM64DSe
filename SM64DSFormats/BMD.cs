@@ -538,6 +538,18 @@ namespace SM64DSe
                         matgroup.m_BoneMatrices[b] = m_ModelChunks[matgroup.m_BoneIDs[b]].m_Transform;
                 }
             }
+
+            int index = 0;
+            foreach (KeyValuePair<string,uint> entry in m_TextureIDs)
+            {
+                if (!m_Textures.ContainsKey(entry.Key))
+                {
+                    Console.WriteLine("NOT IN TEXTURES: "+entry.Key);
+                    uint palID = Math.Min(m_PaletteIDs.ElementAt(index).Value, (uint)m_PaletteIDs.Count-1);
+                    ReadTexture(entry.Value, palID);
+                }
+                index++;
+            }
         }
 
         private NitroTexture ReadTexture(uint texID, uint palID)
@@ -771,6 +783,33 @@ namespace SM64DSe
             public int m_GLTextureID;
         }
 
+        public class ModelRenderSettings : ICloneable
+        {
+            public bool RenderTextures;
+            public bool RenderVertexColours;
+            public bool RenderWireframe;
+            public bool RenderPolyListType;
+
+            public ModelRenderSettings()
+            {
+                RenderTextures = true;
+                RenderVertexColours = true;
+                RenderWireframe = false;
+                RenderPolyListType = false;
+            }
+
+            public object Clone()
+            {
+                return new ModelRenderSettings
+                {
+                    RenderTextures = this.RenderTextures,
+                    RenderVertexColours = this.RenderVertexColours,
+                    RenderWireframe = this.RenderWireframe,
+                    RenderPolyListType = this.RenderPolyListType
+                };
+            }
+        }
+
         public class ModelChunk
         {
             public uint m_ID;
@@ -809,12 +848,12 @@ namespace SM64DSe
                     matgroup.Release();
             }
 
-            public bool Render(RenderMode mode, float scale)
+            public bool Render(RenderMode mode, float scale, ModelRenderSettings renderFlags = null, LevelTexAnim texAnim = null, int texAnimFrame = 0)
             {
-                return Render(mode, scale, null, -1);
+                return Render(mode, scale, null, -1, renderFlags, texAnim, texAnimFrame);
             }
 
-            public bool Render(RenderMode mode, float scale, BCA animation, int frame)
+            public bool Render(RenderMode mode, float scale, BCA animation, int frame, ModelRenderSettings renderFlags = null, LevelTexAnim texAnim = null, int texAnimFrame = 0)
             {
                 PrimitiveType[] primitiveTypes = new PrimitiveType[] { PrimitiveType.Triangles, PrimitiveType.Quads, PrimitiveType.TriangleStrip, PrimitiveType.QuadStrip };
                 bool rendered_something = false;
@@ -822,10 +861,26 @@ namespace SM64DSe
                 if (m_MatGroups.Length == 0)
                     return false;
 
+                ModelRenderSettings customRenderFlags;
+
                 bool usesAnimation = (animation != null && frame > -1);
+                if (renderFlags == null)
+                {
+                    customRenderFlags = new ModelRenderSettings();
+                }
+                else
+                {
+                    customRenderFlags = (ModelRenderSettings)renderFlags.Clone();
+                }
+
+                if (texAnim != null)
+                {
+                    customRenderFlags.RenderTextures = true;
+                }
+
                 Matrix4[] animMatrices = (usesAnimation) ?
                     animation.GetAllMatricesForFrame(m_Model.m_ModelChunks, frame) : null;
-
+                
                 foreach (MaterialGroup matgroup in m_MatGroups)
                 {
                     if (matgroup.m_Geometry.Count == 0)
@@ -907,11 +962,17 @@ namespace SM64DSe
                         }
                         else*/
                         GL.Disable(EnableCap.Lighting);
+                        if (customRenderFlags.RenderTextures)
+                        {
+                            GL.BindTexture(TextureTarget.Texture2D, matgroup.m_GLTextureID);
+                            if (matgroup.m_GLTextureID != 0)
+                                GL.TexEnv(TextureEnvTarget.TextureEnv, TextureEnvParameter.TextureEnvMode, (int)matgroup.m_TexEnvMode);
+                        }
+                        else
+                        {
+                            GL.BindTexture(TextureTarget.Texture2D, 0);
+                        }
 
-                        GL.BindTexture(TextureTarget.Texture2D, matgroup.m_GLTextureID);
-
-                        if (matgroup.m_GLTextureID != 0)
-                            GL.TexEnv(TextureEnvTarget.TextureEnv, TextureEnvParameter.TextureEnvMode, (int)matgroup.m_TexEnvMode);
 
                         foreach (BMD.VertexList vtxlist in matgroup.m_Geometry)
                         {
@@ -919,12 +980,62 @@ namespace SM64DSe
                                 continue;
 
                             GL.Begin(primitiveTypes[vtxlist.m_PolyType]);
+                            if (!customRenderFlags.RenderVertexColours)
+                            {
+                                if (!customRenderFlags.RenderTextures && customRenderFlags.RenderPolyListType)
+                                {
+                                    switch (vtxlist.m_PolyType)
+                                    {
+                                        case 0:
+                                            GL.Color3(Color.Black);
+                                            break;
 
+                                        case 1:
+                                            GL.Color3(Color.FromArgb(100,0,0));
+                                            break;
+
+                                        case 2:
+                                            GL.Color3(Color.FromArgb(0, 0, 100));
+                                            break;
+
+                                        case 3:
+                                            GL.Color3(Color.FromArgb(150, 45, 0));
+                                            break;
+                                    }
+                                }
+                                else
+                                    GL.Color3(Color.White);
+                            }
                             foreach (BMD.Vertex vtx in vtxlist.m_VertexList)
                             {
-                                GL.Color4(vtx.m_Color);
+                                if (customRenderFlags.RenderVertexColours)
+                                {
+                                    GL.Color4(vtx.m_Color);
+                                }
                                 if (matgroup.m_GLTextureID != 0 && vtx.m_TexCoord != null)
-                                    GL.TexCoord2((Vector2)vtx.m_TexCoord);
+                                {
+                                    Vector2 coord = (Vector2)vtx.m_TexCoord;
+                                    if (texAnim != null)
+                                    {
+                                        List<LevelTexAnim.Def> entries = texAnim.m_Defs;
+                                        foreach (LevelTexAnim.Def entry in entries)
+                                        {
+                                            if (entry.m_MaterialName == matgroup.m_Name)
+                                            {
+                                                float transX = AnimationValue(entry.m_TranslationXValues,texAnimFrame);
+                                                float transY = AnimationValue(entry.m_TranslationYValues, texAnimFrame);
+                                                coord = Vector2.Add(coord,new Vector2(transX, transY));
+
+                                                float angle = AnimationValue(entry.m_RotationValues, texAnimFrame);
+                                                coord = Vector2.Transform(coord, Quaternion.FromAxisAngle(Vector3.UnitZ, angle* 0.0174533f));
+
+                                                float scaleValue = AnimationValue(entry.m_ScaleValues, texAnimFrame);
+                                                coord = Vector2.Multiply(coord, scaleValue);
+                                            }
+                                        }
+                                    }
+                                    GL.TexCoord2(coord);
+                                }
 
                                 if ((matgroup.m_PolyAttribs & 0xF) != 0x0 && vtx.m_Normal != null)
                                     GL.Normal3((Vector3)vtx.m_Normal);
@@ -946,12 +1057,207 @@ namespace SM64DSe
                             }
 
                             GL.End();
+                            
+                            if (customRenderFlags.RenderWireframe)
+                            {
+                                int index = 0;
+                                bool lastLineClosed = true;
+                                BMD.Vertex lastVtx1;
+                                BMD.Vertex lastVtx2;
+                                BMD.Vertex[] lineSegments;
+
+                                GL.DepthFunc(DepthFunction.Lequal);
+                                GL.LineWidth(1.5f);
+                                GL.Color3(Color.Black);
+                                if (customRenderFlags.RenderPolyListType)
+                                {
+                                    GL.Color3(Color.Gray);
+                                }
+                                switch (vtxlist.m_PolyType)
+                                {
+                                    case 0:
+                                        GL.BindTexture(TextureTarget.Texture2D, 0);
+                                        index = 0;
+                                        lastLineClosed = true;
+                                        foreach (BMD.Vertex vtx in vtxlist.m_VertexList)
+                                        {
+                                            if (index % 3 == 0)
+                                            {
+                                                if (!lastLineClosed)
+                                                    GL.End();
+                                                GL.Begin(PrimitiveType.LineLoop);
+                                                lastLineClosed = false;
+                                            }
+
+                                            Vector3 finalvtx = vtx.m_Position;
+                                            if (!usesAnimation)
+                                            {
+                                                Matrix4 bonemtx = matgroup.m_BoneMatrices[vtx.m_MatrixID];
+                                                Vector3.Transform(ref finalvtx, ref bonemtx, out finalvtx);
+                                            }
+                                            else
+                                            {
+                                                int boneID = matgroup.m_BoneIDs[vtx.m_MatrixID];
+                                                Matrix4 animMatrix = animMatrices[boneID];
+                                                Vector3.Transform(ref finalvtx, ref animMatrix, out finalvtx);
+                                            }
+                                            Vector3.Multiply(ref finalvtx, scale, out finalvtx);
+                                            GL.Vertex3(finalvtx);
+                                            index++;
+                                        }
+                                        GL.End();
+                                        break;
+
+                                    case 1:
+                                        if (customRenderFlags.RenderPolyListType)
+                                        {
+                                            GL.Color3(Color.Red);
+                                        }
+                                        GL.BindTexture(TextureTarget.Texture2D, 0);
+                                        index = 0;
+                                        lastLineClosed = true;
+                                        foreach (BMD.Vertex vtx in vtxlist.m_VertexList)
+                                        {
+                                            if (index % 4 == 0)
+                                            {
+                                                if (!lastLineClosed)
+                                                    GL.End();
+                                                GL.Begin(PrimitiveType.LineLoop);
+                                                lastLineClosed = false;
+                                            }
+
+                                            Vector3 finalvtx = vtx.m_Position;
+                                            if (!usesAnimation)
+                                            {
+                                                Matrix4 bonemtx = matgroup.m_BoneMatrices[vtx.m_MatrixID];
+                                                Vector3.Transform(ref finalvtx, ref bonemtx, out finalvtx);
+                                            }
+                                            else
+                                            {
+                                                int boneID = matgroup.m_BoneIDs[vtx.m_MatrixID];
+                                                Matrix4 animMatrix = animMatrices[boneID];
+                                                Vector3.Transform(ref finalvtx, ref animMatrix, out finalvtx);
+                                            }
+                                            Vector3.Multiply(ref finalvtx, scale, out finalvtx);
+                                            GL.Vertex3(finalvtx);
+                                            index++;
+                                        }
+                                        GL.End();
+                                        break;
+
+                                    case 2:
+                                        if (customRenderFlags.RenderPolyListType)
+                                        {
+                                            GL.Color3(Color.Blue);
+                                        }
+                                        GL.BindTexture(TextureTarget.Texture2D, 0);
+                                        lastLineClosed = true;
+                                        lastVtx1 = vtxlist.m_VertexList[0];
+                                        lastVtx2 = vtxlist.m_VertexList[1];
+                                        lineSegments = new BMD.Vertex[] { lastVtx1, lastVtx2 };
+                                        for (int i = 0; i < vtxlist.m_VertexList.Count; i++)
+                                        {
+                                            BMD.Vertex newVtx = vtxlist.m_VertexList[i];
+
+                                            if (i > 0)
+                                                lineSegments = new BMD.Vertex[] { lastVtx1, newVtx, lastVtx2 };
+
+                                            GL.Begin(PrimitiveType.LineStrip);
+                                            foreach (BMD.Vertex vtx in lineSegments)
+                                            {
+                                                Vector3 finalvtx = vtx.m_Position;
+                                                if (!usesAnimation)
+                                                {
+                                                    Matrix4 bonemtx = matgroup.m_BoneMatrices[vtx.m_MatrixID];
+                                                    Vector3.Transform(ref finalvtx, ref bonemtx, out finalvtx);
+                                                }
+                                                else
+                                                {
+                                                    int boneID = matgroup.m_BoneIDs[vtx.m_MatrixID];
+                                                    Matrix4 animMatrix = animMatrices[boneID];
+                                                    Vector3.Transform(ref finalvtx, ref animMatrix, out finalvtx);
+                                                }
+                                                Vector3.Multiply(ref finalvtx, scale, out finalvtx);
+                                                GL.Vertex3(finalvtx);
+                                            }
+                                            GL.End();
+                                            if (i > 0)
+                                            {
+                                                if (i % 2 == 0)
+                                                    lastVtx1 = newVtx;
+                                                else
+                                                    lastVtx2 = newVtx;
+                                            }
+                                        }
+                                        GL.End();
+                                        break;
+
+                                    case 3:
+                                        if (customRenderFlags.RenderPolyListType)
+                                        {
+                                            GL.Color3(Color.OrangeRed);
+                                        }
+                                        GL.BindTexture(TextureTarget.Texture2D, 0);
+                                        lastLineClosed = true;
+                                        lastVtx1 = vtxlist.m_VertexList[0];
+                                        lastVtx2 = vtxlist.m_VertexList[1];
+                                        lineSegments = new BMD.Vertex[] { lastVtx1, lastVtx2 };
+                                        for (int i = 0; i < vtxlist.m_VertexList.Count; i += 2)
+                                        {
+                                            BMD.Vertex newVtx1 = vtxlist.m_VertexList[i];
+                                            BMD.Vertex newVtx2 = vtxlist.m_VertexList[i + 1];
+
+                                            if (i > 0)
+                                                lineSegments = new BMD.Vertex[] { lastVtx1, newVtx1, newVtx2, lastVtx2 };
+
+                                            GL.Begin(PrimitiveType.LineStrip);
+                                            foreach (BMD.Vertex vtx in lineSegments)
+                                            {
+                                                Vector3 finalvtx = vtx.m_Position;
+                                                if (!usesAnimation)
+                                                {
+                                                    Matrix4 bonemtx = matgroup.m_BoneMatrices[vtx.m_MatrixID];
+                                                    Vector3.Transform(ref finalvtx, ref bonemtx, out finalvtx);
+                                                }
+                                                else
+                                                {
+                                                    int boneID = matgroup.m_BoneIDs[vtx.m_MatrixID];
+                                                    Matrix4 animMatrix = animMatrices[boneID];
+                                                    Vector3.Transform(ref finalvtx, ref animMatrix, out finalvtx);
+                                                }
+                                                Vector3.Multiply(ref finalvtx, scale, out finalvtx);
+                                                GL.Vertex3(finalvtx);
+                                            }
+                                            GL.End();
+                                            if (i > 0)
+                                            {
+                                                lastVtx1 = newVtx1;
+                                                lastVtx2 = newVtx2;
+                                            }
+                                        }
+                                        GL.End();
+                                        break;
+                                }
+                                if (customRenderFlags.RenderTextures)
+                                    GL.BindTexture(TextureTarget.Texture2D, matgroup.m_GLTextureID);
+                                GL.DepthFunc(DepthFunction.Less);
+                            }
+
                             rendered_something = true;
                         }
                     }
                 }
 
                 return rendered_something;
+            }
+
+            public static float AnimationValue(List<float> values, int frame)
+            {
+                int length = values.Count;
+                if (length > 0)
+                    return values[frame % length];
+                else
+                    return 0;
             }
         }
 

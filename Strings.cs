@@ -76,6 +76,29 @@ namespace SM64DSe
 	        "Castle grounds (multiplayer)"
         };
 
+        public static string[] PaintingNames =
+        {
+            "Bob-omb Battlefield",
+            "Whomp's Fortress",
+            "Jolly Roger Bay (Bubbles)",
+            "Cool Cool Mountain (Snowmen)",
+            "Hazy Maze Cave (Silver Pool)",
+            "Lethal Lava Land (Evil Face)",
+            "Shifting Sand Land (Stone Wall)",
+            "Dire, Dire Docks (Blue Shimmer)",
+            "Snowman's Land (Pale Wallpaper)",
+            "Wet-Dry World (Skeeter)",
+            "Tall, Tall Mountain",
+            "Mountain Slide (Rocky Wall)",
+            "Tiny-Huge Island (Goombas)",
+            "Tick Tock Clock (Clock Face)",
+            "Goomboss Battle (Mario)",
+            "Big Boo Battle (Luigi)",
+            "Cheif Chilly Challenge (Wario)",
+            "Battle Fort (Unused)",
+            "Sunshine Isles"
+        };
+
         public static string[] DoorTypes = 
         {
             "Virtual door", 

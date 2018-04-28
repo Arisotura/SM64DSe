@@ -315,7 +315,8 @@ namespace SM64DSe
                 "- Treeki: the overlay decompression (Jap77), the object list and other help\n" +
                 "- Dirbaio: other help\n" +
                 "- blank: help with generating collision\n" + 
-                "- mibts: ASM hacking template v2, BCA optimisation, level editor enhancements and other help\n" + 
+                "- mibts: ASM hacking template v2, BCA optimisation, level editor enhancements and other help\n" +
+                "- juhape64: level editor object rendering and UI enhancements plus various other improvements and bug fixes\n" + 
                 "- Fiachra Murray: current developer and maintainer\n" + 
                 "\n" +
                 Program.AppTitle + " is free software. If you paid for it, notify Mega-Mario about it.\n" +

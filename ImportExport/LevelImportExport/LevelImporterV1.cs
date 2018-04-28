@@ -683,7 +683,7 @@ namespace SM64DSe.ImportExport.LevelImportExport
                 }
                 else if (reader.NodeType.Equals(XmlNodeType.Element) && reader.LocalName.Equals("Length"))
                 {
-                    obj.Parameters[1] = ushort.Parse(reader.ReadElementContentAsString());
+                    //obj.Parameters[1] = ushort.Parse(reader.ReadElementContentAsString());
                 }
                 else if (reader.NodeType.Equals(XmlNodeType.Element) && reader.LocalName.Equals("Parameters"))
                 {
@@ -736,7 +736,7 @@ namespace SM64DSe.ImportExport.LevelImportExport
         {
             int index = int.Parse(reader.GetAttribute("index"));
 
-            PathPointObject obj = level.AddPathPointObject(parent);
+            PathPointObject obj = level.AddPathPointObject(parent.m_PathID);
 
             while (reader.Read())
             {
@@ -1058,7 +1058,7 @@ namespace SM64DSe.ImportExport.LevelImportExport
 
         protected virtual void ReadType14Object(XmlReader reader, Level level)
         {
-            Type14Object obj = level.AddType14Object(0, 0);
+            StarCameraObject obj = level.AddType14Object(0, 0);
 
             while (reader.Read())
             {
