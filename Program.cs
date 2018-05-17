@@ -26,8 +26,8 @@ namespace SM64DSe
     static class Program
     {
         public static string AppTitle = "SM64DS Editor";
-        public static string AppVersion = "v2.4.0";
-        public static string AppDate = "2018-04-28";
+        public static string AppVersion = "v2.4.1";
+        public static string AppDate = "2018-05-17";
 
         public static string ServerURL = "http://kuribo64.net/";
 

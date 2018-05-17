@@ -28,7 +28,7 @@ namespace SM64DSe
             {
                 m_ParameterControls[i] = new RawUshortEdit(0, valueInput, m_displayInBinary) { ValueChanged = SendValueToLevelForm };
                 m_ParameterControls[i].MouseDown += DeselectOthers;
-                m_ParameterControls[i].Tag = "Parameter " + i;
+                m_ParameterControls[i].Tag = "Parameter " + (i + 1);
             }
 
             //Noting
