@@ -464,7 +464,10 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
             StringBuilder sb = new StringBuilder();
             foreach (Vector2 texCoord in texCoordsInBranch)
             {
-                sb.Append(Helper.ToString(texCoord.X) + " " + Helper.ToString(texCoord.Y) + " ");
+                if (texCoord != null)
+                {
+                    sb.Append(Helper.ToString(texCoord.X) + " " + Helper.ToString(texCoord.Y) + " ");
+                }
             }
             sb.Remove(sb.Length - 1, 1);// Remove extra space character at end
             writer.WriteString(sb.ToString());
