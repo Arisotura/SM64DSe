@@ -468,6 +468,10 @@ namespace SM64DSe.ImportExport.Writers.ExternalWriters
                 {
                     sb.Append(Helper.ToString(texCoord.X) + " " + Helper.ToString(texCoord.Y) + " ");
                 }
+                else
+                {
+                    sb.Append(Helper.ToString(0.0f) + " " + Helper.ToString(0.0f) + " ");
+                }
             }
             sb.Remove(sb.Length - 1, 1);// Remove extra space character at end
             writer.WriteString(sb.ToString());
